@@ -1,0 +1,40 @@
+includes:
+    - ../../vendor/larastan/larastan/extension.neon
+    - ../../vendor/nesbot/carbon/extension.neon
+    - ../../vendor/phpstan/phpstan/conf/bleedingEdge.neon
+
+parameters:
+    level: 5
+
+    # PHPDoc from Larastan / relations is often wider than runtime; reduces false "always true" branches
+    treatPhpDocTypesAsCertain: false
+
+    tmpDir: /tmp/phpstan
+
+    # tests/ omitted: Pest expectations are not PHPStan-friendly without pestphp/extension
+    paths:
+        - app/
+        - config
+        - database
+        - routes
+
+    excludePaths:
+        - vendor/**
+        - tests/Support/**
+
+    ignoreErrors:
+        -
+          message: "#Called 'env' outside of the config directory which returns null when the config is cached, use 'config'.$#"
+          identifier: larastan.noEnvCallsOutsideOfConfig
+          path: config/*
+        - '#PHPDoc tag @mixin contains unknown class.*IdeHelper.*#'
+
+    # Avoid noise when ignore patterns drift after refactors
+    reportUnmatchedIgnoredErrors: false
+
+    checkModelProperties: false
+    universalObjectCratesClasses:
+        - Illuminate\Database\Eloquent\Model
+    checkOctaneCompatibility: true
+    noEnvCallsOutsideOfConfig: true
+    checkModelAppends: true

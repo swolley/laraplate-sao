@@ -21,6 +21,11 @@ it('ships the required scaffolding file', function (string $relative_path): void
     'docs/GLOSSARY.md',
     'docs/rag/GLOSSARY.md',
     'docs/rag/MODULE.md',
+    'phpunit.xml',
+    'phpstan.neon',
+    'pint.json',
+    'peck.json',
+    'rector.php',
 ]);
 
 test('the licence is the AGPL text used by the sibling modules', function (): void {
@@ -38,6 +43,26 @@ test('the readme names the module and its licence', function (): void {
     expect((string) $readme)->toContain('SAO');
     expect((string) $readme)->toContain('Simply Another Orchestrator');
     expect((string) $readme)->toContain('GNU AGPL v3');
+});
+
+test('pint enforces strict types across the module', function (): void {
+    $contents = file_get_contents(dirname(__DIR__, 2) . '/pint.json');
+
+    expect($contents)->toBeString();
+
+    /** @var array{rules: array<string, mixed>} $config */
+    $config = json_decode((string) $contents, true, 512, JSON_THROW_ON_ERROR);
+
+    expect($config['rules']['declare_strict_types'] ?? null)->toBeTrue();
+});
+
+test('phpunit declares the three module test suites', function (): void {
+    $contents = file_get_contents(dirname(__DIR__, 2) . '/phpunit.xml');
+
+    expect($contents)->toBeString();
+    expect((string) $contents)->toContain('name="Unit"');
+    expect((string) $contents)->toContain('name="Integration"');
+    expect((string) $contents)->toContain('name="Feature"');
 });
 
 test('the RAG glossary mirrors the human glossary', function (): void {
