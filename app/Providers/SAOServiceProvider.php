@@ -1,46 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\SAO\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
-use Illuminate\Console\Scheduling\Schedule;
+use Modules\Core\Exceptions\ConfigurationException;
+use Modules\Core\Overrides\ModuleServiceProvider;
+use Nwidart\Modules\Facades\Module;
+use Override;
 
-class SAOServiceProvider extends ModuleServiceProvider
+final class SAOServiceProvider extends ModuleServiceProvider
 {
-    /**
-     * The name of the module.
-     */
+    #[Override]
     protected string $name = 'SAO';
 
-    /**
-     * The lowercase version of the module name.
-     */
+    #[Override]
     protected string $nameLower = 'sao';
-
-    /**
-     * Command classes to register.
-     *
-     * @var string[]
-     */
-    // protected array $commands = [];
 
     /**
      * Provider classes to register.
      *
-     * @var string[]
+     * @var array<int, class-string>
      */
     protected array $providers = [
         EventServiceProvider::class,
         RouteServiceProvider::class,
     ];
 
-    /**
-     * Define module schedules.
-     * 
-     * @param $schedule
-     */
-    // protected function configureSchedules(Schedule $schedule): void
-    // {
-    //     $schedule->command('inspire')->hourly();
-    // }
+    #[Override]
+    public function register(): void
+    {
+        throw_unless(Module::find('Core'), ConfigurationException::class, 'Core is required and must be enabled');
+
+        parent::register();
+    }
 }

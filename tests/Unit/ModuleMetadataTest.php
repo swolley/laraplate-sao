@@ -20,10 +20,8 @@ function sao_read_json(string $relative_path): array
 
     expect($contents)->not->toBeFalse("{$relative_path} must be readable");
 
-    /** @var array<string, mixed> $decoded */
-    $decoded = json_decode((string) $contents, true, 512, JSON_THROW_ON_ERROR);
-
-    return $decoded;
+    /** @var array<string, mixed> */
+    return json_decode((string) $contents, true, 512, JSON_THROW_ON_ERROR);
 }
 
 test('module.json declares Laraplate ownership and the Core dependency', function (): void {
