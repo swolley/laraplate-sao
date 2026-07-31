@@ -1,0 +1,11 @@
+{
+    "name": "SAO",
+    "alias": "sao",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\SAO\\Providers\\SAOServiceProvider"
+    ],
+    "files": []
+}

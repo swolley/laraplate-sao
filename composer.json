@@ -1,0 +1,30 @@
+{
+    "name": "swolley/sao",
+    "description": "",
+    "authors": [
+        {
+            "name": "Swolley",
+            "email": "myentity@inwind.it"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\SAO\\": "app/",
+            "Modules\\SAO\\Database\\Factories\\": "database/factories/",
+            "Modules\\SAO\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\SAO\\Tests\\": "tests/"
+        }
+    }
+}
