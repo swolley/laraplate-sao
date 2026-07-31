@@ -18,7 +18,9 @@ it('ships the required scaffolding file', function (string $relative_path): void
     '.gitignore',
     'module.json',
     'composer.json',
-    'docs/.gitkeep',
+    'docs/GLOSSARY.md',
+    'docs/rag/GLOSSARY.md',
+    'docs/rag/MODULE.md',
 ]);
 
 test('the licence is the AGPL text used by the sibling modules', function (): void {
@@ -36,4 +38,19 @@ test('the readme names the module and its licence', function (): void {
     expect((string) $readme)->toContain('SAO');
     expect((string) $readme)->toContain('Simply Another Orchestrator');
     expect((string) $readme)->toContain('GNU AGPL v3');
+});
+
+test('the RAG glossary mirrors the human glossary', function (): void {
+    $module_root = dirname(__DIR__, 2);
+
+    $human = file_get_contents($module_root . '/docs/GLOSSARY.md');
+    $rag = file_get_contents($module_root . '/docs/rag/GLOSSARY.md');
+
+    expect($human)->toBeString();
+    expect($rag)->toBeString();
+
+    foreach (['Connection', 'Signal', 'Ticket', 'ChangeRef', 'ClosurePolicy'] as $term) {
+        expect((string) $human)->toContain($term);
+        expect((string) $rag)->toContain($term);
+    }
 });
