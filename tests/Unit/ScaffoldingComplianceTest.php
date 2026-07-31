@@ -45,6 +45,29 @@ test('the readme names the module and its licence', function (): void {
     expect((string) $readme)->toContain('GNU AGPL v3');
 });
 
+it('ships the executable release script', function (string $relative_path): void {
+    $absolute_path = dirname(__DIR__, 2) . '/' . $relative_path;
+
+    expect(file_exists($absolute_path))->toBeTrue("Missing required file: {$relative_path}");
+    expect(is_executable($absolute_path))->toBeTrue("File must be executable: {$relative_path}");
+})->with([
+    'scripts/version.sh',
+    'scripts/setup-hooks.sh',
+    'scripts/hooks/post-commit',
+]);
+
+test('the module declares its own agent rules', function (): void {
+    $rules_path = dirname(__DIR__, 2) . '/.cursor/rules/module-context.mdc';
+
+    expect(file_exists($rules_path))->toBeTrue();
+
+    $contents = file_get_contents($rules_path);
+
+    expect($contents)->toBeString();
+    expect((string) $contents)->toContain('Modules/SAO');
+    expect((string) $contents)->toContain('Core');
+});
+
 test('pint enforces strict types across the module', function (): void {
     $contents = file_get_contents(dirname(__DIR__, 2) . '/pint.json');
 

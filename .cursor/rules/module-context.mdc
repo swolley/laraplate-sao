@@ -1,0 +1,29 @@
+---
+alwaysApply: false
+---
+
+# SAO module context (caveman)
+
+- Path: Modules/SAO only.
+- Root rules = base law. Always follow.
+- This file = extra SAO law.
+
+- SAO need Core. No Core, SAO no run.
+- SAO must work with ZERO connections configured. Ticketing is the core, not a plugin.
+- No orchestration logic in Filament or Vue. Engine live in services and queued jobs. Headless must still work.
+- No vendor name in core code. Core speak capabilities only: issues, vcs, logs, releases.
+  Vendor name outside app/Drivers = design defect.
+- No AI before phase 8. No `Modules\AI` reference in SAO source. Not even null objects.
+- Fingerprint rules live in Core, shared. SAO add only recovery from flattened payload text.
+- Native group key from source win. SAO compute own key only when source give none.
+- Every outbound write idempotent. Persisted idempotency key. Retry never make second ticket.
+- Status map live on binding, not on driver. Redmine and Jira status differ per install.
+- Driver not done when it work. Driver done when it pass capability conformance suite.
+- SAO ingest own errors, but NOT logs emitted while ingest pipeline run. Loop must be impossible.
+- Auto-close need evidence AND live source. Silence alone is not proof.
+
+- Core change impact big. Be careful.
+- If requirement unclear or risky: stop and ask user.
+
+- Design spec: docs/superpowers/specs/2026-07-31-sao-module-design.md in the application repo.
+- Vocabulary: docs/GLOSSARY.md in this module. Use those names. Do not invent parallel ones.
