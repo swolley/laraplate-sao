@@ -1,11 +1,22 @@
 {
     "name": "SAO",
+    "laraplate_owned": true,
     "alias": "sao",
-    "description": "",
-    "keywords": [],
-    "priority": 0,
+    "description": "SAO module — Simply Another Orchestrator: correlation engine between code, errors and work.",
+    "keywords": [
+        "sao",
+        "orchestrator",
+        "issue-tracking",
+        "observability",
+        "laraplate"
+    ],
+    "priority": 99,
     "providers": [
         "Modules\\SAO\\Providers\\SAOServiceProvider"
     ],
-    "files": []
+    "aliases": {},
+    "files": [],
+    "requires": [
+        "Core"
+    ]
 }
