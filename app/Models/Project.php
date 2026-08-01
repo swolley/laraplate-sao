@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Core\Models\Concerns\HasActivation;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ProjectFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -24,10 +23,16 @@ use Override;
  */
 final class Project extends Model
 {
+    use HasActivation {
+        HasActivation::casts as private activationCasts;
+    }
+
     /**
-     * The database carries the same default, but a freshly created model would
-     * otherwise report null until refreshed — and the allocator reads this
-     * value before incrementing it.
+     * Mirrors the database defaults so a freshly created model reports the same
+     * values it will have once refreshed. Without this the allocator, which
+     * reads next_ticket_number straight after creation, would see null.
+     *
+     * `is_active` is absent because HasActivation initializes it.
      *
      * @var array<string, mixed>
      */
@@ -38,7 +43,7 @@ final class Project extends Model
 
     /**
      * `next_ticket_number` is deliberately absent: only TicketKeyAllocator may
-     * move it, and only under a row lock.
+     * move it, and only under a row lock. `is_active` is added by HasActivation.
      *
      * @var list<string>
      */
@@ -47,7 +52,6 @@ final class Project extends Model
         'name',
         'key_prefix',
         'description',
-        'is_active',
     ];
 
     /**
@@ -91,24 +95,13 @@ final class Project extends Model
     }
 
     /**
-     * @param  Builder<Project>  $query
-     * @return Builder<Project>
-     */
-    #[Scope]
-    protected function active(Builder $query): Builder
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
      * @return array<string, mixed>
      */
     #[Override]
     protected function casts(): array
     {
-        return [
+        return array_merge($this->activationCasts(), [
             'next_ticket_number' => 'integer',
-            'is_active' => 'boolean',
-        ];
+        ]);
     }
 }
