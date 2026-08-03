@@ -14,6 +14,7 @@ use Modules\SAO\Database\Factories\TicketFactory;
 use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Enums\TicketPriority;
 use Override;
+use Overtrue\LaravelVersionable\VersionStrategy;
 
 /**
  * @mixin \Eloquent
@@ -68,6 +69,29 @@ final class Ticket extends Model
      */
     #[Override]
     protected $table = SAOTables::Tickets->value;
+
+    /**
+     * Which attributes the history records. Restricting the list keeps the
+     * timeline about the ticket rather than about its bookkeeping.
+     *
+     * @var list<string>
+     */
+    protected $versionable = [
+        'title',
+        'description',
+        'priority',
+        'ticket_status_id',
+        'ticket_type_id',
+        'assignee_id',
+    ];
+
+    /**
+     * Versioning is off until a model declares a strategy — Core resolves it
+     * from a per-model setting otherwise, which would make the ticket history
+     * depend on configuration that may not exist. DIFF records only what
+     * changed, which is what a timeline needs.
+     */
+    protected VersionStrategy $versionStrategy = VersionStrategy::DIFF;
 
     /**
      * @return array<string, array<string, list<string>>>
