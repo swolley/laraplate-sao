@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\Core\Models\Concerns\HasActivation;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ProjectFactory;
 use Modules\SAO\Enums\SAOTables;
+use Modules\SAO\Models\Pivot\ProjectTicketType;
 use Override;
 
 /**
@@ -84,6 +86,22 @@ final class Project extends Model
         ]);
 
         return $rules;
+    }
+
+    public function defaultTicketType(): ?TicketType
+    {
+        return $this->ticketTypes()->wherePivot('is_default', true)->first();
+    }
+
+    /**
+     * @return BelongsToMany<TicketType, $this, ProjectTicketType>
+     */
+    public function ticketTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(TicketType::class, SAOTables::ProjectTicketTypes->value)
+            ->using(ProjectTicketType::class)
+            ->withPivot(['is_default', 'workflow_scheme_id'])
+            ->withTimestamps();
     }
 
     /**
