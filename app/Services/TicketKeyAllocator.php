@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Services;
 
-use Illuminate\Support\Facades\DB;
 use Modules\SAO\Models\Project;
 
 /**
@@ -21,9 +20,9 @@ final class TicketKeyAllocator
      */
     public function allocate(Project $project): array
     {
-        return DB::transaction(function () use ($project): array {
+        return $project->getConnection()->transaction(function () use ($project): array {
             /** @var Project $locked */
-            $locked = Project::query()
+            $locked = $project->newQuery()
                 ->whereKey($project->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -32,7 +31,7 @@ final class TicketKeyAllocator
 
             // A direct update rather than save(): next_ticket_number is guarded,
             // and this is the only code allowed to move it.
-            Project::query()
+            $locked->newQuery()
                 ->whereKey($locked->getKey())
                 ->update(['next_ticket_number' => $number]);
 
