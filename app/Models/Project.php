@@ -16,13 +16,13 @@ use Override;
 
 /**
  * @mixin \Eloquent
- *
  * @property int $id
  * @property string $name
  * @property string $key_prefix
  * @property string|null $description
  * @property int $next_ticket_number
  * @property bool $is_active
+ * @mixin IdeHelperProject
  */
 final class Project extends Model
 {

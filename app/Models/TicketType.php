@@ -16,7 +16,6 @@ use Override;
  * defined once rather than once per project.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property string $name
  * @property string $slug
@@ -24,6 +23,7 @@ use Override;
  * @property string $colour
  * @property int $workflow_scheme_id
  * @property bool $is_defect
+ * @mixin IdeHelperTicketType
  */
 final class TicketType extends Model
 {
