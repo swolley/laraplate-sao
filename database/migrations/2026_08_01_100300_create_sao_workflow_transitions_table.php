@@ -22,9 +22,9 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->foreignId('from_status_id')
                 ->nullable()
+                ->comment('Null means the creation transition: it declares the scheme initial status')
                 ->constrained($statuses, 'id', "{$table_name}_from_status_FK")
-                ->restrictOnDelete()
-                ->comment('Null means the creation transition: it declares the scheme initial status');
+                ->restrictOnDelete();
             $table->foreignId('to_status_id')
                 ->constrained($statuses, 'id', "{$table_name}_to_status_FK")
                 ->restrictOnDelete();
