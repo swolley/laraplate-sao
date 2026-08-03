@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Locking\Traits\HasOptimisticLocking;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
@@ -101,6 +102,14 @@ final class Ticket extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignee_id');
+    }
+
+    /**
+     * @return HasMany<TicketComment, $this>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(TicketComment::class);
     }
 
     /**
