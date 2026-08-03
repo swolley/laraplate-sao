@@ -10,6 +10,7 @@ use Modules\Core\Models\Concerns\HasActivation;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ProjectFactory;
 use Modules\SAO\Enums\SAOTables;
+use Modules\SAO\Exceptions\ImmutableKeyPrefixException;
 use Modules\SAO\Models\Pivot\ProjectTicketType;
 use Override;
 
@@ -102,6 +103,19 @@ final class Project extends Model
             ->using(ProjectTicketType::class)
             ->withPivot(['is_default', 'workflow_scheme_id'])
             ->withTimestamps();
+    }
+
+    protected static function booted(): void
+    {
+        self::updating(static function (self $project): void {
+            if (! $project->isDirty('key_prefix')) {
+                return;
+            }
+
+            if ((int) $project->getOriginal('next_ticket_number') > 0) {
+                throw ImmutableKeyPrefixException::forProject((string) $project->getOriginal('name'));
+            }
+        });
     }
 
     /**
