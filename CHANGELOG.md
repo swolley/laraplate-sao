@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- *(sao)* Seed domain permissions and gate the workflow override
+- *(sao)* Add Filament resources for the configuration entities
+
+### ⚙️ Miscellaneous Tasks
+
+- *(models)* Add IdeHelper mixins to project and ticket models
+
+## [0.1.0] - 2026-08-03
+
+### 🚀 Features
+
 - *(sao)* Add the table registry and domain enums
 - *(sao)* Add the project entity with its ticket counter
 - *(sao)* Add global ticket statuses with canonical categories
