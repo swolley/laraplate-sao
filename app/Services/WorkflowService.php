@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\SAO\Services;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
+use Modules\Core\Support\PermissionName;
 use Modules\SAO\Data\ChangeContext;
 use Modules\SAO\Exceptions\TransitionNotAllowedException;
 use Modules\SAO\Models\Project;
@@ -76,7 +78,14 @@ final class WorkflowService
         $permitted = $this->availableTransitions($ticket)
             ->firstWhere('to_status_id', $to->getKey());
 
-        if (! $permitted instanceof WorkflowTransition && ! $context->hasOverride()) {
+        if (! $permitted instanceof WorkflowTransition) {
+            // Claiming an override is not the same as holding one. Without the
+            // permission the claim is worth nothing, which is what stops the
+            // escape hatch from becoming the normal way through.
+            if (! $context->hasOverride() || ! Gate::allows(PermissionName::forClass(Ticket::class, 'transition_override'))) {
+                throw TransitionNotAllowedException::between($ticket, $to);
+            }
+        } elseif ($permitted->required_permission !== null && ! Gate::allows($permitted->required_permission)) {
             throw TransitionNotAllowedException::between($ticket, $to);
         }
 

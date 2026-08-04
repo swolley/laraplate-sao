@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Core\Models\User;
+use Modules\Core\Support\PermissionName;
 use Modules\SAO\Data\ChangeContext;
+use Modules\SAO\Database\Seeders\SAOPermissionSeeder;
 use Modules\SAO\Enums\StatusCategory;
 use Modules\SAO\Exceptions\TransitionNotAllowedException;
 use Modules\SAO\Models\Project;
@@ -124,7 +126,12 @@ test('a declared transition moves the ticket', function (): void {
     expect($ticket->fresh()->ticket_status_id)->toBe($doing->id);
 });
 
-test('the override bypasses an undeclared transition', function (): void {
+/**
+ * Claiming an override is not the same as holding one: without the permission
+ * the claim is worth nothing, which is what stops the escape hatch from becoming
+ * the normal way through.
+ */
+test('an override without the permission is refused', function (): void {
     ['project' => $project, 'type' => $type, 'open' => $open, 'blocked' => $blocked] = sao_workflow_fixture();
 
     $ticket = Ticket::factory()->forProject($project)->create([
@@ -132,13 +139,55 @@ test('the override bypasses an undeclared transition', function (): void {
         'ticket_status_id' => $open->id,
     ]);
 
-    $moved = app(WorkflowService::class)->transition(
+    expect(fn (): Ticket => app(WorkflowService::class)->transition(
         $ticket,
         $blocked,
         ChangeContext::forAutomation('test')->withOverride(),
+    ))->toThrow(TransitionNotAllowedException::class);
+
+    expect($ticket->fresh()->ticket_status_id)->toBe($open->id);
+});
+
+test('an override held by a permitted user bypasses an undeclared transition', function (): void {
+    ['project' => $project, 'type' => $type, 'open' => $open, 'blocked' => $blocked] = sao_workflow_fixture();
+
+    $ticket = Ticket::factory()->forProject($project)->create([
+        'ticket_type_id' => $type->id,
+        'ticket_status_id' => $open->id,
+    ]);
+
+    $this->seed(SAOPermissionSeeder::class);
+
+    $user = User::factory()->create();
+    $user->givePermissionTo(PermissionName::forClass(Ticket::class, 'transition_override'));
+    $this->actingAs($user);
+
+    $moved = app(WorkflowService::class)->transition(
+        $ticket,
+        $blocked,
+        ChangeContext::forUser($user)->withOverride(),
     );
 
     expect($moved->ticket_status_id)->toBe($blocked->id);
+});
+
+test('a transition declaring a required permission refuses a user without it', function (): void {
+    ['project' => $project, 'type' => $type, 'open' => $open, 'doing' => $doing] = sao_workflow_fixture();
+
+    WorkflowTransition::query()
+        ->where('to_status_id', $doing->id)
+        ->update(['required_permission' => 'default.sao_tickets.assign']);
+
+    $ticket = Ticket::factory()->forProject($project)->create([
+        'ticket_type_id' => $type->id,
+        'ticket_status_id' => $open->id,
+    ]);
+
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    expect(fn (): Ticket => app(WorkflowService::class)->transition($ticket, $doing, ChangeContext::forUser($user)))
+        ->toThrow(TransitionNotAllowedException::class);
 });
 
 test('a context built for a user carries that user as the actor', function (): void {

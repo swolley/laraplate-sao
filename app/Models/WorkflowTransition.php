@@ -16,12 +16,14 @@ use Override;
  * transition, which is how a scheme declares the status a new ticket starts in.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $workflow_scheme_id
  * @property int|null $from_status_id
  * @property int $to_status_id
  * @property string $label
  * @property string|null $required_permission
+ *
  * @mixin IdeHelperWorkflowTransition
  */
 final class WorkflowTransition extends Model
