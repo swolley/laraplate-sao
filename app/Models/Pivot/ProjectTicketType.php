@@ -16,7 +16,6 @@ use Override;
  * @property int $ticket_type_id
  * @property bool $is_default
  * @property int|null $workflow_scheme_id
- *
  * @mixin \Eloquent
  * @mixin IdeHelperProjectTicketType
  */

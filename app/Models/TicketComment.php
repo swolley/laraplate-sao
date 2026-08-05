@@ -17,14 +17,12 @@ use Override;
 
 /**
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $ticket_id
  * @property int|null $author_id
  * @property CommentOrigin $origin
  * @property string|null $source_key
  * @property string $body
- *
  * @mixin IdeHelperTicketComment
  */
 final class TicketComment extends Model

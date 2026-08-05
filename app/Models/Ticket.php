@@ -18,7 +18,6 @@ use Overtrue\LaravelVersionable\VersionStrategy;
 
 /**
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $project_id
  * @property int $number
@@ -30,7 +29,6 @@ use Overtrue\LaravelVersionable\VersionStrategy;
  * @property string|null $description
  * @property int|null $reporter_id
  * @property int|null $assignee_id
- *
  * @mixin IdeHelperTicket
  */
 final class Ticket extends Model
