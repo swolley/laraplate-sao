@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Added
+
+- Phase 1a — internal ticketing core: projects, per-project ticket keys, ticket types with shareable workflow schemes, enforced transitions, comments, timeline, permissions with ACL-backed visibility, and Filament surfaces.
+
 ### 🚀 Features
 
 - *(sao)* Seed domain permissions and gate the workflow override
