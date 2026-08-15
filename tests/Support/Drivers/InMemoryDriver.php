@@ -43,11 +43,11 @@ final class InMemoryDriver implements DriverInterface, IssuesCapability, Release
     public function __construct()
     {
         $this->issues = [
-            '1' => ['id' => '1', 'title' => 'First', 'status' => 'Done'],
-            '2' => ['id' => '2', 'title' => 'Second', 'status' => 'Open'],
-            '3' => ['id' => '3', 'title' => 'Third', 'status' => 'Open'],
-            '4' => ['id' => '4', 'title' => 'Fourth', 'status' => 'Open'],
-            '5' => ['id' => '5', 'title' => 'Fifth', 'status' => 'Open'],
+            '1' => ['remote_id' => '1', 'title' => 'First', 'status' => 'Done'],
+            '2' => ['remote_id' => '2', 'title' => 'Second', 'status' => 'Open'],
+            '3' => ['remote_id' => '3', 'title' => 'Third', 'status' => 'Open'],
+            '4' => ['remote_id' => '4', 'title' => 'Fourth', 'status' => 'Open'],
+            '5' => ['remote_id' => '5', 'title' => 'Fifth', 'status' => 'Open'],
         ];
         $this->tags = ['v1.0.0', 'v1.0.1', 'v1.1.0', 'v2.0.0'];
     }
@@ -113,7 +113,7 @@ final class InMemoryDriver implements DriverInterface, IssuesCapability, Release
     public function create(BindingContext $context, array $attributes): array
     {
         $id = (string) (count($this->issues) + 1);
-        $issue = ['id' => $id] + $attributes;
+        $issue = ['remote_id' => $id] + $attributes;
         $this->issues[$id] = $issue;
 
         return $issue;
@@ -126,7 +126,7 @@ final class InMemoryDriver implements DriverInterface, IssuesCapability, Release
     #[Override]
     public function update(BindingContext $context, string $remoteId, array $attributes): array
     {
-        $this->issues[$remoteId] = array_merge($this->issues[$remoteId] ?? ['id' => $remoteId], $attributes);
+        $this->issues[$remoteId] = array_merge($this->issues[$remoteId] ?? ['remote_id' => $remoteId], $attributes);
 
         return $this->issues[$remoteId];
     }

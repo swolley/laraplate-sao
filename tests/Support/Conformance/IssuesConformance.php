@@ -31,7 +31,7 @@ final class IssuesConformance
             $page = $driver->list($context, $cursor);
 
             foreach ($page->items as $item) {
-                $ids[] = $item['id'] ?? null;
+                $ids[] = $item['remote_id'] ?? null;
             }
 
             $cursor = $page->nextCursor;
@@ -46,7 +46,7 @@ final class IssuesConformance
 
     private static function assertLookup(IssuesCapability $driver, BindingContext $context): void
     {
-        $first = $driver->list($context)->items[0]['id'];
+        $first = $driver->list($context)->items[0]['remote_id'];
 
         expect($driver->lookup($context, (string) $first))->toBeArray()
             ->and($driver->lookup($context, 'does-not-exist'))->toBeNull();
@@ -55,12 +55,12 @@ final class IssuesConformance
     private static function assertWrites(IssuesCapability $driver, BindingContext $context): void
     {
         $created = $driver->create($context, ['title' => 'Conformance']);
-        expect($created)->toHaveKey('id');
+        expect($created)->toHaveKey('remote_id');
 
-        $updated = $driver->update($context, (string) $created['id'], ['title' => 'Changed']);
+        $updated = $driver->update($context, (string) $created['remote_id'], ['title' => 'Changed']);
         expect($updated['title'])->toBe('Changed');
 
-        $driver->comment($context, (string) $created['id'], 'a comment');
+        $driver->comment($context, (string) $created['remote_id'], 'a comment');
     }
 
     private static function assertStatusTranslationUsesTheMap(IssuesCapability $driver): void
