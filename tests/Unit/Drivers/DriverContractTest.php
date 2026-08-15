@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Modules\SAO\Drivers\Contracts\IssuesCapability;
+use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Tests\Support\Drivers\FakeIssuesDriver;
@@ -30,7 +31,7 @@ test('the configuration schema flags secret fields', function (): void {
 });
 
 test('a capability list returns a Page that reports whether more pages remain', function (): void {
-    $context = new ConnectionContext(baseUrl: 'https://example.test', credentials: ['token' => 'x']);
+    $context = new BindingContext(new ConnectionContext(baseUrl: 'https://example.test', credentials: ['token' => 'x']));
     $page = (new FakeIssuesDriver)->list($context);
 
     expect($page->items)->toHaveCount(2)

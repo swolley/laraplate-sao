@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Drivers\Contracts;
 
-use Modules\SAO\Drivers\Support\ConnectionContext;
+use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\Page;
 
 /**
@@ -21,9 +21,9 @@ interface LogsCapability
     /**
      * @param  array<string, string>  $headers
      */
-    public function verifySignature(ConnectionContext $context, string $payload, array $headers): bool;
+    public function verifySignature(BindingContext $context, string $payload, array $headers): bool;
 
-    public function unpack(ConnectionContext $context, string $payload): Page;
+    public function unpack(BindingContext $context, string $payload): Page;
 
     public function carriesNativeGroupKey(): bool;
 }

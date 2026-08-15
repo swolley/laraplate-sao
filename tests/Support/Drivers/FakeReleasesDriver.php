@@ -6,6 +6,7 @@ namespace Modules\SAO\Tests\Support\Drivers;
 
 use Modules\SAO\Drivers\Contracts\DriverInterface;
 use Modules\SAO\Drivers\Contracts\ReleasesCapability;
+use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
@@ -57,13 +58,13 @@ final class FakeReleasesDriver implements DriverInterface, ReleasesCapability
     }
 
     #[Override]
-    public function tags(ConnectionContext $context, ?string $cursor = null): Page
+    public function tags(BindingContext $context, ?string $cursor = null): Page
     {
         return new Page([['tag' => 'v1.0.0'], ['tag' => 'v1.0.1']], nextCursor: null);
     }
 
     #[Override]
-    public function firstTagContaining(ConnectionContext $context, string $commitSha): ?string
+    public function firstTagContaining(BindingContext $context, string $commitSha): ?string
     {
         return null;
     }

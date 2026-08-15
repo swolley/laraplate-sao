@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\SAO\Tests\Support\Conformance;
 
 use Modules\SAO\Drivers\Contracts\IssuesCapability;
-use Modules\SAO\Drivers\Support\ConnectionContext;
+use Modules\SAO\Drivers\Support\BindingContext;
 
 /**
  * The battery every `issues` driver must pass. A driver is not done when it
@@ -13,7 +13,7 @@ use Modules\SAO\Drivers\Support\ConnectionContext;
  */
 final class IssuesConformance
 {
-    public static function assert(IssuesCapability $driver, ConnectionContext $context): void
+    public static function assert(IssuesCapability $driver, BindingContext $context): void
     {
         self::assertPaginatesBeyondOnePage($driver, $context);
         self::assertLookup($driver, $context);
@@ -21,7 +21,7 @@ final class IssuesConformance
         self::assertStatusTranslationUsesTheMap($driver);
     }
 
-    private static function assertPaginatesBeyondOnePage(IssuesCapability $driver, ConnectionContext $context): void
+    private static function assertPaginatesBeyondOnePage(IssuesCapability $driver, BindingContext $context): void
     {
         $ids = [];
         $cursor = null;
@@ -44,7 +44,7 @@ final class IssuesConformance
             ->and($ids)->not->toContain(null);
     }
 
-    private static function assertLookup(IssuesCapability $driver, ConnectionContext $context): void
+    private static function assertLookup(IssuesCapability $driver, BindingContext $context): void
     {
         $first = $driver->list($context)->items[0]['id'];
 
@@ -52,7 +52,7 @@ final class IssuesConformance
             ->and($driver->lookup($context, 'does-not-exist'))->toBeNull();
     }
 
-    private static function assertWrites(IssuesCapability $driver, ConnectionContext $context): void
+    private static function assertWrites(IssuesCapability $driver, BindingContext $context): void
     {
         $created = $driver->create($context, ['title' => 'Conformance']);
         expect($created)->toHaveKey('id');

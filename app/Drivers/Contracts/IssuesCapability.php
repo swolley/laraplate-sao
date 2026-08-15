@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Drivers\Contracts;
 
-use Modules\SAO\Drivers\Support\ConnectionContext;
+use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\Page;
 
 /**
@@ -18,23 +18,23 @@ interface IssuesCapability
     /**
      * @return array<string, mixed>|null
      */
-    public function lookup(ConnectionContext $context, string $remoteId): ?array;
+    public function lookup(BindingContext $context, string $remoteId): ?array;
 
-    public function list(ConnectionContext $context, ?string $cursor = null): Page;
-
-    /**
-     * @param  array<string, mixed>  $attributes
-     * @return array<string, mixed>
-     */
-    public function create(ConnectionContext $context, array $attributes): array;
+    public function list(BindingContext $context, ?string $cursor = null): Page;
 
     /**
      * @param  array<string, mixed>  $attributes
      * @return array<string, mixed>
      */
-    public function update(ConnectionContext $context, string $remoteId, array $attributes): array;
+    public function create(BindingContext $context, array $attributes): array;
 
-    public function comment(ConnectionContext $context, string $remoteId, string $body): void;
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    public function update(BindingContext $context, string $remoteId, array $attributes): array;
+
+    public function comment(BindingContext $context, string $remoteId, string $body): void;
 
     /**
      * @param  array<string, string>  $statusMap  Remote status name → canonical category.

@@ -6,6 +6,7 @@ namespace Modules\SAO\Tests\Support\Drivers;
 
 use Modules\SAO\Drivers\Contracts\DriverInterface;
 use Modules\SAO\Drivers\Contracts\IssuesCapability;
+use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConfigurationField;
 use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
@@ -65,13 +66,13 @@ final class FakeIssuesDriver implements DriverInterface, IssuesCapability
      * @return array<string, mixed>|null
      */
     #[Override]
-    public function lookup(ConnectionContext $context, string $remoteId): ?array
+    public function lookup(BindingContext $context, string $remoteId): ?array
     {
         return ['id' => $remoteId, 'title' => 'Fake issue'];
     }
 
     #[Override]
-    public function list(ConnectionContext $context, ?string $cursor = null): Page
+    public function list(BindingContext $context, ?string $cursor = null): Page
     {
         return new Page([['id' => '1'], ['id' => '2']], nextCursor: null);
     }
@@ -81,7 +82,7 @@ final class FakeIssuesDriver implements DriverInterface, IssuesCapability
      * @return array<string, mixed>
      */
     #[Override]
-    public function create(ConnectionContext $context, array $attributes): array
+    public function create(BindingContext $context, array $attributes): array
     {
         return ['id' => '3'] + $attributes;
     }
@@ -91,13 +92,13 @@ final class FakeIssuesDriver implements DriverInterface, IssuesCapability
      * @return array<string, mixed>
      */
     #[Override]
-    public function update(ConnectionContext $context, string $remoteId, array $attributes): array
+    public function update(BindingContext $context, string $remoteId, array $attributes): array
     {
         return ['id' => $remoteId] + $attributes;
     }
 
     #[Override]
-    public function comment(ConnectionContext $context, string $remoteId, string $body): void {}
+    public function comment(BindingContext $context, string $remoteId, string $body): void {}
 
     /**
      * @param  array<string, string>  $statusMap

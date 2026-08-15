@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Drivers\Contracts;
 
-use Modules\SAO\Drivers\Support\ConnectionContext;
+use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\Page;
 
 /**
@@ -15,7 +15,7 @@ use Modules\SAO\Drivers\Support\Page;
  */
 interface ReleasesCapability
 {
-    public function tags(ConnectionContext $context, ?string $cursor = null): Page;
+    public function tags(BindingContext $context, ?string $cursor = null): Page;
 
-    public function firstTagContaining(ConnectionContext $context, string $commitSha): ?string;
+    public function firstTagContaining(BindingContext $context, string $commitSha): ?string;
 }

@@ -7,6 +7,7 @@ namespace Modules\SAO\Tests\Support\Drivers;
 use Modules\SAO\Drivers\Contracts\DriverInterface;
 use Modules\SAO\Drivers\Contracts\IssuesCapability;
 use Modules\SAO\Drivers\Contracts\ReleasesCapability;
+use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConfigurationField;
 use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
@@ -93,13 +94,13 @@ final class InMemoryDriver implements DriverInterface, IssuesCapability, Release
      * @return array<string, mixed>|null
      */
     #[Override]
-    public function lookup(ConnectionContext $context, string $remoteId): ?array
+    public function lookup(BindingContext $context, string $remoteId): ?array
     {
         return $this->issues[$remoteId] ?? null;
     }
 
     #[Override]
-    public function list(ConnectionContext $context, ?string $cursor = null): Page
+    public function list(BindingContext $context, ?string $cursor = null): Page
     {
         return $this->paginate(array_values($this->issues), $cursor);
     }
@@ -109,7 +110,7 @@ final class InMemoryDriver implements DriverInterface, IssuesCapability, Release
      * @return array<string, mixed>
      */
     #[Override]
-    public function create(ConnectionContext $context, array $attributes): array
+    public function create(BindingContext $context, array $attributes): array
     {
         $id = (string) (count($this->issues) + 1);
         $issue = ['id' => $id] + $attributes;
@@ -123,7 +124,7 @@ final class InMemoryDriver implements DriverInterface, IssuesCapability, Release
      * @return array<string, mixed>
      */
     #[Override]
-    public function update(ConnectionContext $context, string $remoteId, array $attributes): array
+    public function update(BindingContext $context, string $remoteId, array $attributes): array
     {
         $this->issues[$remoteId] = array_merge($this->issues[$remoteId] ?? ['id' => $remoteId], $attributes);
 
@@ -131,7 +132,7 @@ final class InMemoryDriver implements DriverInterface, IssuesCapability, Release
     }
 
     #[Override]
-    public function comment(ConnectionContext $context, string $remoteId, string $body): void {}
+    public function comment(BindingContext $context, string $remoteId, string $body): void {}
 
     /**
      * @param  array<string, string>  $statusMap
@@ -143,7 +144,7 @@ final class InMemoryDriver implements DriverInterface, IssuesCapability, Release
     }
 
     #[Override]
-    public function tags(ConnectionContext $context, ?string $cursor = null): Page
+    public function tags(BindingContext $context, ?string $cursor = null): Page
     {
         $items = array_map(static fn (string $tag): array => ['tag' => $tag], $this->tags);
 
@@ -151,7 +152,7 @@ final class InMemoryDriver implements DriverInterface, IssuesCapability, Release
     }
 
     #[Override]
-    public function firstTagContaining(ConnectionContext $context, string $commitSha): ?string
+    public function firstTagContaining(BindingContext $context, string $commitSha): ?string
     {
         return $this->tags[0] ?? null;
     }
