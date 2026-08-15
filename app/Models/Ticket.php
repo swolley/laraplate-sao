@@ -7,6 +7,7 @@ namespace Modules\SAO\Models;
 use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -19,6 +20,7 @@ use Modules\SAO\Database\Factories\TicketFactory;
 use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Enums\StatusCategory;
 use Modules\SAO\Enums\TicketPriority;
+use Modules\SAO\Enums\TicketRelationType;
 use Override;
 use Overtrue\LaravelVersionable\VersionStrategy;
 use Spatie\MediaLibrary\HasMedia as MediaContract;
@@ -164,6 +166,57 @@ final class Ticket extends Model implements MediaContract
     public function links(): HasMany
     {
         return $this->hasMany(TicketLink::class);
+    }
+
+    /**
+     * Outgoing typed relations (this ticket is the source).
+     *
+     * @return HasMany<TicketRelation, $this>
+     */
+    public function relations(): HasMany
+    {
+        return $this->hasMany(TicketRelation::class, 'source_ticket_id');
+    }
+
+    /**
+     * Tickets on the far side of an outgoing relation of the given type. A
+     * symmetric type (`relates`) also resolves relations pointing at this ticket.
+     *
+     * @return EloquentCollection<int, Ticket>
+     */
+    public function relatedVia(TicketRelationType $type): EloquentCollection
+    {
+        $ids = TicketRelation::query()
+            ->where('source_ticket_id', $this->getKey())
+            ->where('type', $type->value)
+            ->pluck('target_ticket_id');
+
+        if (! $type->isDirectional()) {
+            $ids = $ids->merge(
+                TicketRelation::query()
+                    ->where('target_ticket_id', $this->getKey())
+                    ->where('type', $type->value)
+                    ->pluck('source_ticket_id'),
+            );
+        }
+
+        return self::query()->whereIn('id', $ids->unique()->all())->get();
+    }
+
+    /**
+     * Tickets holding an incoming relation of the given type — the inverse
+     * reading (e.g. the inverse of `blocks` is "blocked by").
+     *
+     * @return EloquentCollection<int, Ticket>
+     */
+    public function inverselyRelatedVia(TicketRelationType $type): EloquentCollection
+    {
+        $ids = TicketRelation::query()
+            ->where('target_ticket_id', $this->getKey())
+            ->where('type', $type->value)
+            ->pluck('source_ticket_id');
+
+        return self::query()->whereIn('id', $ids->all())->get();
     }
 
     /**
