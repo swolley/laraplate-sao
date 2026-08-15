@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Helpers\HasMedia;
 use Modules\Core\Locking\Traits\HasOptimisticLocking;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
@@ -20,6 +21,7 @@ use Modules\SAO\Enums\StatusCategory;
 use Modules\SAO\Enums\TicketPriority;
 use Override;
 use Overtrue\LaravelVersionable\VersionStrategy;
+use Spatie\MediaLibrary\HasMedia as MediaContract;
 
 /**
  * @mixin \Eloquent
@@ -39,8 +41,9 @@ use Overtrue\LaravelVersionable\VersionStrategy;
  *
  * @mixin IdeHelperTicket
  */
-final class Ticket extends Model
+final class Ticket extends Model implements MediaContract
 {
+    use HasMedia;
     use HasOptimisticLocking;
 
     /**
@@ -177,6 +180,14 @@ final class Ticket extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * Files attached to the ticket live in the Core-owned media library.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('attachments');
     }
 
     /**
