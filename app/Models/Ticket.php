@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Models;
 
+use Carbon\CarbonInterval;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,6 +15,7 @@ use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\TicketFactory;
 use Modules\SAO\Enums\SAOTables;
+use Modules\SAO\Enums\StatusCategory;
 use Modules\SAO\Enums\TicketPriority;
 use Override;
 use Overtrue\LaravelVersionable\VersionStrategy;
@@ -30,6 +34,7 @@ use Overtrue\LaravelVersionable\VersionStrategy;
  * @property string|null $description
  * @property int|null $reporter_id
  * @property int|null $assignee_id
+ * @property \Illuminate\Support\Carbon|null $due_at
  *
  * @mixin IdeHelperTicket
  */
@@ -64,6 +69,7 @@ final class Ticket extends Model
         'description',
         'reporter_id',
         'assignee_id',
+        'due_at',
     ];
 
     /**
@@ -110,6 +116,7 @@ final class Ticket extends Model
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'assignee_id' => ['nullable', 'integer'],
+            'due_at' => ['nullable', 'date'],
         ]);
 
         $rules['update'] = array_merge($rules['update'], [
@@ -117,6 +124,7 @@ final class Ticket extends Model
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'assignee_id' => ['nullable', 'integer'],
+            'due_at' => ['nullable', 'date'],
         ]);
 
         return $rules;
@@ -195,6 +203,40 @@ final class Ticket extends Model
     }
 
     /**
+     * Past-due tickets that still need work. A ticket in a terminal status
+     * (closed or rejected) is never overdue no matter its due date.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function overdue(Builder $query): Builder
+    {
+        return $query
+            ->whereNotNull('due_at')
+            ->where('due_at', '<', now())
+            ->whereHas('status', static function (Builder $status): void {
+                $status->whereNotIn('category', self::terminalStatusCategories());
+            });
+    }
+
+    /**
+     * Tickets whose due date falls within the next `$days` (or interval) from now.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function dueWithin(Builder $query, CarbonInterval|int $days): Builder
+    {
+        $interval = is_int($days) ? CarbonInterval::days($days) : $days;
+
+        return $query
+            ->whereNotNull('due_at')
+            ->whereBetween('due_at', [now(), now()->add($interval)]);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     #[Override]
@@ -206,6 +248,21 @@ final class Ticket extends Model
             'ticket_type_id' => 'integer',
             'ticket_status_id' => 'integer',
             'priority' => TicketPriority::class,
+            'due_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function terminalStatusCategories(): array
+    {
+        return array_values(array_map(
+            static fn (StatusCategory $category): string => $category->value,
+            array_filter(
+                StatusCategory::cases(),
+                static fn (StatusCategory $category): bool => $category->isTerminal(),
+            ),
+        ));
     }
 }
