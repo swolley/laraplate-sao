@@ -13,7 +13,7 @@ test('every SAO table name is prefixed with sao_', function (): void {
     }
 });
 
-test('the table registry declares the phase 1a tables', function (): void {
+test('the table registry declares the phase 1a tables plus the phase 3a connections table', function (): void {
     $values = array_column(SAOTables::cases(), 'value');
 
     expect($values)->toEqualCanonicalizing([
@@ -25,6 +25,7 @@ test('the table registry declares the phase 1a tables', function (): void {
         'sao_project_ticket_types',
         'sao_tickets',
         'sao_ticket_comments',
+        'sao_connections',
     ]);
 });
 

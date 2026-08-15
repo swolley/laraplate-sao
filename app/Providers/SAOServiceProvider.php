@@ -6,6 +6,7 @@ namespace Modules\SAO\Providers;
 
 use Modules\Core\Exceptions\ConfigurationException;
 use Modules\Core\Overrides\ModuleServiceProvider;
+use Modules\SAO\Drivers\DriverRegistry;
 use Nwidart\Modules\Facades\Module;
 use Override;
 
@@ -33,5 +34,7 @@ final class SAOServiceProvider extends ModuleServiceProvider
         throw_unless(Module::find('Core'), ConfigurationException::class, 'Core is required and must be enabled');
 
         parent::register();
+
+        $this->app->singleton(DriverRegistry::class);
     }
 }
