@@ -10,6 +10,7 @@ use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ConnectionFactory;
 use Modules\SAO\Drivers\Contracts\DriverInterface;
 use Modules\SAO\Drivers\DriverRegistry;
+use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\ConnectionHealth;
 use Modules\SAO\Enums\SAOTables;
@@ -56,6 +57,7 @@ final class Connection extends Model
         'base_url',
         'credential',
         'credential_ref',
+        'config',
         'capabilities',
         'health_state',
         'last_checked_at',
@@ -73,6 +75,16 @@ final class Connection extends Model
     public function driver(DriverRegistry $registry): DriverInterface
     {
         return $registry->get($this->driver_key);
+    }
+
+    /**
+     * Build the resolved, persistence-agnostic connection view for a driver.
+     *
+     * @param  array<string, mixed>  $credentials
+     */
+    public function connectionContext(array $credentials): ConnectionContext
+    {
+        return new ConnectionContext($this->base_url, $credentials);
     }
 
     /**
@@ -104,6 +116,7 @@ final class Connection extends Model
             'name' => ['string', 'max:255'],
             'base_url' => ['nullable', 'string', 'max:2048'],
             'credential_ref' => ['nullable', 'string', 'max:255'],
+            'config' => ['nullable', 'json'],
             // HasValidations validates the cast (serialized) value, which for an
             // AsEnumCollection column is a JSON string; the driver-subset
             // invariant enforces the semantic constraint on save.
@@ -148,6 +161,7 @@ final class Connection extends Model
     {
         return [
             'credential' => 'encrypted:array',
+            'config' => 'array',
             'capabilities' => AsEnumCollection::of(Capability::class),
             'health_state' => ConnectionHealth::class,
             'last_checked_at' => 'datetime',

@@ -44,6 +44,31 @@ test('declaring a capability the driver does not expose is rejected', function (
     ]))->toThrow(UnsupportedCapabilityException::class);
 });
 
+test('the config column persists as a plain (unencrypted) array', function (): void {
+    $fresh = Connection::factory()->create([
+        'driver_key' => 'fake',
+        'capabilities' => [Capability::Issues],
+        'config' => ['project' => 5, 'ticket_type' => 2],
+    ])->fresh();
+
+    expect($fresh->config)->toBe(['project' => 5, 'ticket_type' => 2])
+        // Config is non-secret: stored as plain JSON, unlike the encrypted credential.
+        ->and($fresh->getRawOriginal('config'))->toContain('project');
+});
+
+test('a connection builds a connection context from resolved credentials', function (): void {
+    $connection = Connection::factory()->create([
+        'driver_key' => 'fake',
+        'base_url' => 'https://tracker.test',
+        'capabilities' => [Capability::Issues],
+    ]);
+
+    $context = $connection->connectionContext(['token' => 'abc']);
+
+    expect($context->baseUrl)->toBe('https://tracker.test')
+        ->and($context->credentials)->toBe(['token' => 'abc']);
+});
+
 test('a connection resolves its driver from the registry', function (): void {
     $connection = Connection::factory()->create([
         'driver_key' => 'fake',
