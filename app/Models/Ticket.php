@@ -139,6 +139,22 @@ final class Ticket extends Model
     }
 
     /**
+     * @return HasMany<TicketLink, $this>
+     */
+    public function links(): HasMany
+    {
+        return $this->hasMany(TicketLink::class);
+    }
+
+    /**
+     * A ticket with no external link is internal; SAO is authoritative for it.
+     */
+    public function isInternal(): bool
+    {
+        return $this->links()->doesntExist();
+    }
+
+    /**
      * @return BelongsTo<Project, $this>
      */
     public function project(): BelongsTo

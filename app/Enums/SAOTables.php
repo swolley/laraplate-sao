@@ -20,4 +20,5 @@ enum SAOTables: string
     case TicketComments = 'sao_ticket_comments';
     case Connections = 'sao_connections';
     case ProjectBindings = 'sao_project_bindings';
+    case TicketLinks = 'sao_ticket_links';
 }
