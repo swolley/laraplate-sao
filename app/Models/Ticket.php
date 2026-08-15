@@ -196,6 +196,33 @@ final class Ticket extends Model
     }
 
     /**
+     * Users following the ticket. Notification delivery is out of scope here;
+     * this only records who watches.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function watchers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, SAOTables::TicketWatchers->value, 'ticket_id', 'user_id');
+    }
+
+    /**
+     * Idempotently record the user as a watcher.
+     */
+    public function watch(User $user): void
+    {
+        $this->watchers()->syncWithoutDetaching([$user->getKey()]);
+    }
+
+    /**
+     * Remove the user from the watchers.
+     */
+    public function unwatch(User $user): void
+    {
+        $this->watchers()->detach($user->getKey());
+    }
+
+    /**
      * @return BelongsTo<TicketType, $this>
      */
     public function type(): BelongsTo
