@@ -115,6 +115,16 @@ is no activity table. Authorization is entirely Laraplate's: permissions through
 restricts the view permission to one project hides the others, with no mechanism
 of SAO's own).
 
+## Driver framework (phase 3a)
+
+The integration layer's foundation is in place; no concrete external driver ships yet. A **driver** is registered code (`Modules\SAO\Drivers`); a **connection** (`Connection` model) is a configured instance of it. The registry is **open**: `DriverRegistry` is a singleton populated from `config('sao.drivers.registered')` and by any provider's `boot()` — adding a provider never requires editing SAO. Duplicate keys throw so a collision surfaces at boot.
+
+A driver implements `DriverInterface` (key, capabilities, ingest modes, configuration schema, health check) plus one or more per-capability contracts — `IssuesCapability`, `VcsCapability`, `LogsCapability`, `ReleasesCapability`. Domain services depend on those capabilities, never on a concrete driver. Drivers operate on a resolved `ConnectionContext` (base URL + credentials), never on the Eloquent model, so `app/Drivers` stays free of persistence. Every capability list returns a `Page` and callers follow `nextCursor` to completion; the conformance suite includes a multi-page fixture so a first-page-only read fails. Status translation takes the binding-provided map, never a hardcoded one.
+
+**Credentials (F4).** A `Connection` holds only non-secret coordinates plus its secret via one of two paths: an encrypted, write-only `credential` column, or a `credential_ref` env/config key that overrides it. `ConnectionCredentialResolver` is the single path from a connection to its secret (ref wins, else the decrypted column, else it throws); the raw secret is never rendered back to a UI and never stored in Core settings. A connection may expose only a subset of its driver's capabilities, enforced on save.
+
+**Conformance (spec §12).** `tests/Support/Conformance/*` are the reusable batteries a driver of a capability must pass; `InMemoryDriver` (test support) is a network-free reference driver that passes `issues` and `releases` and proves the registry → connection → resolver → capability stack runs offline. A driver is done when it passes conformance, not when it works.
+
 ## Roadmap
 
 Design: `docs/superpowers/specs/2026-07-31-sao-module-design.md` in the application repository.
@@ -123,7 +133,7 @@ Design: `docs/superpowers/specs/2026-07-31-sao-module-design.md` in the applicat
 -   Phase 1b — labels, watchers, attachments, due dates, ticket relations, search
 -   Phase 1c — kanban board
 -   Phase 2 — shared fingerprinting in Core, error signals, internal log source, loop protection
--   Phase 3 — driver framework, connections, capabilities and the first external issue tracker
+-   Phase 3 — driver framework, connections, capabilities and the first external issue tracker (3a foundation **done**: registry, contracts, `Connection`, credential resolver, conformance suite; 3b adds the first concrete driver — Redmine — and ticket sync)
 -   Phase 4 — source profiles, generic webhook ingest and replay
 -   Phase 5 — version control and release capabilities, code-to-work references, version census
 -   Phase 6 — fix propagation and evidence-based closure policies

@@ -35,6 +35,17 @@ final class SAOServiceProvider extends ModuleServiceProvider
 
         parent::register();
 
-        $this->app->singleton(DriverRegistry::class);
+        $this->app->singleton(DriverRegistry::class, static function ($app): DriverRegistry {
+            $registry = new DriverRegistry;
+
+            /** @var list<class-string> $registered */
+            $registered = (array) config('sao.drivers.registered', []);
+
+            foreach ($registered as $driver) {
+                $registry->register($app->make($driver));
+            }
+
+            return $registry;
+        });
     }
 }
