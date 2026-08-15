@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Locking\Traits\HasOptimisticLocking;
 use Modules\Core\Models\User;
@@ -144,6 +145,14 @@ final class Ticket extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(TicketComment::class);
+    }
+
+    /**
+     * @return BelongsToMany<Label, $this>
+     */
+    public function labels(): BelongsToMany
+    {
+        return $this->belongsToMany(Label::class, SAOTables::TicketLabel->value);
     }
 
     /**

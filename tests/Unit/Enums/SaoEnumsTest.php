@@ -25,6 +25,8 @@ test('the table registry declares the phase 1a tables plus the phase 3a connecti
         'sao_project_ticket_types',
         'sao_tickets',
         'sao_ticket_comments',
+        'sao_labels',
+        'sao_ticket_label',
         'sao_connections',
         'sao_project_bindings',
         'sao_ticket_links',

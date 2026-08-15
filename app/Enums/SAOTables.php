@@ -18,6 +18,8 @@ enum SAOTables: string
     case ProjectTicketTypes = 'sao_project_ticket_types';
     case Tickets = 'sao_tickets';
     case TicketComments = 'sao_ticket_comments';
+    case Labels = 'sao_labels';
+    case TicketLabel = 'sao_ticket_label';
     case Connections = 'sao_connections';
     case ProjectBindings = 'sao_project_bindings';
     case TicketLinks = 'sao_ticket_links';
