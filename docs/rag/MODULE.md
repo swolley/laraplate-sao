@@ -91,6 +91,30 @@ exists yet.
 Not yet present: labels, watchers, attachments, due dates, ticket relations and
 the board (slices 1b and 1c), and every form of external integration.
 
+## How it works (developer)
+
+Configuration is **data, not code**: statuses, workflow schemes, transitions and
+ticket types are rows, so a deployment can reshape the process without a release.
+A ticket's permitted moves come from the workflow scheme of its `(project, type)`
+pair, with an optional per-project scheme override gated by its own permission.
+
+All orchestration lives in domain services, never in a UI layer, so the Filament
+panel, a future API and phase 2's automation share one enforcement path:
+
+| Service | Responsibility |
+|---------|----------------|
+| `TicketCreationService::open()` | The single path that opens a ticket. |
+| `WorkflowService` | The only path to a status change; transitions are enforced here (not merely hidden in the UI) because the API and automation move tickets too. |
+| `TicketKeyAllocator` | Allocates the per-project key (`SAO-123`) under `lockForUpdate`; gaps are accepted (a rolled-back transaction loses its number) rather than serializing every creation. |
+| `TicketQueryService` | The only sanctioned read path. Core's `HasACL` global scope is an unimplemented TODO, so raw `Ticket::query()` would silently bypass row-level visibility — every read goes through here or Core's CRUD layer. |
+| `TicketTimelineService` | Merges comments and Core version history into one ordered stream; the single place that knows where history comes from, so a future activity table would replace only its second half. |
+
+History is therefore a **read model** over Core's versioning plus comments — there
+is no activity table. Authorization is entirely Laraplate's: permissions through
+`PermissionName`, row-level visibility through Core's ACL filters (an ACL that
+restricts the view permission to one project hides the others, with no mechanism
+of SAO's own).
+
 ## Roadmap
 
 Design: `docs/superpowers/specs/2026-07-31-sao-module-design.md` in the application repository.
