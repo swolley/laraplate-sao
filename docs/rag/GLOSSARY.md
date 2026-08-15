@@ -70,6 +70,14 @@ it rather than invent parallel names.
 | **Internal ticket** | A ticket with no `TicketLink`. The default, and the reason standalone use needs no special code path. |
 | **ChangeRef** | The link between a code artefact (commit, pull request, tag) and a ticket, with the source that produced it. |
 | **Idempotency key** | The persisted key carried by every outbound write, so a retry can never produce a second comment or a second ticket. Trackers rarely offer idempotent write APIs; the guarantee lives on our side. |
+| **Due date** | A ticket's `due_at`. The `overdue` scope selects past-due tickets not in a terminal status; `dueWithin` selects tickets due in the next N days. |
+| **Label** | A project-scoped tag on a ticket (unique name per project). Attached many-to-many through `sao_ticket_label`. |
+| **Watcher** | A user following a ticket. Record-only in 1b: `watch()`/`unwatch()` are idempotent; notification delivery is out of scope. |
+| **Attachment** | A file on a ticket's `attachments` media collection, stored in the Core-owned media library (`vend_media`). SAO uses Core's `HasMedia`, depending only on Core. |
+| **TicketRelation** | A typed link between two tickets (`TicketRelationType`: blocks/duplicates/relates). Directional types read differently per end (`blocks` inverts to "blocked by"); `relates` is symmetric. Self-relations are rejected. |
+| **TicketSearchCriteria** | An immutable, JSON-serialisable description of a ticket search (text, status, type, priority, assignee, label, due window, overdue). |
+| **TicketSearchService** | Turns a `TicketSearchCriteria` into a query built strictly on `TicketQueryService::visible()`, so a search never surfaces a hidden ticket. |
+| **SavedFilter** | A user's persisted `TicketSearchCriteria`, optionally scoped to one project. Round-trips back into criteria for reapplication. |
 
 ## Automation
 

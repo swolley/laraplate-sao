@@ -83,13 +83,18 @@ exists yet.
     for one project alone
 -   Tickets with optimistic locking, comments distinguishing people from
     automation, and a timeline merging comments with Core's version history
+-   Ticket enrichment (1b): due dates (with `overdue`/`dueWithin` scopes),
+    project-scoped labels, watchers (record-only), attachments on the Core-owned
+    media library, typed ticket-to-ticket relations (blocks/duplicates/relates),
+    and advanced search with saved filters
 -   Authorization entirely Laraplate's: permissions through `PermissionName`, and
     row-level visibility through Core's ACL filters — an ACL restricting the view
     permission to one project hides the others, with no mechanism of SAO's own
 -   Filament surfaces for projects, statuses, types, workflow schemes and tickets
 
-Not yet present: labels, watchers, attachments, due dates, ticket relations and
-the board (slices 1b and 1c), and every form of external integration.
+Not yet present: the kanban board (1c), Filament surfaces for the 1b enrichment
+(models and services ship; the resource wiring is the remaining optional step),
+and every form of external integration beyond the phase 3a/3b foundation.
 
 ## How it works (developer)
 
@@ -108,6 +113,15 @@ panel, a future API and phase 2's automation share one enforcement path:
 | `TicketKeyAllocator` | Allocates the per-project key (`SAO-123`) under `lockForUpdate`; gaps are accepted (a rolled-back transaction loses its number) rather than serializing every creation. |
 | `TicketQueryService` | The only sanctioned read path. Core's `HasACL` global scope is an unimplemented TODO, so raw `Ticket::query()` would silently bypass row-level visibility — every read goes through here or Core's CRUD layer. |
 | `TicketTimelineService` | Merges comments and Core version history into one ordered stream; the single place that knows where history comes from, so a future activity table would replace only its second half. |
+| `TicketSearchService` | Filters tickets by a `TicketSearchCriteria` (text, status, type, priority, assignee, label, due window, overdue). It builds strictly on `TicketQueryService::visible()`, so a search never surfaces a hidden ticket. A `SavedFilter` persists a criteria set and round-trips back into a `TicketSearchCriteria` for reapplication. |
+
+Ticket enrichment (1b) is model-level: `due_at` with `overdue`/`dueWithin`
+scopes; a project-scoped `Label` (unique name per project) via a
+`sao_ticket_label` pivot; `watchers()` with idempotent `watch()`/`unwatch()`
+(notification delivery is out of scope); `attachments` on the Core-owned media
+library (`HasMedia`), so SAO depends only on Core; and typed `TicketRelation`
+records (`TicketRelationType`: blocks/duplicates/relates) resolved through
+`relatedVia()` and `inverselyRelatedVia()`, rejecting self-relations.
 
 History is therefore a **read model** over Core's versioning plus comments — there
 is no activity table. Authorization is entirely Laraplate's: permissions through
@@ -130,10 +144,10 @@ A driver implements `DriverInterface` (key, capabilities, ingest modes, configur
 Design: `docs/superpowers/specs/2026-07-31-sao-module-design.md` in the application repository.
 
 -   Phase 1a — internal ticketing core and base Filament surfaces (**done**)
--   Phase 1b — labels, watchers, attachments, due dates, ticket relations, search
+-   Phase 1b — labels, watchers, attachments, due dates, ticket relations, search and saved filters (**done** at the model/service level; Filament surfaces for the enrichment are the remaining optional step)
 -   Phase 1c — kanban board
 -   Phase 2 — shared fingerprinting in Core, error signals, internal log source, loop protection
--   Phase 3 — driver framework, connections, capabilities and the first external issue tracker (3a foundation **done**: registry, contracts, `Connection`, credential resolver, conformance suite; 3b adds the first concrete driver — Redmine — and ticket sync)
+-   Phase 3 — driver framework, connections, capabilities and the first external issue tracker (3a foundation **done**: registry, contracts, `Connection`, credential resolver, conformance suite; 3b **done** at the core level: `ProjectBinding`, `TicketLink`, the internal issues driver and `IssueSyncService`; the first concrete external driver — Redmine — is still pending real API fixtures)
 -   Phase 4 — source profiles, generic webhook ingest and replay
 -   Phase 5 — version control and release capabilities, code-to-work references, version census
 -   Phase 6 — fix propagation and evidence-based closure policies
