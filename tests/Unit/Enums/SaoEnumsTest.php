@@ -28,6 +28,7 @@ test('the table registry declares the phase 1a tables plus the phase 3a connecti
         'sao_connections',
         'sao_project_bindings',
         'sao_ticket_links',
+        'sao_sync_operations',
     ]);
 });
 
