@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\SAO\Providers;
 
 use Modules\Core\Exceptions\ConfigurationException;
+use Modules\Core\Logging\Fingerprint\Fingerprinter;
+use Modules\Core\Logging\Fingerprint\FingerprintNormalizer;
 use Modules\Core\Overrides\ModuleServiceProvider;
 use Modules\SAO\Drivers\DriverRegistry;
 use Nwidart\Modules\Facades\Module;
@@ -47,5 +49,12 @@ final class SAOServiceProvider extends ModuleServiceProvider
 
             return $registry;
         });
+
+        // The shared fingerprinter is built from Core's default rule chain so
+        // the payload path and the in-process resolver hash identically.
+        $this->app->bind(
+            Fingerprinter::class,
+            static fn (): Fingerprinter => new Fingerprinter(FingerprintNormalizer::default()),
+        );
     }
 }
