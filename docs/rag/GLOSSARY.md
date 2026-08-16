@@ -31,9 +31,13 @@ it rather than invent parallel names.
 | **ProjectBinding** | A link from a project to a connection for one capability, plus binding-scoped configuration: sync direction, status map, priority map. |
 | **Sync direction** | Who owns a ticket. `mirror`: SAO owns it, the external system receives writes. `shadow`: the external system owns it, SAO reads and correlates. A project with no `issues` binding is local. |
 | **Status map** | The translation between canonical statuses and one specific remote installation's statuses. Lives on the binding, never on the driver: Redmine statuses are per-installation and Jira workflows per-project. |
-| **Environment** | A deployed instance of a project (`production`, `staging`, customer X) with the version currently running on it. |
+| **Environment** | A deployment target of a project (`production`, `staging`, …), unique by name per project, recording `current_version` last seen running and `last_seen_at`. |
 | **Environment liveness** | The last time an environment was observed sending anything. Absence of errors is evidence only when the source was demonstrably alive. |
-| **Release** | A version of a project (tag, commit, date) and the map of where it is deployed. |
+| **Deploy census** | `DeployCensusService`'s answer to "what runs where": one row per environment (version + freshness). Written by two feeds — `observe()` for a passive signal and `recordProbe()` for an active check, both stamping `last_seen_at` — and read via `census(project, ttl)`. |
+| **Staleness** | Whether what we know about an environment is older than a caller-chosen TTL. An environment never seen is stale by definition, so the census never claims certainty it lacks. |
+| **Release** | A product version of a project, named as its stable label, with status `announced` (being assembled) or `shipped` (a stable tag realizing it exists). |
+| **ReleaseTag** | A concrete VCS tag realizing a release, `stable` (shippable) or `candidate` (an RC keeping a testable reference for staging). |
+| **TicketRelease** | The attribution of a ticket to a release as `promised` or `shipped`. The pair is unique and the state is deliberately independent of the ticket's own workflow status. |
 
 ## Ingest
 
