@@ -10,6 +10,8 @@ use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Modules\SAO\Tests\Support\Conformance\IssuesConformance;
+use Modules\SAO\Tests\Support\Conformance\ReleasesConformance;
+use Modules\SAO\Tests\Support\Conformance\VcsConformance;
 
 /**
  * A network-free, stateful stand-in for the GitLab REST v4 API. Pagination is
@@ -80,6 +82,51 @@ function fakeGitLab(): void
             return Http::response(['id' => 1], 201);
         }
 
+        if ($path === '/api/v4/projects/42/repository/commits' && $method === 'GET') {
+            $page = (int) ($query['page'] ?? 1);
+            $perPage = (int) ($query['per_page'] ?? 20);
+            $all = array_map(static fn (int $n): array => [
+                'id' => 'c' . $n,
+                'message' => 'commit ' . $n,
+                'web_url' => "https://gitlab.com/acme/widgets/-/commit/c{$n}",
+            ], range(1, 5));
+            $slice = array_slice($all, ($page - 1) * $perPage, $perPage);
+
+            return Http::response(array_values($slice), 200, [
+                'X-Next-Page' => $page * $perPage < count($all) ? (string) ($page + 1) : '',
+            ]);
+        }
+
+        if ($path === '/api/v4/projects/42/repository/compare' && $method === 'GET') {
+            return Http::response(['commits' => [['id' => 'c1']], 'diffs' => []]);
+        }
+
+        if (str_starts_with($path, '/api/v4/projects/42/repository/files/')) {
+            $file = rawurldecode(mb_substr($path, mb_strlen('/api/v4/projects/42/repository/files/')));
+
+            return $file === 'README.md'
+                ? Http::response(['content' => base64_encode("# Widgets\n"), 'encoding' => 'base64'])
+                : Http::response(['message' => '404 File Not Found'], 404);
+        }
+
+        if ($path === '/api/v4/projects/42/merge_requests' && $method === 'POST') {
+            return Http::response(['iid' => 7, 'web_url' => 'https://gitlab.com/acme/widgets/-/merge_requests/7'], 201);
+        }
+
+        if ($path === '/api/v4/projects/42/repository/tags' && $method === 'GET') {
+            $page = (int) ($query['page'] ?? 1);
+            $perPage = (int) ($query['per_page'] ?? 20);
+            $all = array_map(static fn (string $t): array => [
+                'name' => $t,
+                'commit' => ['id' => 'sha-' . $t],
+            ], ['v1.0.0', 'v1.1.0', 'v2.0.0']);
+            $slice = array_slice($all, ($page - 1) * $perPage, $perPage);
+
+            return Http::response(array_values($slice), 200, [
+                'X-Next-Page' => $page * $perPage < count($all) ? (string) ($page + 1) : '',
+            ]);
+        }
+
         return Http::response(['message' => 'Unhandled'], 500);
     });
 }
@@ -111,12 +158,19 @@ function gitlabContext(): BindingContext
     );
 }
 
-test('the gitlab driver declares the issues capability and pull ingest', function (): void {
+test('the gitlab driver declares issues, vcs and releases with pull ingest', function (): void {
     $driver = new GitLabDriver;
 
     expect($driver->key())->toBe('gitlab')
-        ->and($driver->capabilities())->toBe([Capability::Issues])
+        ->and($driver->capabilities())->toBe([Capability::Issues, Capability::Vcs, Capability::Releases])
         ->and($driver->ingestModes())->toBe([IngestMode::Pull]);
+});
+
+test('the gitlab driver passes the vcs and releases conformance suites', function (): void {
+    fakeGitLab();
+
+    VcsConformance::assert(new GitLabDriver, gitlabContext());
+    ReleasesConformance::assert(new GitLabDriver, gitlabContext());
 });
 
 test('the gitlab driver passes the issues conformance suite', function (): void {

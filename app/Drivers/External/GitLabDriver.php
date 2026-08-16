@@ -8,6 +8,8 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Modules\SAO\Drivers\Contracts\DriverInterface;
 use Modules\SAO\Drivers\Contracts\IssuesCapability;
+use Modules\SAO\Drivers\Contracts\ReleasesCapability;
+use Modules\SAO\Drivers\Contracts\VcsCapability;
 use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConfigurationField;
 use Modules\SAO\Drivers\Support\ConnectionContext;
@@ -27,7 +29,7 @@ use Throwable;
  * `iid`. Pagination follows the `X-Next-Page` response header. The status is the
  * issue `state` (opened/closed), mapped through the binding map.
  */
-final readonly class GitLabDriver implements DriverInterface, IssuesCapability
+final readonly class GitLabDriver implements DriverInterface, IssuesCapability, ReleasesCapability, VcsCapability
 {
     private const int DEFAULT_PAGE_SIZE = 20;
 
@@ -43,7 +45,7 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability
     #[Override]
     public function capabilities(): array
     {
-        return [Capability::Issues];
+        return [Capability::Issues, Capability::Vcs, Capability::Releases];
     }
 
     /**
@@ -170,6 +172,152 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability
     public function translateStatus(array $statusMap, string $remoteStatus): ?string
     {
         return $statusMap[$remoteStatus] ?? null;
+    }
+
+    #[Override]
+    public function commits(BindingContext $context, string $range, ?string $cursor = null): Page
+    {
+        $page = $cursor === null ? 1 : (int) $cursor;
+
+        $response = $this->connection($context)->get($this->repositoryPath($context) . '/commits', [
+            'ref_name' => $range,
+            'per_page' => $this->pageSize($context),
+            'page' => $page,
+        ]);
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $response->json() ?? [];
+
+        $items = array_map(static fn (array $commit): array => [
+            'sha' => (string) ($commit['id'] ?? ''),
+            'message' => isset($commit['message']) ? (string) $commit['message'] : null,
+            'url' => isset($commit['web_url']) ? (string) $commit['web_url'] : null,
+        ], $rows);
+
+        $nextPage = $response->header('X-Next-Page');
+
+        return new Page(
+            array_values($items),
+            nextCursor: $nextPage === null || $nextPage === '' ? null : $nextPage,
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    #[Override]
+    public function compare(BindingContext $context, string $base, string $head): array
+    {
+        $response = $this->connection($context)->get($this->repositoryPath($context) . '/compare', [
+            'from' => $base,
+            'to' => $head,
+        ]);
+
+        /** @var array<string, mixed> $payload */
+        return $response->json() ?? [];
+    }
+
+    #[Override]
+    public function fileAtRef(BindingContext $context, string $path, string $ref): ?string
+    {
+        $response = $this->connection($context)->get(
+            $this->repositoryPath($context) . '/files/' . rawurlencode($path),
+            ['ref' => $ref],
+        );
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $content = $response->json('content');
+
+        if (! is_string($content)) {
+            return null;
+        }
+
+        $decoded = base64_decode(str_replace("\n", '', $content), true);
+
+        return $decoded === false ? null : $decoded;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    #[Override]
+    public function openPullRequest(BindingContext $context, array $attributes): array
+    {
+        $response = $this->connection($context)->post('/api/v4/projects/' . (string) $context->remoteIdentifier . '/merge_requests', [
+            'source_branch' => $attributes['source'] ?? null,
+            'target_branch' => $attributes['target'] ?? null,
+            'title' => $attributes['title'] ?? null,
+            'description' => $attributes['body'] ?? null,
+        ]);
+
+        /** @var array<string, mixed> $mr */
+        $mr = $response->json() ?? [];
+
+        return [
+            'remote_id' => isset($mr['iid']) ? (string) $mr['iid'] : null,
+            'url' => isset($mr['web_url']) ? (string) $mr['web_url'] : null,
+            'raw' => $mr,
+        ];
+    }
+
+    #[Override]
+    public function tags(BindingContext $context, ?string $cursor = null): Page
+    {
+        $page = $cursor === null ? 1 : (int) $cursor;
+
+        $response = $this->connection($context)->get($this->repositoryPath($context) . '/tags', [
+            'per_page' => $this->pageSize($context),
+            'page' => $page,
+        ]);
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $response->json() ?? [];
+
+        $items = array_map(static fn (array $tag): array => [
+            'tag' => (string) ($tag['name'] ?? ''),
+            'sha' => isset($tag['commit']['id']) ? (string) $tag['commit']['id'] : null,
+        ], $rows);
+
+        $nextPage = $response->header('X-Next-Page');
+
+        return new Page(
+            array_values($items),
+            nextCursor: $nextPage === null || $nextPage === '' ? null : $nextPage,
+        );
+    }
+
+    /**
+     * Best-effort over the first page of tags: the first tag whose comparison
+     * from the commit yields commits (the tag is ahead of the commit, so it
+     * contains it). GitLab exposes no single "tags containing commit" endpoint.
+     */
+    #[Override]
+    public function firstTagContaining(BindingContext $context, string $commitSha): ?string
+    {
+        foreach ($this->tags($context)->items as $tag) {
+            $name = (string) ($tag['tag'] ?? '');
+
+            if ($name === '') {
+                continue;
+            }
+
+            $commits = $this->compare($context, $commitSha, $name)['commits'] ?? null;
+
+            if (is_array($commits) && $commits !== []) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
+    private function repositoryPath(BindingContext $context): string
+    {
+        return '/api/v4/projects/' . (string) $context->remoteIdentifier . '/repository';
     }
 
     /**
