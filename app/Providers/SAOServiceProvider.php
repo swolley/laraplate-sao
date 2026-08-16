@@ -9,6 +9,7 @@ use Modules\Core\Logging\Fingerprint\Fingerprinter;
 use Modules\Core\Logging\Fingerprint\FingerprintNormalizer;
 use Modules\Core\Overrides\ModuleServiceProvider;
 use Modules\SAO\Drivers\DriverRegistry;
+use Modules\SAO\Ingest\PipelineContext;
 use Nwidart\Modules\Facades\Module;
 use Override;
 
@@ -56,5 +57,8 @@ final class SAOServiceProvider extends ModuleServiceProvider
             Fingerprinter::class,
             static fn (): Fingerprinter => new Fingerprinter(FingerprintNormalizer::default()),
         );
+
+        // The pipeline-origin marker must be shared process-wide.
+        $this->app->singleton(PipelineContext::class);
     }
 }
