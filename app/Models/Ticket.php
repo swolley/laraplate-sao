@@ -145,6 +145,14 @@ final class Ticket extends Model implements MediaContract
     }
 
     /**
+     * @return HasMany<ChangeRef, $this>
+     */
+    public function changeRefs(): HasMany
+    {
+        return $this->hasMany(ChangeRef::class);
+    }
+
+    /**
      * @return HasMany<TicketComment, $this>
      */
     public function comments(): HasMany

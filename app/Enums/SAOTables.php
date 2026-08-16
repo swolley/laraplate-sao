@@ -28,6 +28,11 @@ enum SAOTables: string
     case SignalAliases = 'sao_signal_aliases';
     case SourceProfiles = 'sao_source_profiles';
     case IngestEvents = 'sao_ingest_events';
+    case ChangeRefs = 'sao_change_refs';
+    case Releases = 'sao_releases';
+    case ReleaseTags = 'sao_release_tags';
+    case TicketReleases = 'sao_ticket_releases';
+    case Environments = 'sao_environments';
     case Connections = 'sao_connections';
     case ProjectBindings = 'sao_project_bindings';
     case TicketLinks = 'sao_ticket_links';
