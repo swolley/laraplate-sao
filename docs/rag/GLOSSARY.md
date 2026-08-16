@@ -89,7 +89,11 @@ it rather than invent parallel names.
 
 | Term | Meaning |
 |------|---------|
-| **ClosurePolicy** | A per-project set of closure conditions combined with AND, plus the action taken when they hold: close, propose closure, or notify only. |
-| **Closure condition** | One independently testable predicate over verifiable facts: `pull_request_merged`, `no_recurrence_for`, `fix_released`, `fix_deployed_there`, `resolved_for`, `internal_tickets_only`. |
+| **ClosurePolicy** | A per-project set of closure conditions (stored as `{key, config}` json) combined with AND, plus the action (`ClosureAction`: close / propose / notify_only) taken when they all hold. `propose` is the prudent default on `shadow` external bindings. |
+| **Closure condition** | One independently testable predicate over verifiable facts: `pull_request_merged`, `no_recurrence_for`, `fix_released`, `fix_deployed_there`, `resolved_for`, `internal_tickets_only`. Built by `ClosureConditionRegistry` from the policy json. |
+| **ClosureContext** | The assembled, verifiable facts a policy is evaluated against, with `now` injected so a decision is deterministic and reproducible. Conditions are pure functions of it. |
+| **ClosureDecision** | `ClosureEvaluator`'s output: the action, whether every condition held (AND; an empty set never holds), and the per-condition outcomes with evidence — the "closed because". |
+| **ClosureAudit** | The record of an automatic or proposed closure: which conditions held with what evidence, and — on reopen — the "returned after" (duration, environment, occurrence) that flags a **premature closure**. |
 | **Premature closure** | An automatic closure invalidated by the signal reappearing. Recorded as such, and the data that says whether configured durations are tuned correctly. |
-| **Fix propagation** | The deterministic check for whether a fix already exists upstream and only a deployment is missing. |
+| **Fix propagation** | `FixStatusResolver`'s deterministic read of whether a fix's PR is merged, a **shipped** release carries it, and which environments run that version — the "already fixed on dev, deploy missing" answer. |
+| **Time-to-truth** | `TimeToTruthService`'s lag, from a signal's first sighting, until the fix was merged, a deploy gap was knowable, and (if it happened) a premature closure was reopened. |
