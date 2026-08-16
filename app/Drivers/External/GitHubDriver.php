@@ -197,6 +197,9 @@ final readonly class GitHubDriver implements DriverInterface, IssuesCapability, 
             'sha' => (string) ($commit['sha'] ?? ''),
             'message' => $this->commitMessage($commit),
             'url' => isset($commit['html_url']) ? (string) $commit['html_url'] : null,
+            'author' => $this->authorLogin($commit),
+            'author_name' => $this->commitAuthorField($commit, 'name'),
+            'author_email' => $this->commitAuthorField($commit, 'email'),
         ], $rows);
 
         return new Page(
@@ -320,6 +323,33 @@ final readonly class GitHubDriver implements DriverInterface, IssuesCapability, 
         $inner = $commit['commit'] ?? null;
 
         return is_array($inner) && isset($inner['message']) ? (string) $inner['message'] : null;
+    }
+
+    /**
+     * The GitHub account that authored the commit — the handle CODEOWNERS and
+     * an identity map speak in. Null when the commit is not linked to an account.
+     *
+     * @param  array<string, mixed>  $commit
+     */
+    private function authorLogin(array $commit): ?string
+    {
+        $author = $commit['author'] ?? null;
+
+        return is_array($author) && isset($author['login']) ? (string) $author['login'] : null;
+    }
+
+    /**
+     * A field of the git author record (name/email), which is present even when
+     * the commit is not linked to a GitHub account.
+     *
+     * @param  array<string, mixed>  $commit
+     */
+    private function commitAuthorField(array $commit, string $field): ?string
+    {
+        $inner = $commit['commit'] ?? null;
+        $author = is_array($inner) ? ($inner['author'] ?? null) : null;
+
+        return is_array($author) && isset($author[$field]) ? (string) $author[$field] : null;
     }
 
     /**

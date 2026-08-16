@@ -90,6 +90,7 @@ function fakeBitbucket(): void
             $all = array_map(static fn (int $n): array => [
                 'hash' => 'c' . $n,
                 'message' => 'commit ' . $n,
+                'author' => ['raw' => 'Grace Hopper <grace@example.com>', 'user' => ['nickname' => 'ghopper', 'display_name' => 'Grace Hopper']],
                 'links' => ['html' => ['href' => "https://bitbucket.org/acme/widgets/commits/c{$n}"]],
             ], range(1, 5));
             $slice = array_slice($all, ($page - 1) * $pagelen, $pagelen);
@@ -201,6 +202,16 @@ test('the bitbucket driver authenticates with basic auth', function (): void {
 
         return $request->hasHeader('Authorization', $expected);
     });
+});
+
+test('it normalizes a bitbucket commit author into the canonical shape', function (): void {
+    fakeBitbucket();
+
+    $commit = (new BitbucketDriver)->commits(bitbucketContext(), 'main')->items[0];
+
+    expect($commit['author'])->toBe('ghopper')
+        ->and($commit['author_name'])->toBe('Grace Hopper')
+        ->and($commit['author_email'])->toBe('grace@example.com');
 });
 
 test('it normalizes a bitbucket issue into the canonical shape', function (): void {

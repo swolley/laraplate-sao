@@ -192,6 +192,11 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability, 
             'sha' => (string) ($commit['id'] ?? ''),
             'message' => isset($commit['message']) ? (string) $commit['message'] : null,
             'url' => isset($commit['web_url']) ? (string) $commit['web_url'] : null,
+            // GitLab's commits API exposes the git author name/email but not the
+            // account username, so the handle stays null here.
+            'author' => null,
+            'author_name' => isset($commit['author_name']) ? (string) $commit['author_name'] : null,
+            'author_email' => isset($commit['author_email']) ? (string) $commit['author_email'] : null,
         ], $rows);
 
         $nextPage = $response->header('X-Next-Page');

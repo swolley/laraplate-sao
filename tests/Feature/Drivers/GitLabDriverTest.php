@@ -89,6 +89,8 @@ function fakeGitLab(): void
                 'id' => 'c' . $n,
                 'message' => 'commit ' . $n,
                 'web_url' => "https://gitlab.com/acme/widgets/-/commit/c{$n}",
+                'author_name' => 'Ada Lovelace',
+                'author_email' => 'ada@example.com',
             ], range(1, 5));
             $slice = array_slice($all, ($page - 1) * $perPage, $perPage);
 
@@ -185,6 +187,17 @@ test('the gitlab driver authenticates with the PRIVATE-TOKEN header', function (
     (new GitLabDriver)->list(gitlabContext());
 
     Http::assertSent(static fn (Request $request): bool => $request->hasHeader('PRIVATE-TOKEN', 'glpat-secret'));
+});
+
+test('it normalizes a gitlab commit author into the canonical shape', function (): void {
+    fakeGitLab();
+
+    $commit = (new GitLabDriver)->commits(gitlabContext(), 'main')->items[0];
+
+    // GitLab's commits API carries no account username, so the handle is null.
+    expect($commit['author'])->toBeNull()
+        ->and($commit['author_name'])->toBe('Ada Lovelace')
+        ->and($commit['author_email'])->toBe('ada@example.com');
 });
 
 test('it normalizes a gitlab issue into the canonical shape', function (): void {

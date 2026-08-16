@@ -33,6 +33,10 @@ final class VcsConformance
 
             foreach ($page->items as $item) {
                 $shas[] = $item['sha'] ?? null;
+
+                // Every commit carries the normalized author shape, even when a
+                // field is null (an unlinked account, a host with no username).
+                expect($item)->toHaveKeys(['author', 'author_name', 'author_email']);
             }
 
             $cursor = $page->nextCursor;

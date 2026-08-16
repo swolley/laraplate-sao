@@ -87,7 +87,8 @@ function fakeGitHub(): void
             $perPage = (int) ($query['per_page'] ?? 30);
             $all = array_map(static fn (int $n): array => [
                 'sha' => 'c' . $n,
-                'commit' => ['message' => 'commit ' . $n],
+                'commit' => ['message' => 'commit ' . $n, 'author' => ['name' => 'Octo Cat', 'email' => 'octo@example.com']],
+                'author' => ['login' => 'octocat'],
                 'html_url' => "https://github.com/acme/widgets/commit/c{$n}",
             ], range(1, 5));
             $slice = array_slice($all, ($page - 1) * $perPage, $perPage);
@@ -187,6 +188,16 @@ test('the github driver authenticates with a bearer token', function (): void {
     (new GitHubDriver)->list(githubContext());
 
     Http::assertSent(static fn (Request $request): bool => $request->hasHeader('Authorization', 'Bearer ghp_secret'));
+});
+
+test('it normalizes a github commit author into the canonical shape', function (): void {
+    fakeGitHub();
+
+    $commit = (new GitHubDriver)->commits(githubContext(), 'main')->items[0];
+
+    expect($commit['author'])->toBe('octocat')
+        ->and($commit['author_name'])->toBe('Octo Cat')
+        ->and($commit['author_email'])->toBe('octo@example.com');
 });
 
 test('it normalizes a github issue into the canonical shape', function (): void {

@@ -190,10 +190,13 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         /** @var list<array<string, mixed>> $values */
         $values = $response->json('values', []);
 
-        $items = array_map(static fn (array $commit): array => [
+        $items = array_map(fn (array $commit): array => [
             'sha' => (string) ($commit['hash'] ?? ''),
             'message' => isset($commit['message']) ? (string) $commit['message'] : null,
             'url' => isset($commit['links']['html']['href']) ? (string) $commit['links']['html']['href'] : null,
+            'author' => $this->authorNickname($commit),
+            'author_name' => $this->authorName($commit),
+            'author_email' => $this->authorEmail($commit),
         ], $values);
 
         $hasNext = $response->json('next') !== null;
@@ -382,6 +385,51 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         }
 
         return isset($links['html']['href']) ? (string) $links['html']['href'] : null;
+    }
+
+    /**
+     * The Bitbucket account nickname that authored the commit — the handle an
+     * identity map speaks in. Null when the commit is not linked to an account.
+     *
+     * @param  array<string, mixed>  $commit
+     */
+    private function authorNickname(array $commit): ?string
+    {
+        $user = $commit['author']['user'] ?? null;
+
+        return is_array($user) && isset($user['nickname']) ? (string) $user['nickname'] : null;
+    }
+
+    /**
+     * The author display name: the linked account's, else the name parsed from
+     * the raw `Name <email>` git author string.
+     *
+     * @param  array<string, mixed>  $commit
+     */
+    private function authorName(array $commit): ?string
+    {
+        $user = $commit['author']['user'] ?? null;
+
+        if (is_array($user) && isset($user['display_name'])) {
+            return (string) $user['display_name'];
+        }
+
+        $raw = isset($commit['author']['raw']) ? (string) $commit['author']['raw'] : '';
+        $name = trim((string) preg_replace('/<[^>]*>/', '', $raw));
+
+        return $name === '' ? null : $name;
+    }
+
+    /**
+     * The author email, parsed from the raw `Name <email>` git author string.
+     *
+     * @param  array<string, mixed>  $commit
+     */
+    private function authorEmail(array $commit): ?string
+    {
+        $raw = isset($commit['author']['raw']) ? (string) $commit['author']['raw'] : '';
+
+        return preg_match('/<([^>]+)>/', $raw, $matches) === 1 ? $matches[1] : null;
     }
 
     private function repoPath(BindingContext $context): string
