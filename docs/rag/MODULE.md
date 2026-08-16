@@ -95,7 +95,9 @@ exists yet.
 -   Filament surfaces for projects, statuses, types, workflow schemes, tickets
     (with the 1b enrichment: due date, labels, watchers, attachments, relations
     manager, table filters), the board page, a Connection resource (write-only
-    credential), and a project Integrations relation manager for bindings
+    credential), a project Integrations relation manager for bindings, and a
+    Signal resource (state-editable, machine fields read-only) with a read-only
+    occurrences relation manager
 
 Not yet present: HTML5 drag-and-drop on the board (needs an approved kanban
 package; moves are action-based today), and every form of external integration
