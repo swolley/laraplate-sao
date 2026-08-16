@@ -9,9 +9,11 @@ use Modules\Core\Logging\Fingerprint\Fingerprinter;
 use Modules\Core\Logging\Fingerprint\FingerprintNormalizer;
 use Modules\Core\Overrides\ModuleServiceProvider;
 use Modules\SAO\Contracts\SuggestionPhraser;
+use Modules\SAO\Contracts\SuggestionTextGenerator;
 use Modules\SAO\Drivers\DriverRegistry;
 use Modules\SAO\Ingest\PipelineContext;
-use Modules\SAO\Services\TemplateSuggestionPhraser;
+use Modules\SAO\Services\AiSuggestionPhraser;
+use Modules\SAO\Services\EventTextGenerator;
 use Nwidart\Modules\Facades\Module;
 use Override;
 
@@ -63,8 +65,11 @@ final class SAOServiceProvider extends ModuleServiceProvider
         // The pipeline-origin marker must be shared process-wide.
         $this->app->singleton(PipelineContext::class);
 
-        // The deterministic phraser is the default; phase 8 may rebind an
-        // AI-backed one. It only describes the suggestion, never invents it.
-        $this->app->bind(SuggestionPhraser::class, TemplateSuggestionPhraser::class);
+        // Optional AI phrasing without an AI dependency: the phraser asks for a
+        // rewrite through Core's AiTextGenerationRequested event and falls back
+        // to its deterministic text when nothing answers. It never invents the
+        // owner (D14).
+        $this->app->bind(SuggestionTextGenerator::class, EventTextGenerator::class);
+        $this->app->bind(SuggestionPhraser::class, AiSuggestionPhraser::class);
     }
 }
