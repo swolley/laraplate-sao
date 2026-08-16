@@ -16,6 +16,12 @@ test('drivers listed in config are registered when the registry resolves', funct
     expect(app(DriverRegistry::class)->has('in-memory'))->toBeTrue();
 });
 
-test('the registry is empty by default', function (): void {
+test('the redmine driver is registered by default', function (): void {
+    expect(app(DriverRegistry::class)->has('redmine'))->toBeTrue();
+});
+
+test('the registry honours an emptied config', function (): void {
+    Config::set('sao.drivers.registered', []);
+
     expect(app(DriverRegistry::class)->all())->toBe([]);
 });

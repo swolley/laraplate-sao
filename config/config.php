@@ -17,6 +17,8 @@ return [
     // as a secret.
     'drivers' => [
         // list<class-string<Modules\SAO\Drivers\Contracts\DriverInterface>>
-        'registered' => [],
+        'registered' => [
+            Modules\SAO\Drivers\External\RedmineDriver::class,
+        ],
     ],
 ];
