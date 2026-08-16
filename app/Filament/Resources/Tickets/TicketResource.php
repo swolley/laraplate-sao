@@ -16,6 +16,7 @@ use Modules\SAO\Filament\Resources\Tickets\Pages\CreateTicket;
 use Modules\SAO\Filament\Resources\Tickets\Pages\EditTicket;
 use Modules\SAO\Filament\Resources\Tickets\Pages\ListTickets;
 use Modules\SAO\Filament\Resources\Tickets\Pages\ViewTicket;
+use Modules\SAO\Filament\Resources\Tickets\RelationManagers\RelationsRelationManager;
 use Modules\SAO\Filament\Resources\Tickets\Schemas\TicketForm;
 use Modules\SAO\Filament\Resources\Tickets\Schemas\TicketInfolist;
 use Modules\SAO\Filament\Resources\Tickets\Tables\TicketsTable;
@@ -74,7 +75,7 @@ final class TicketResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationsRelationManager::class,
         ];
     }
 
