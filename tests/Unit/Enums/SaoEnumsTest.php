@@ -43,6 +43,7 @@ test('the table registry declares the phase 1a tables plus the phase 3a connecti
         'sao_closure_policies',
         'sao_closure_audits',
         'sao_ownership_suggestions',
+        'sao_contributor_identities',
         'sao_connections',
         'sao_project_bindings',
         'sao_ticket_links',
