@@ -8,6 +8,8 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Modules\SAO\Drivers\Contracts\DriverInterface;
 use Modules\SAO\Drivers\Contracts\IssuesCapability;
+use Modules\SAO\Drivers\Contracts\ReleasesCapability;
+use Modules\SAO\Drivers\Contracts\VcsCapability;
 use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConfigurationField;
 use Modules\SAO\Drivers\Support\ConnectionContext;
@@ -27,7 +29,7 @@ use Throwable;
  * is the Bitbucket issue `state` and the priority its `priority`, both mapped
  * through the binding maps rather than hardcoded.
  */
-final readonly class BitbucketDriver implements DriverInterface, IssuesCapability
+final readonly class BitbucketDriver implements DriverInterface, IssuesCapability, ReleasesCapability, VcsCapability
 {
     private const int DEFAULT_PAGE_SIZE = 20;
 
@@ -43,7 +45,7 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
     #[Override]
     public function capabilities(): array
     {
-        return [Capability::Issues];
+        return [Capability::Issues, Capability::Vcs, Capability::Releases];
     }
 
     /**
@@ -175,6 +177,130 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         return $statusMap[$remoteStatus] ?? null;
     }
 
+    #[Override]
+    public function commits(BindingContext $context, string $range, ?string $cursor = null): Page
+    {
+        $page = $cursor === null ? 1 : (int) $cursor;
+
+        $response = $this->connection($context)->get($this->repoPath($context) . "/commits/{$range}", [
+            'pagelen' => $this->pageSize($context),
+            'page' => $page,
+        ]);
+
+        /** @var list<array<string, mixed>> $values */
+        $values = $response->json('values', []);
+
+        $items = array_map(static fn (array $commit): array => [
+            'sha' => (string) ($commit['hash'] ?? ''),
+            'message' => isset($commit['message']) ? (string) $commit['message'] : null,
+            'url' => isset($commit['links']['html']['href']) ? (string) $commit['links']['html']['href'] : null,
+        ], $values);
+
+        $hasNext = $response->json('next') !== null;
+
+        return new Page(
+            array_values($items),
+            nextCursor: $hasNext ? (string) ($page + 1) : null,
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    #[Override]
+    public function compare(BindingContext $context, string $base, string $head): array
+    {
+        // Bitbucket's diffstat spec is `{head}..{base}` — the changes to move
+        // from base to head.
+        $response = $this->connection($context)->get($this->repoPath($context) . "/diffstat/{$head}..{$base}");
+
+        /** @var array<string, mixed> $payload */
+        return $response->json() ?? [];
+    }
+
+    #[Override]
+    public function fileAtRef(BindingContext $context, string $path, string $ref): ?string
+    {
+        // The src endpoint returns the raw file body, not JSON.
+        $response = $this->connection($context)->get($this->repoPath($context) . "/src/{$ref}/{$path}");
+
+        return $response->successful() ? $response->body() : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    #[Override]
+    public function openPullRequest(BindingContext $context, array $attributes): array
+    {
+        $response = $this->connection($context)->post($this->repoPath($context) . '/pullrequests', [
+            'title' => $attributes['title'] ?? null,
+            'source' => ['branch' => ['name' => $attributes['source'] ?? null]],
+            'destination' => ['branch' => ['name' => $attributes['target'] ?? null]],
+        ]);
+
+        /** @var array<string, mixed> $pr */
+        $pr = $response->json() ?? [];
+
+        return [
+            'remote_id' => isset($pr['id']) ? (string) $pr['id'] : null,
+            'url' => isset($pr['links']['html']['href']) ? (string) $pr['links']['html']['href'] : null,
+            'raw' => $pr,
+        ];
+    }
+
+    #[Override]
+    public function tags(BindingContext $context, ?string $cursor = null): Page
+    {
+        $page = $cursor === null ? 1 : (int) $cursor;
+
+        $response = $this->connection($context)->get($this->repoPath($context) . '/refs/tags', [
+            'pagelen' => $this->pageSize($context),
+            'page' => $page,
+        ]);
+
+        /** @var list<array<string, mixed>> $values */
+        $values = $response->json('values', []);
+
+        $items = array_map(static fn (array $tag): array => [
+            'tag' => (string) ($tag['name'] ?? ''),
+            'sha' => isset($tag['target']['hash']) ? (string) $tag['target']['hash'] : null,
+        ], $values);
+
+        $hasNext = $response->json('next') !== null;
+
+        return new Page(
+            array_values($items),
+            nextCursor: $hasNext ? (string) ($page + 1) : null,
+        );
+    }
+
+    /**
+     * Best-effort over the first page of tags: the first tag whose diffstat
+     * against the commit is non-empty (the tag differs from / is ahead of the
+     * commit). Bitbucket exposes no single "tags containing commit" endpoint.
+     */
+    #[Override]
+    public function firstTagContaining(BindingContext $context, string $commitSha): ?string
+    {
+        foreach ($this->tags($context)->items as $tag) {
+            $name = (string) ($tag['tag'] ?? '');
+
+            if ($name === '') {
+                continue;
+            }
+
+            $values = $this->compare($context, $commitSha, $name)['values'] ?? null;
+
+            if (is_array($values) && $values !== []) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * @param  array<string, mixed>  $attributes
      * @return array<string, mixed>
@@ -258,9 +384,14 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         return isset($links['html']['href']) ? (string) $links['html']['href'] : null;
     }
 
+    private function repoPath(BindingContext $context): string
+    {
+        return '/repositories/' . (string) $context->remoteIdentifier;
+    }
+
     private function issuesPath(BindingContext $context): string
     {
-        return '/repositories/' . (string) $context->remoteIdentifier . '/issues';
+        return $this->repoPath($context) . '/issues';
     }
 
     private function pageSize(BindingContext $context): int

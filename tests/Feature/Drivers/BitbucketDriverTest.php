@@ -10,6 +10,8 @@ use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Modules\SAO\Tests\Support\Conformance\IssuesConformance;
+use Modules\SAO\Tests\Support\Conformance\ReleasesConformance;
+use Modules\SAO\Tests\Support\Conformance\VcsConformance;
 
 /**
  * A network-free, stateful stand-in for the Bitbucket Cloud REST 2.0 API. The
@@ -82,6 +84,58 @@ function fakeBitbucket(): void
             return Http::response(['id' => 1], 201);
         }
 
+        if (str_starts_with($path, '/2.0/repositories/acme/widgets/commits/') && $method === 'GET') {
+            $page = (int) ($query['page'] ?? 1);
+            $pagelen = (int) ($query['pagelen'] ?? 10);
+            $all = array_map(static fn (int $n): array => [
+                'hash' => 'c' . $n,
+                'message' => 'commit ' . $n,
+                'links' => ['html' => ['href' => "https://bitbucket.org/acme/widgets/commits/c{$n}"]],
+            ], range(1, 5));
+            $slice = array_slice($all, ($page - 1) * $pagelen, $pagelen);
+            $payload = ['values' => array_values($slice), 'pagelen' => $pagelen, 'page' => $page];
+
+            if ($page * $pagelen < count($all)) {
+                $payload['next'] = 'https://api.bitbucket.org/2.0/repositories/acme/widgets/commits/main?page=' . ($page + 1);
+            }
+
+            return Http::response($payload);
+        }
+
+        if (str_starts_with($path, '/2.0/repositories/acme/widgets/diffstat/')) {
+            return Http::response(['values' => [['status' => 'modified']], 'size' => 1]);
+        }
+
+        if (str_starts_with($path, '/2.0/repositories/acme/widgets/src/')) {
+            $rest = mb_substr($path, mb_strlen('/2.0/repositories/acme/widgets/src/'));
+            $file = mb_substr($rest, (int) mb_strpos($rest, '/') + 1);
+
+            return $file === 'README.md'
+                ? Http::response("# Widgets\n")
+                : Http::response(['type' => 'error'], 404);
+        }
+
+        if ($path === '/2.0/repositories/acme/widgets/pullrequests' && $method === 'POST') {
+            return Http::response(['id' => 9, 'links' => ['html' => ['href' => 'https://bitbucket.org/acme/widgets/pull-requests/9']]], 201);
+        }
+
+        if ($path === '/2.0/repositories/acme/widgets/refs/tags' && $method === 'GET') {
+            $page = (int) ($query['page'] ?? 1);
+            $pagelen = (int) ($query['pagelen'] ?? 10);
+            $all = array_map(static fn (string $t): array => [
+                'name' => $t,
+                'target' => ['hash' => 'sha-' . $t],
+            ], ['v1.0.0', 'v1.1.0', 'v2.0.0']);
+            $slice = array_slice($all, ($page - 1) * $pagelen, $pagelen);
+            $payload = ['values' => array_values($slice), 'pagelen' => $pagelen, 'page' => $page];
+
+            if ($page * $pagelen < count($all)) {
+                $payload['next'] = 'https://api.bitbucket.org/2.0/repositories/acme/widgets/refs/tags?page=' . ($page + 1);
+            }
+
+            return Http::response($payload);
+        }
+
         return Http::response(['type' => 'error'], 500);
     });
 }
@@ -116,12 +170,19 @@ function bitbucketContext(): BindingContext
     );
 }
 
-test('the bitbucket driver declares the issues capability and pull ingest', function (): void {
+test('the bitbucket driver declares issues, vcs and releases with pull ingest', function (): void {
     $driver = new BitbucketDriver;
 
     expect($driver->key())->toBe('bitbucket')
-        ->and($driver->capabilities())->toBe([Capability::Issues])
+        ->and($driver->capabilities())->toBe([Capability::Issues, Capability::Vcs, Capability::Releases])
         ->and($driver->ingestModes())->toBe([IngestMode::Pull]);
+});
+
+test('the bitbucket driver passes the vcs and releases conformance suites', function (): void {
+    fakeBitbucket();
+
+    VcsConformance::assert(new BitbucketDriver, bitbucketContext());
+    ReleasesConformance::assert(new BitbucketDriver, bitbucketContext());
 });
 
 test('the bitbucket driver passes the issues conformance suite', function (): void {
