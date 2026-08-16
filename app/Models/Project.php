@@ -98,6 +98,16 @@ final class Project extends Model
     }
 
     /**
+     * The project's deployment targets — production, staging, and so on.
+     *
+     * @return HasMany<Environment, $this>
+     */
+    public function environments(): HasMany
+    {
+        return $this->hasMany(Environment::class);
+    }
+
+    /**
      * The project's integration bindings — one per (connection, capability).
      *
      * @return HasMany<ProjectBinding, $this>
