@@ -6,6 +6,7 @@ namespace Modules\SAO\Drivers\External;
 
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
+use Modules\SAO\Drivers\Contracts\BlameCapability;
 use Modules\SAO\Drivers\Contracts\DriverInterface;
 use Modules\SAO\Drivers\Contracts\IssuesCapability;
 use Modules\SAO\Drivers\Contracts\ReleasesCapability;
@@ -30,7 +31,7 @@ use Throwable;
  * through the binding map. Pull requests share the issues endpoint and are
  * filtered out.
  */
-final readonly class GitHubDriver implements DriverInterface, IssuesCapability, ReleasesCapability, VcsCapability
+final readonly class GitHubDriver implements BlameCapability, DriverInterface, IssuesCapability, ReleasesCapability, VcsCapability
 {
     private const int DEFAULT_PAGE_SIZE = 30;
 
@@ -266,6 +267,57 @@ final readonly class GitHubDriver implements DriverInterface, IssuesCapability, 
         ];
     }
 
+    /**
+     * Line ownership for a file at a ref, via the GraphQL blame API (REST has no
+     * blame endpoint). Ranges are collapsed to a per-author line tally, keyed by
+     * the account login when present, else the git author email.
+     *
+     * @return list<array{author: ?string, author_email: ?string, lines: int}>
+     */
+    #[Override]
+    public function blame(BindingContext $context, string $path, string $ref): array
+    {
+        [$owner, $name] = array_pad(explode('/', (string) $context->remoteIdentifier, 2), 2, '');
+
+        $response = $this->connection($context)->post('/graphql', [
+            'query' => $this->blameQuery(),
+            'variables' => ['owner' => $owner, 'name' => $name, 'expr' => $ref, 'path' => $path],
+        ]);
+
+        $ranges = $response->json('data.repository.object.blame.ranges');
+
+        if (! is_array($ranges)) {
+            return [];
+        }
+
+        /** @var array<string, array{author: ?string, author_email: ?string, lines: int}> $tally */
+        $tally = [];
+
+        foreach ($ranges as $range) {
+            if (! is_array($range)) {
+                continue;
+            }
+
+            $lines = max(0, (int) ($range['endingLine'] ?? 0) - (int) ($range['startingLine'] ?? 0) + 1);
+            $author = is_array($range['commit']['author'] ?? null) ? $range['commit']['author'] : [];
+            $login = is_array($author['user'] ?? null) && isset($author['user']['login']) ? (string) $author['user']['login'] : null;
+            $email = isset($author['email']) ? (string) $author['email'] : null;
+            $key = $login ?? $email;
+
+            if ($key === null || $key === '') {
+                continue;
+            }
+
+            if (! isset($tally[$key])) {
+                $tally[$key] = ['author' => $login, 'author_email' => $email, 'lines' => 0];
+            }
+
+            $tally[$key]['lines'] += $lines;
+        }
+
+        return array_values($tally);
+    }
+
     #[Override]
     public function tags(BindingContext $context, ?string $cursor = null): Page
     {
@@ -435,6 +487,27 @@ final readonly class GitHubDriver implements DriverInterface, IssuesCapability, 
     private function repoPath(BindingContext $context): string
     {
         return '/repos/' . (string) $context->remoteIdentifier;
+    }
+
+    private function blameQuery(): string
+    {
+        return <<<'GRAPHQL'
+        query ($owner: String!, $name: String!, $expr: String!, $path: String!) {
+          repository(owner: $owner, name: $name) {
+            object(expression: $expr) {
+              ... on Commit {
+                blame(path: $path) {
+                  ranges {
+                    startingLine
+                    endingLine
+                    commit { author { name email user { login } } }
+                  }
+                }
+              }
+            }
+          }
+        }
+        GRAPHQL;
     }
 
     private function pageSize(BindingContext $context): int

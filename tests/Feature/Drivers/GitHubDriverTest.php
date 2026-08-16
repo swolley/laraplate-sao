@@ -9,6 +9,7 @@ use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
+use Modules\SAO\Tests\Support\Conformance\BlameConformance;
 use Modules\SAO\Tests\Support\Conformance\IssuesConformance;
 use Modules\SAO\Tests\Support\Conformance\ReleasesConformance;
 use Modules\SAO\Tests\Support\Conformance\VcsConformance;
@@ -35,6 +36,14 @@ function fakeGitHub(): void
 
         if ($path === '/rate_limit') {
             return Http::response(['resources' => []]);
+        }
+
+        if ($path === '/graphql' && $method === 'POST') {
+            return Http::response(['data' => ['repository' => ['object' => ['blame' => ['ranges' => [
+                ['startingLine' => 1, 'endingLine' => 10, 'commit' => ['author' => ['name' => 'Octo Cat', 'email' => 'octo@example.com', 'user' => ['login' => 'octocat']]]],
+                ['startingLine' => 11, 'endingLine' => 15, 'commit' => ['author' => ['name' => 'Ada', 'email' => 'ada@example.com', 'user' => null]]],
+                ['startingLine' => 16, 'endingLine' => 20, 'commit' => ['author' => ['name' => 'Octo Cat', 'email' => 'octo@example.com', 'user' => ['login' => 'octocat']]]],
+            ]]]]]]);
         }
 
         if ($path === '/repos/acme/widgets/issues' && $method === 'GET') {
@@ -180,6 +189,25 @@ test('the github driver passes the issues conformance suite', function (): void 
     fakeGitHub();
 
     IssuesConformance::assert(new GitHubDriver, githubContext());
+});
+
+test('the github driver passes the blame conformance suite', function (): void {
+    fakeGitHub();
+
+    BlameConformance::assert(new GitHubDriver, githubContext());
+});
+
+test('it aggregates github blame ranges into a per-author line tally', function (): void {
+    fakeGitHub();
+
+    $tally = collect((new GitHubDriver)->blame(githubContext(), 'app/Example.php', 'main'))
+        ->keyBy(fn (array $entry): string => $entry['author'] ?? (string) $entry['author_email']);
+
+    expect($tally['octocat']['lines'])->toBe(15)
+        ->and($tally['octocat']['author_email'])->toBe('octo@example.com')
+        // The range with no linked account is keyed by its git author email.
+        ->and($tally['ada@example.com']['author'])->toBeNull()
+        ->and($tally['ada@example.com']['lines'])->toBe(5);
 });
 
 test('the github driver authenticates with a bearer token', function (): void {
