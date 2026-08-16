@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Core\Overrides\Model;
@@ -25,6 +27,7 @@ use Override;
  * @property string $identifier
  * @property string|null $url
  * @property string|null $source
+ * @property \Illuminate\Support\Carbon|null $merged_at
  *
  * @mixin IdeHelperChangeRef
  */
@@ -40,6 +43,7 @@ final class ChangeRef extends Model
         'identifier',
         'url',
         'source',
+        'merged_at',
     ];
 
     /**
@@ -54,6 +58,28 @@ final class ChangeRef extends Model
     public function ticket(): BelongsTo
     {
         return $this->belongsTo(Ticket::class);
+    }
+
+    /**
+     * Whether this reference is a merged pull request.
+     */
+    public function isMergedPullRequest(): bool
+    {
+        return $this->type === ChangeRefType::PullRequest && $this->merged_at !== null;
+    }
+
+    /**
+     * Merged pull-request references only.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function mergedPullRequests(Builder $query): Builder
+    {
+        return $query
+            ->where('type', ChangeRefType::PullRequest->value)
+            ->whereNotNull('merged_at');
     }
 
     /**
@@ -73,6 +99,7 @@ final class ChangeRef extends Model
         return [
             'ticket_id' => 'integer',
             'type' => ChangeRefType::class,
+            'merged_at' => 'datetime',
         ];
     }
 }

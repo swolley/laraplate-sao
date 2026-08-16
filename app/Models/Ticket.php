@@ -273,6 +273,16 @@ final class Ticket extends Model implements MediaContract
     }
 
     /**
+     * Error signals promoted to or correlated with this ticket.
+     *
+     * @return HasMany<Signal, $this>
+     */
+    public function signals(): HasMany
+    {
+        return $this->hasMany(Signal::class);
+    }
+
+    /**
      * @return BelongsTo<TicketStatus, $this>
      */
     public function status(): BelongsTo

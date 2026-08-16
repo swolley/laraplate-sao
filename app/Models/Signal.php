@@ -23,6 +23,7 @@ use Override;
  *
  * @property int $id
  * @property int $project_id
+ * @property int|null $ticket_id
  * @property string $group_key
  * @property int $algo_version
  * @property SignalState $state
@@ -50,6 +51,7 @@ final class Signal extends Model
     #[Override]
     protected $fillable = [
         'project_id',
+        'ticket_id',
         'group_key',
         'algo_version',
         'state',
@@ -91,6 +93,16 @@ final class Signal extends Model
     }
 
     /**
+     * The ticket this signal was promoted to or correlated with, if any.
+     *
+     * @return BelongsTo<Ticket, $this>
+     */
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(Ticket::class);
+    }
+
+    /**
      * @return HasMany<SignalOccurrence, $this>
      */
     public function occurrences(): HasMany
@@ -122,6 +134,7 @@ final class Signal extends Model
     {
         return [
             'project_id' => 'integer',
+            'ticket_id' => 'integer',
             'algo_version' => 'integer',
             'state' => SignalState::class,
             'occurrence_count' => 'integer',
