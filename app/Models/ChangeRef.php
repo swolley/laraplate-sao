@@ -28,6 +28,8 @@ use Override;
  * @property string|null $url
  * @property string|null $source
  * @property \Illuminate\Support\Carbon|null $merged_at
+ * @property string|null $base_ref
+ * @property string|null $head_ref
  *
  * @mixin IdeHelperChangeRef
  */
@@ -44,6 +46,8 @@ final class ChangeRef extends Model
         'url',
         'source',
         'merged_at',
+        'base_ref',
+        'head_ref',
     ];
 
     /**

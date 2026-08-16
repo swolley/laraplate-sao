@@ -9,7 +9,9 @@ use Modules\Core\Models\User;
 use Modules\SAO\Drivers\External\GitHubDriver;
 use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConnectionContext;
+use Modules\SAO\Enums\ChangeRefType;
 use Modules\SAO\Enums\OwnershipRule;
+use Modules\SAO\Models\ChangeRef;
 use Modules\SAO\Models\ContributorIdentity;
 use Modules\SAO\Models\Ticket;
 use Modules\SAO\Services\OwnershipSuggestionCoordinator;
@@ -34,6 +36,10 @@ function fakeOwnershipRepo(): void
 
         if (str_starts_with($path, '/repos/acme/widgets/contents/')) {
             return Http::response(['message' => 'Not Found'], 404);
+        }
+
+        if (str_starts_with($path, '/repos/acme/widgets/compare/')) {
+            return Http::response(['status' => 'ahead', 'files' => [['filename' => 'app/Billing/Invoice.php']]]);
         }
 
         if ($path === '/repos/acme/widgets/commits' && $method === 'GET') {
@@ -93,6 +99,37 @@ test('the coordinator gathers evidence, applies precedence and persists the winn
         ->and($suggestion->suggested_user_id)->toBe($billing->id)
         ->and($suggestion->rule)->toBe(OwnershipRule::Codeowners)
         ->and($suggestion->ticket_id)->toBe($ticket->id);
+});
+
+test('the coordinator suggests straight from a pull request, discovering its files', function (): void {
+    fakeOwnershipRepo();
+
+    $ticket = Ticket::factory()->create();
+    $billing = User::factory()->create();
+    ContributorIdentity::factory()->anyProvider()->create(['identity' => '@billing', 'user_id' => $billing->id]);
+
+    $pr = ChangeRef::factory()->create([
+        'ticket_id' => $ticket->id,
+        'type' => ChangeRefType::PullRequest,
+        'identifier' => '42',
+        'merged_at' => now(),
+        'base_ref' => 'main',
+        'head_ref' => 'feature/billing',
+    ]);
+
+    $suggestion = app(OwnershipSuggestionCoordinator::class)->suggestForPullRequest(
+        $ticket,
+        new GitHubDriver,
+        ownershipContext(),
+        'github',
+        $pr,
+    );
+
+    // The compare surfaces app/Billing/Invoice.php, which CODEOWNERS assigns to
+    // @billing — discovered without the caller naming a single path.
+    expect($suggestion)->not->toBeNull()
+        ->and($suggestion->suggested_user_id)->toBe($billing->id)
+        ->and($suggestion->rule)->toBe(OwnershipRule::Codeowners);
 });
 
 test('with no resolvable evidence the coordinator persists nothing', function (): void {
