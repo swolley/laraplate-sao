@@ -94,7 +94,8 @@ exists yet.
     the workflow-allowed transitions — a read model over `visible()`, no new table
 -   Filament surfaces for projects, statuses, types, workflow schemes, tickets
     (with the 1b enrichment: due date, labels, watchers, attachments, relations
-    manager, table filters), and the board page
+    manager, table filters), the board page, a Connection resource (write-only
+    credential), and a project Integrations relation manager for bindings
 
 Not yet present: HTML5 drag-and-drop on the board (needs an approved kanban
 package; moves are action-based today), and every form of external integration
@@ -152,7 +153,7 @@ Design: `docs/superpowers/specs/2026-07-31-sao-module-design.md` in the applicat
 -   Phase 1b — labels, watchers, attachments, due dates, ticket relations, search and saved filters (**done**, including the Filament surfaces)
 -   Phase 1c — board: status-ordered columns per project, moves through the workflow (**done**; HTML5 drag-and-drop deferred, needs an approved kanban package)
 -   Phase 2 — shared fingerprinting in Core, error signals, internal log source, loop protection
--   Phase 3 — driver framework, connections, capabilities and external issue trackers (3a foundation **done**: registry, contracts, `Connection`, credential resolver, conformance suite; 3b **done**: `ProjectBinding`, `TicketLink`, the internal issues driver, `IssueSyncService`, and five concrete external `issues` drivers — **Redmine, Jira, GitHub, GitLab, Bitbucket** — each passing the issues conformance suite over an `Http::fake()`. Live-instance verification, push/webhook ingest, and the `vcs`/`releases` capabilities for the Git hosts remain follow-ups)
+-   Phase 3 — driver framework, connections, capabilities and external issue trackers (3a foundation **done**: registry, contracts, `Connection`, credential resolver, conformance suite; 3b **done**: `ProjectBinding`, `TicketLink`, the internal issues driver, `IssueSyncService`, and five concrete external `issues` drivers — **Redmine, Jira, GitHub, GitLab, Bitbucket** — each passing the issues conformance suite over an `Http::fake()`; 3b-ui **done**: a Filament Connection resource (write-only encrypted credential) and a project Integrations relation manager for bindings. Live-instance verification, push/webhook ingest, and the `vcs`/`releases` capabilities for the Git hosts remain follow-ups)
 -   Phase 4 — source profiles, generic webhook ingest and replay
 -   Phase 5 — version control and release capabilities, code-to-work references, version census
 -   Phase 6 — fix propagation and evidence-based closure policies

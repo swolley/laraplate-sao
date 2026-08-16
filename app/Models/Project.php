@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Models\Concerns\HasActivation;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ProjectFactory;
@@ -94,6 +95,16 @@ final class Project extends Model
     public function defaultTicketType(): ?TicketType
     {
         return $this->ticketTypes()->wherePivot('is_default', true)->first();
+    }
+
+    /**
+     * The project's integration bindings — one per (connection, capability).
+     *
+     * @return HasMany<ProjectBinding, $this>
+     */
+    public function bindings(): HasMany
+    {
+        return $this->hasMany(ProjectBinding::class);
     }
 
     /**

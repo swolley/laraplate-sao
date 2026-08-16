@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Modules\SAO\Filament\Resources\Projects\Pages\CreateProject;
 use Modules\SAO\Filament\Resources\Projects\Pages\EditProject;
 use Modules\SAO\Filament\Resources\Projects\Pages\ListProjects;
+use Modules\SAO\Filament\Resources\Projects\RelationManagers\BindingsRelationManager;
 use Modules\SAO\Filament\Resources\Projects\Schemas\ProjectForm;
 use Modules\SAO\Filament\Resources\Projects\Tables\ProjectsTable;
 use Modules\SAO\Models\Project;
@@ -53,7 +54,7 @@ final class ProjectResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            BindingsRelationManager::class,
         ];
     }
 
