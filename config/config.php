@@ -15,6 +15,15 @@ return [
     // credential_ref; product-behaviour configuration (thresholds, policy
     // toggles) belongs in Core settings, never here and never in the database
     // as a secret.
+    // Signal ingest guards (phase 2). The per-group rate limiter caps how many
+    // occurrences of one signal are recorded within a rolling window — layer 2
+    // of the loop protection, so a fast-looping error inside an observed app
+    // cannot flood the store.
+    'signals' => [
+        'max_occurrences_per_window' => (int) env('SAO_SIGNAL_MAX_OCCURRENCES', 1000),
+        'window_minutes' => (int) env('SAO_SIGNAL_WINDOW_MINUTES', 60),
+    ],
+
     'drivers' => [
         // list<class-string<Modules\SAO\Drivers\Contracts\DriverInterface>>
         'registered' => [

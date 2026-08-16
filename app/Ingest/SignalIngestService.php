@@ -31,12 +31,25 @@ final readonly class SignalIngestService
             'group_key' => $groupKey,
         ]);
 
-        if (! $signal->exists) {
+        $isNew = ! $signal->exists;
+
+        if ($isNew) {
             $signal->algo_version = is_numeric($payload['algo_version'] ?? null) ? (int) $payload['algo_version'] : 1;
             $signal->state = SignalState::Open;
             $signal->occurrence_count = 0;
             $signal->first_seen_at = now();
-        } elseif ($signal->state === SignalState::Resolved) {
+            $signal->last_seen_at = now();
+            $signal->save();
+        }
+
+        // Loop protection, layer 2: past the per-group cap within the window the
+        // signal stops recording occurrences, so a fast-looping error cannot
+        // flood the store. The signal itself still exists and stays visible.
+        if (! $isNew && $this->rateLimitReached($signal)) {
+            return $signal;
+        }
+
+        if ($signal->state === SignalState::Resolved) {
             // The error came back: a resolved signal reopens on recurrence.
             $signal->state = SignalState::Open;
         }
@@ -53,5 +66,21 @@ final readonly class SignalIngestService
         ]);
 
         return $signal;
+    }
+
+    private function rateLimitReached(Signal $signal): bool
+    {
+        $max = (int) config('sao.signals.max_occurrences_per_window', 1000);
+        $windowMinutes = (int) config('sao.signals.window_minutes', 60);
+
+        if ($max <= 0) {
+            return false;
+        }
+
+        $recent = $signal->occurrences()
+            ->where('occurred_at', '>=', now()->subMinutes($windowMinutes))
+            ->count();
+
+        return $recent >= $max;
     }
 }
