@@ -21,6 +21,7 @@ return [
             Modules\SAO\Drivers\External\RedmineDriver::class,
             Modules\SAO\Drivers\External\JiraDriver::class,
             Modules\SAO\Drivers\External\GitHubDriver::class,
+            Modules\SAO\Drivers\External\GitLabDriver::class,
         ],
     ],
 ];
