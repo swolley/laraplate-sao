@@ -35,6 +35,7 @@ enum SAOTables: string
     case Environments = 'sao_environments';
     case ClosurePolicies = 'sao_closure_policies';
     case ClosureAudits = 'sao_closure_audits';
+    case OwnershipSuggestions = 'sao_ownership_suggestions';
     case Connections = 'sao_connections';
     case ProjectBindings = 'sao_project_bindings';
     case TicketLinks = 'sao_ticket_links';
