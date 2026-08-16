@@ -177,6 +177,19 @@ final class Ticket extends Model implements MediaContract
     }
 
     /**
+     * Releases the ticket is attributed to, carrying the attribution state on
+     * the pivot.
+     *
+     * @return BelongsToMany<Release, $this>
+     */
+    public function releases(): BelongsToMany
+    {
+        return $this->belongsToMany(Release::class, SAOTables::TicketReleases->value)
+            ->withPivot('state')
+            ->withTimestamps();
+    }
+
+    /**
      * Outgoing typed relations (this ticket is the source).
      *
      * @return HasMany<TicketRelation, $this>
