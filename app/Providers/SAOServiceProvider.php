@@ -8,8 +8,10 @@ use Modules\Core\Exceptions\ConfigurationException;
 use Modules\Core\Logging\Fingerprint\Fingerprinter;
 use Modules\Core\Logging\Fingerprint\FingerprintNormalizer;
 use Modules\Core\Overrides\ModuleServiceProvider;
+use Modules\SAO\Contracts\SuggestionPhraser;
 use Modules\SAO\Drivers\DriverRegistry;
 use Modules\SAO\Ingest\PipelineContext;
+use Modules\SAO\Services\TemplateSuggestionPhraser;
 use Nwidart\Modules\Facades\Module;
 use Override;
 
@@ -60,5 +62,9 @@ final class SAOServiceProvider extends ModuleServiceProvider
 
         // The pipeline-origin marker must be shared process-wide.
         $this->app->singleton(PipelineContext::class);
+
+        // The deterministic phraser is the default; phase 8 may rebind an
+        // AI-backed one. It only describes the suggestion, never invents it.
+        $this->app->bind(SuggestionPhraser::class, TemplateSuggestionPhraser::class);
     }
 }

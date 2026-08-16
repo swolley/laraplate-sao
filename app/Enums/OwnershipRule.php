@@ -31,6 +31,19 @@ enum OwnershipRule: string
     }
 
     /**
+     * A short human label for the rule, for suggestion text and UI badges.
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::Codeowners => 'CODEOWNERS entry',
+            self::BlameConcentration => 'blame concentration',
+            self::RecentTouch => 'recent commits',
+            self::PathOwner => 'path ownership',
+        };
+    }
+
+    /**
      * Lower wins. The precedence is what makes the choice between two candidates
      * deterministic before their scores are even compared.
      */

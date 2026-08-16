@@ -6,6 +6,7 @@ namespace Modules\SAO\Filament\Resources\OwnershipSuggestions\Schemas;
 
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
+use Modules\SAO\Contracts\SuggestionPhraser;
 use Modules\SAO\Models\OwnershipSuggestion;
 
 final class OwnershipSuggestionInfolist
@@ -14,6 +15,10 @@ final class OwnershipSuggestionInfolist
     {
         return $schema
             ->components([
+                TextEntry::make('summary')
+                    ->label('Summary')
+                    ->columnSpanFull()
+                    ->state(static fn (OwnershipSuggestion $record): string => app(SuggestionPhraser::class)->phrase($record)),
                 TextEntry::make('ticket.key')
                     ->label('Ticket'),
                 TextEntry::make('suggestedUser.name')
