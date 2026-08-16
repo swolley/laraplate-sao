@@ -19,6 +19,7 @@ return [
         // list<class-string<Modules\SAO\Drivers\Contracts\DriverInterface>>
         'registered' => [
             Modules\SAO\Drivers\External\RedmineDriver::class,
+            Modules\SAO\Drivers\External\JiraDriver::class,
         ],
     ],
 ];
