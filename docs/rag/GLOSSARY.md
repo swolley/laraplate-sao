@@ -94,6 +94,7 @@ it rather than invent parallel names.
 | **ClosureContext** | The assembled, verifiable facts a policy is evaluated against, with `now` injected so a decision is deterministic and reproducible. Conditions are pure functions of it. |
 | **ClosureDecision** | `ClosureEvaluator`'s output: the action, whether every condition held (AND; an empty set never holds), and the per-condition outcomes with evidence — the "closed because". |
 | **ClosureAudit** | The record of an automatic or proposed closure: which conditions held with what evidence, and — on reopen — the "returned after" (duration, environment, occurrence) that flags a **premature closure**. |
+| **Closure application** | `ClosureApplicationService`: evaluates a policy against a ticket and, when satisfied, acts — a `close` policy moves the ticket to a `closed` status through `WorkflowService` (never writing the status directly) and records the audit; `propose` records only; `notify_only` does neither. |
 | **Premature closure** | An automatic closure invalidated by the signal reappearing. Recorded as such, and the data that says whether configured durations are tuned correctly. |
 | **Fix propagation** | `FixStatusResolver`'s deterministic read of whether a fix's PR is merged, a **shipped** release carries it, and which environments run that version — the "already fixed on dev, deploy missing" answer. |
 | **Time-to-truth** | `TimeToTruthService`'s lag, from a signal's first sighting, until the fix was merged, a deploy gap was knowable, and (if it happened) a premature closure was reopened. |
