@@ -26,6 +26,8 @@ enum SAOTables: string
     case Signals = 'sao_signals';
     case SignalOccurrences = 'sao_signal_occurrences';
     case SignalAliases = 'sao_signal_aliases';
+    case SourceProfiles = 'sao_source_profiles';
+    case IngestEvents = 'sao_ingest_events';
     case Connections = 'sao_connections';
     case ProjectBindings = 'sao_project_bindings';
     case TicketLinks = 'sao_ticket_links';
