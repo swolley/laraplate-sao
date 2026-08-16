@@ -8,6 +8,8 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Modules\SAO\Drivers\Contracts\DriverInterface;
 use Modules\SAO\Drivers\Contracts\IssuesCapability;
+use Modules\SAO\Drivers\Contracts\ReleasesCapability;
+use Modules\SAO\Drivers\Contracts\VcsCapability;
 use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConfigurationField;
 use Modules\SAO\Drivers\Support\ConnectionContext;
@@ -28,7 +30,7 @@ use Throwable;
  * through the binding map. Pull requests share the issues endpoint and are
  * filtered out.
  */
-final readonly class GitHubDriver implements DriverInterface, IssuesCapability
+final readonly class GitHubDriver implements DriverInterface, IssuesCapability, ReleasesCapability, VcsCapability
 {
     private const int DEFAULT_PAGE_SIZE = 30;
 
@@ -44,7 +46,7 @@ final readonly class GitHubDriver implements DriverInterface, IssuesCapability
     #[Override]
     public function capabilities(): array
     {
-        return [Capability::Issues];
+        return [Capability::Issues, Capability::Vcs, Capability::Releases];
     }
 
     /**
@@ -175,6 +177,159 @@ final readonly class GitHubDriver implements DriverInterface, IssuesCapability
     public function translateStatus(array $statusMap, string $remoteStatus): ?string
     {
         return $statusMap[$remoteStatus] ?? null;
+    }
+
+    #[Override]
+    public function commits(BindingContext $context, string $range, ?string $cursor = null): Page
+    {
+        $page = $cursor === null ? 1 : (int) $cursor;
+
+        $response = $this->connection($context)->get($this->repoPath($context) . '/commits', [
+            'sha' => $range,
+            'per_page' => $this->pageSize($context),
+            'page' => $page,
+        ]);
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $response->json() ?? [];
+
+        $items = array_map(fn (array $commit): array => [
+            'sha' => (string) ($commit['sha'] ?? ''),
+            'message' => $this->commitMessage($commit),
+            'url' => isset($commit['html_url']) ? (string) $commit['html_url'] : null,
+        ], $rows);
+
+        return new Page(
+            array_values($items),
+            nextCursor: $this->nextPageFromLink($response->header('Link')),
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    #[Override]
+    public function compare(BindingContext $context, string $base, string $head): array
+    {
+        $response = $this->connection($context)->get($this->repoPath($context) . "/compare/{$base}...{$head}");
+
+        /** @var array<string, mixed> $payload */
+        return $response->json() ?? [];
+    }
+
+    #[Override]
+    public function fileAtRef(BindingContext $context, string $path, string $ref): ?string
+    {
+        $response = $this->connection($context)->get($this->repoPath($context) . "/contents/{$path}", [
+            'ref' => $ref,
+        ]);
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $content = $response->json('content');
+
+        if (! is_string($content)) {
+            return null;
+        }
+
+        $decoded = base64_decode(str_replace("\n", '', $content), true);
+
+        return $decoded === false ? null : $decoded;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    #[Override]
+    public function openPullRequest(BindingContext $context, array $attributes): array
+    {
+        $response = $this->connection($context)->post($this->repoPath($context) . '/pulls', [
+            'title' => $attributes['title'] ?? null,
+            'head' => $attributes['source'] ?? null,
+            'base' => $attributes['target'] ?? null,
+            'body' => $attributes['body'] ?? null,
+        ]);
+
+        /** @var array<string, mixed> $pull */
+        $pull = $response->json() ?? [];
+
+        return [
+            'remote_id' => isset($pull['number']) ? (string) $pull['number'] : null,
+            'url' => isset($pull['html_url']) ? (string) $pull['html_url'] : null,
+            'raw' => $pull,
+        ];
+    }
+
+    #[Override]
+    public function tags(BindingContext $context, ?string $cursor = null): Page
+    {
+        $page = $cursor === null ? 1 : (int) $cursor;
+
+        $response = $this->connection($context)->get($this->repoPath($context) . '/tags', [
+            'per_page' => $this->pageSize($context),
+            'page' => $page,
+        ]);
+
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $response->json() ?? [];
+
+        $items = array_map(fn (array $tag): array => [
+            'tag' => (string) ($tag['name'] ?? ''),
+            'sha' => $this->tagSha($tag),
+        ], $rows);
+
+        return new Page(
+            array_values($items),
+            nextCursor: $this->nextPageFromLink($response->header('Link')),
+        );
+    }
+
+    /**
+     * Best-effort over the first page of tags: the first tag the commit is an
+     * ancestor of (comparison status `ahead` or `identical`). GitHub exposes no
+     * single "tags containing commit" endpoint; recent tags are the useful set.
+     */
+    #[Override]
+    public function firstTagContaining(BindingContext $context, string $commitSha): ?string
+    {
+        foreach ($this->tags($context)->items as $tag) {
+            $name = (string) ($tag['tag'] ?? '');
+
+            if ($name === '') {
+                continue;
+            }
+
+            $status = $this->compare($context, $commitSha, $name)['status'] ?? null;
+
+            if ($status === 'ahead' || $status === 'identical') {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $commit
+     */
+    private function commitMessage(array $commit): ?string
+    {
+        $inner = $commit['commit'] ?? null;
+
+        return is_array($inner) && isset($inner['message']) ? (string) $inner['message'] : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $tag
+     */
+    private function tagSha(array $tag): ?string
+    {
+        $commit = $tag['commit'] ?? null;
+
+        return is_array($commit) && isset($commit['sha']) ? (string) $commit['sha'] : null;
     }
 
     /**

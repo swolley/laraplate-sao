@@ -10,6 +10,8 @@ use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Modules\SAO\Tests\Support\Conformance\IssuesConformance;
+use Modules\SAO\Tests\Support\Conformance\ReleasesConformance;
+use Modules\SAO\Tests\Support\Conformance\VcsConformance;
 
 /**
  * A network-free, stateful stand-in for the GitHub REST API. It paginates with
@@ -80,6 +82,53 @@ function fakeGitHub(): void
             return Http::response(['id' => 1], 201);
         }
 
+        if ($path === '/repos/acme/widgets/commits' && $method === 'GET') {
+            $page = (int) ($query['page'] ?? 1);
+            $perPage = (int) ($query['per_page'] ?? 30);
+            $all = array_map(static fn (int $n): array => [
+                'sha' => 'c' . $n,
+                'commit' => ['message' => 'commit ' . $n],
+                'html_url' => "https://github.com/acme/widgets/commit/c{$n}",
+            ], range(1, 5));
+            $slice = array_slice($all, ($page - 1) * $perPage, $perPage);
+            $headers = $page * $perPage < count($all)
+                ? ['Link' => '<https://api.github.com/repos/acme/widgets/commits?page=' . ($page + 1) . '>; rel="next"']
+                : [];
+
+            return Http::response(array_values($slice), 200, $headers);
+        }
+
+        if (str_starts_with($path, '/repos/acme/widgets/compare/')) {
+            return Http::response(['status' => 'ahead', 'ahead_by' => 3, 'commits' => [], 'files' => []]);
+        }
+
+        if (str_starts_with($path, '/repos/acme/widgets/contents/')) {
+            $file = mb_substr($path, mb_strlen('/repos/acme/widgets/contents/'));
+
+            return $file === 'README.md'
+                ? Http::response(['content' => base64_encode("# Widgets\n"), 'encoding' => 'base64'])
+                : Http::response(['message' => 'Not Found'], 404);
+        }
+
+        if ($path === '/repos/acme/widgets/pulls' && $method === 'POST') {
+            return Http::response(['number' => 42, 'html_url' => 'https://github.com/acme/widgets/pull/42'], 201);
+        }
+
+        if ($path === '/repos/acme/widgets/tags' && $method === 'GET') {
+            $page = (int) ($query['page'] ?? 1);
+            $perPage = (int) ($query['per_page'] ?? 30);
+            $all = array_map(static fn (string $t): array => [
+                'name' => $t,
+                'commit' => ['sha' => 'sha-' . $t],
+            ], ['v1.0.0', 'v1.1.0', 'v2.0.0']);
+            $slice = array_slice($all, ($page - 1) * $perPage, $perPage);
+            $headers = $page * $perPage < count($all)
+                ? ['Link' => '<https://api.github.com/repos/acme/widgets/tags?page=' . ($page + 1) . '>; rel="next"']
+                : [];
+
+            return Http::response(array_values($slice), 200, $headers);
+        }
+
         return Http::response(['message' => 'Unhandled'], 500);
     });
 }
@@ -111,12 +160,19 @@ function githubContext(): BindingContext
     );
 }
 
-test('the github driver declares the issues capability and pull ingest', function (): void {
+test('the github driver declares issues, vcs and releases with pull ingest', function (): void {
     $driver = new GitHubDriver;
 
     expect($driver->key())->toBe('github')
-        ->and($driver->capabilities())->toBe([Capability::Issues])
+        ->and($driver->capabilities())->toBe([Capability::Issues, Capability::Vcs, Capability::Releases])
         ->and($driver->ingestModes())->toBe([IngestMode::Pull]);
+});
+
+test('the github driver passes the vcs and releases conformance suites', function (): void {
+    fakeGitHub();
+
+    VcsConformance::assert(new GitHubDriver, githubContext());
+    ReleasesConformance::assert(new GitHubDriver, githubContext());
 });
 
 test('the github driver passes the issues conformance suite', function (): void {
