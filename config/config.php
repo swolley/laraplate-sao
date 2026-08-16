@@ -33,6 +33,7 @@ return [
             Modules\SAO\Drivers\External\GitLabDriver::class,
             Modules\SAO\Drivers\External\BitbucketDriver::class,
             Modules\SAO\Drivers\External\GiteaDriver::class,
+            Modules\SAO\Drivers\External\SentryDriver::class,
         ],
     ],
 ];
