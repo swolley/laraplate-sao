@@ -78,6 +78,8 @@ it rather than invent parallel names.
 | **TicketSearchCriteria** | An immutable, JSON-serialisable description of a ticket search (text, status, type, priority, assignee, label, due window, overdue). |
 | **TicketSearchService** | Turns a `TicketSearchCriteria` into a query built strictly on `TicketQueryService::visible()`, so a search never surfaces a hidden ticket. |
 | **SavedFilter** | A user's persisted `TicketSearchCriteria`, optionally scoped to one project. Round-trips back into criteria for reapplication. |
+| **Board** | A per-project view of tickets in status-ordered columns (1c). A read model (`TicketBoardService` → `BoardColumn`) over the ACL-scoped visible query; cards move only through workflow-allowed transitions via `WorkflowService`. No board/column/card is persisted. |
+| **BoardColumn** | One column of the board: a `TicketStatus` and the visible tickets in it. An empty status is still a column. |
 
 ## Automation
 

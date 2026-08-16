@@ -90,11 +90,15 @@ exists yet.
 -   Authorization entirely Laraplate's: permissions through `PermissionName`, and
     row-level visibility through Core's ACL filters — an ACL restricting the view
     permission to one project hides the others, with no mechanism of SAO's own
--   Filament surfaces for projects, statuses, types, workflow schemes and tickets
+-   A per-project board (1c): tickets in status-ordered columns, moved through
+    the workflow-allowed transitions — a read model over `visible()`, no new table
+-   Filament surfaces for projects, statuses, types, workflow schemes, tickets
+    (with the 1b enrichment: due date, labels, watchers, attachments, relations
+    manager, table filters), and the board page
 
-Not yet present: the kanban board (1c), Filament surfaces for the 1b enrichment
-(models and services ship; the resource wiring is the remaining optional step),
-and every form of external integration beyond the phase 3a/3b foundation.
+Not yet present: HTML5 drag-and-drop on the board (needs an approved kanban
+package; moves are action-based today), and every form of external integration
+beyond the phase 3a/3b foundation.
 
 ## How it works (developer)
 
@@ -114,6 +118,7 @@ panel, a future API and phase 2's automation share one enforcement path:
 | `TicketQueryService` | The only sanctioned read path. Core's `HasACL` global scope is an unimplemented TODO, so raw `Ticket::query()` would silently bypass row-level visibility — every read goes through here or Core's CRUD layer. |
 | `TicketTimelineService` | Merges comments and Core version history into one ordered stream; the single place that knows where history comes from, so a future activity table would replace only its second half. |
 | `TicketSearchService` | Filters tickets by a `TicketSearchCriteria` (text, status, type, priority, assignee, label, due window, overdue). It builds strictly on `TicketQueryService::visible()`, so a search never surfaces a hidden ticket. A `SavedFilter` persists a criteria set and round-trips back into a `TicketSearchCriteria` for reapplication. |
+| `TicketBoardService` | The board read model (1c): for one project, the status-ordered columns (`BoardColumn`) each carrying its visible tickets. A projection over `visible()` — no board/column/card is persisted. The Filament board page moves cards through `WorkflowService`, offering only workflow-allowed transitions. |
 
 Ticket enrichment (1b) is model-level: `due_at` with `overdue`/`dueWithin`
 scopes; a project-scoped `Label` (unique name per project) via a
@@ -144,8 +149,8 @@ A driver implements `DriverInterface` (key, capabilities, ingest modes, configur
 Design: `docs/superpowers/specs/2026-07-31-sao-module-design.md` in the application repository.
 
 -   Phase 1a — internal ticketing core and base Filament surfaces (**done**)
--   Phase 1b — labels, watchers, attachments, due dates, ticket relations, search and saved filters (**done** at the model/service level; Filament surfaces for the enrichment are the remaining optional step)
--   Phase 1c — kanban board
+-   Phase 1b — labels, watchers, attachments, due dates, ticket relations, search and saved filters (**done**, including the Filament surfaces)
+-   Phase 1c — board: status-ordered columns per project, moves through the workflow (**done**; HTML5 drag-and-drop deferred, needs an approved kanban package)
 -   Phase 2 — shared fingerprinting in Core, error signals, internal log source, loop protection
 -   Phase 3 — driver framework, connections, capabilities and the first external issue tracker (3a foundation **done**: registry, contracts, `Connection`, credential resolver, conformance suite; 3b **done** at the core level: `ProjectBinding`, `TicketLink`, the internal issues driver and `IssueSyncService`; the first concrete external driver — Redmine — is still pending real API fixtures)
 -   Phase 4 — source profiles, generic webhook ingest and replay
