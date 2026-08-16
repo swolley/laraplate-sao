@@ -33,6 +33,8 @@ enum SAOTables: string
     case ReleaseTags = 'sao_release_tags';
     case TicketReleases = 'sao_ticket_releases';
     case Environments = 'sao_environments';
+    case ClosurePolicies = 'sao_closure_policies';
+    case ClosureAudits = 'sao_closure_audits';
     case Connections = 'sao_connections';
     case ProjectBindings = 'sao_project_bindings';
     case TicketLinks = 'sao_ticket_links';
