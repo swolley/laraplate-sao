@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Modules\Core\Exceptions\ConfigurationException;
 use Modules\Core\Logging\Fingerprint\Fingerprinter;
 use Modules\Core\Logging\Fingerprint\FingerprintNormalizer;
@@ -71,5 +72,25 @@ final class SAOServiceProvider extends ModuleServiceProvider
         // owner (D14).
         $this->app->bind(SuggestionTextGenerator::class, EventTextGenerator::class);
         $this->app->bind(SuggestionPhraser::class, AiSuggestionPhraser::class);
+    }
+
+    /**
+     * Schedule the inbound issue poll. Gated by config so an operator can keep
+     * it manual-only; harmless when on with nothing configured, since a binding
+     * must opt in with an inbound sync direction to be polled.
+     */
+    #[Override]
+    protected function registerCommandSchedules(): void
+    {
+        $this->app->booted(function (): void {
+            if (! config('sao.sync.enabled', true)) {
+                return;
+            }
+
+            $this->app->make(Schedule::class)
+                ->command('sao:sync:issues')
+                ->cron((string) config('sao.sync.cron', '0 * * * *'))
+                ->withoutOverlapping();
+        });
     }
 }

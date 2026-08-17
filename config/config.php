@@ -24,6 +24,15 @@ return [
         'window_minutes' => (int) env('SAO_SIGNAL_WINDOW_MINUTES', 60),
     ],
 
+    // Scheduled inbound polling for trackers with no push transport
+    // (sao:sync:issues). Safe with nothing configured — a binding must opt in
+    // with an inbound sync direction, so an empty install polls nothing. Set
+    // SAO_SYNC_ENABLED=false to keep the command manual-only.
+    'sync' => [
+        'enabled' => (bool) env('SAO_SYNC_ENABLED', true),
+        'cron' => (string) env('SAO_SYNC_CRON', '0 * * * *'),
+    ],
+
     'drivers' => [
         // list<class-string<Modules\SAO\Drivers\Contracts\DriverInterface>>
         'registered' => [

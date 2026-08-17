@@ -64,7 +64,14 @@ php artisan module:install SAO
 The module configuration is automatically mapped as `sao.*` when the module is active.
 Configuration file: `Modules/SAO/config/config.php`.
 
-> The effective set of environment variables will be introduced with the first domain phase.
+Environment variables (all optional; the defaults are production-safe):
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `SAO_SIGNAL_MAX_OCCURRENCES` | `1000` | Per-group occurrence cap within the rolling window (loop protection, layer 2). |
+| `SAO_SIGNAL_WINDOW_MINUTES` | `60` | Length of that rolling window, in minutes. |
+| `SAO_SYNC_ENABLED` | `true` | Whether `sao:sync:issues` is registered on the scheduler. Set `false` to keep inbound polling manual-only. |
+| `SAO_SYNC_CRON` | `0 * * * *` | Cron expression for the scheduled inbound issue poll. |
 
 ## Current Status
 

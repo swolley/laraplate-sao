@@ -90,6 +90,26 @@ final readonly class IssueSyncService
             return SyncOutcome::NotFound;
         }
 
+        return $this->reconcile($binding, $issue);
+    }
+
+    /**
+     * Upsert one already-normalized remote issue into SAO. This is the primitive
+     * behind {@see pull()} and the polling {@see IssueSyncPoller}: the caller has
+     * already fetched (or listed) the issue, so no lookup happens here. It does
+     * not re-check sync direction — the caller owns that gate. An unmapped remote
+     * status stops the reconcile rather than guessing a canonical category.
+     *
+     * @param  array<string, mixed>  $issue
+     */
+    public function reconcile(ProjectBinding $binding, array $issue): SyncOutcome
+    {
+        $remoteId = (string) ($issue['remote_id'] ?? '');
+
+        if ($remoteId === '') {
+            return SyncOutcome::NotFound;
+        }
+
         $remoteStatus = $issue['remote_status'] ?? null;
 
         if ($remoteStatus !== null && ! array_key_exists($remoteStatus, $binding->status_map ?? [])) {
