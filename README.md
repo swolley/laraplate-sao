@@ -70,6 +70,8 @@ Environment variables (all optional; the defaults are production-safe):
 |----------|---------|---------|
 | `SAO_SIGNAL_MAX_OCCURRENCES` | `1000` | Per-group occurrence cap within the rolling window (loop protection, layer 2). |
 | `SAO_SIGNAL_WINDOW_MINUTES` | `60` | Length of that rolling window, in minutes. |
+| `SAO_SIGNAL_AUTO_OPEN` | `false` | Whether `sao:signals:auto-open` is registered on the scheduler. The command is always runnable manually. |
+| `SAO_SIGNAL_AUTO_OPEN_MIN` | `1` | Minimum occurrences before a signal auto-opens a ticket. |
 | `SAO_SYNC_ENABLED` | `true` | Whether `sao:sync:issues` is registered on the scheduler. Set `false` to keep inbound polling manual-only. |
 | `SAO_SYNC_CRON` | `0 * * * *` | Cron expression for the scheduled inbound issue poll. |
 

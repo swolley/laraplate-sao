@@ -22,6 +22,15 @@ return [
     'signals' => [
         'max_occurrences_per_window' => (int) env('SAO_SIGNAL_MAX_OCCURRENCES', 1000),
         'window_minutes' => (int) env('SAO_SIGNAL_WINDOW_MINUTES', 60),
+
+        // Automatic ticket opening from error signals (sao:signals:auto-open).
+        // Opt-in: a signal opens a ticket once it reaches `min_occurrences` and
+        // has none linked yet. The command is always runnable; only its
+        // scheduled registration is gated by `enabled`.
+        'auto_open' => [
+            'enabled' => (bool) env('SAO_SIGNAL_AUTO_OPEN', false),
+            'min_occurrences' => (int) env('SAO_SIGNAL_AUTO_OPEN_MIN', 1),
+        ],
     ],
 
     // Scheduled inbound polling for trackers with no push transport

@@ -75,22 +75,29 @@ final class SAOServiceProvider extends ModuleServiceProvider
     }
 
     /**
-     * Schedule the inbound issue poll. Gated by config so an operator can keep
-     * it manual-only; harmless when on with nothing configured, since a binding
-     * must opt in with an inbound sync direction to be polled.
+     * Schedule the inbound issue poll and the signal auto-open. Both are gated
+     * by config so an operator can keep them manual-only, and both are harmless
+     * when on with nothing configured (a binding must opt into an inbound sync
+     * direction to be polled; a signal must reach the threshold to open a
+     * ticket).
      */
     #[Override]
     protected function registerCommandSchedules(): void
     {
         $this->app->booted(function (): void {
-            if (! config('sao.sync.enabled', true)) {
-                return;
+            $schedule = $this->app->make(Schedule::class);
+
+            if (config('sao.sync.enabled', true)) {
+                $schedule->command('sao:sync:issues')
+                    ->cron((string) config('sao.sync.cron', '0 * * * *'))
+                    ->withoutOverlapping();
             }
 
-            $this->app->make(Schedule::class)
-                ->command('sao:sync:issues')
-                ->cron((string) config('sao.sync.cron', '0 * * * *'))
-                ->withoutOverlapping();
+            if (config('sao.signals.auto_open.enabled', false)) {
+                $schedule->command('sao:signals:auto-open')
+                    ->everyFiveMinutes()
+                    ->withoutOverlapping();
+            }
         });
     }
 }
