@@ -51,3 +51,12 @@ test('it can target a single connection by name', function (): void {
 test('it fails when the named connection does not exist', function (): void {
     $this->artisan('sao:connection:health', ['name' => 'Nope'])->assertFailed();
 });
+
+test('the health probe is not scheduled while the health schedule is disabled', function (): void {
+    $commands = collect(app(Illuminate\Console\Scheduling\Schedule::class)->events())
+        ->map(static fn ($event): string => (string) $event->command);
+
+    // Off by default (config('sao.health.enabled') === false): the command stays
+    // runnable on demand but is never registered on the scheduler.
+    expect($commands->contains(static fn (string $command): bool => str_contains($command, 'sao:connection:health')))->toBeFalse();
+});

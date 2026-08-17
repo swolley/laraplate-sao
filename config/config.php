@@ -42,6 +42,14 @@ return [
         'cron' => (string) env('SAO_SYNC_CRON', '0 * * * *'),
     ],
 
+    // Scheduled connection health probe (sao:connection:health). Opt-in: off by
+    // default so no live probe runs unless an operator enables it; the command
+    // stays runnable on demand regardless.
+    'health' => [
+        'enabled' => (bool) env('SAO_HEALTH_SCHEDULE', false),
+        'cron' => (string) env('SAO_HEALTH_CRON', '*/15 * * * *'),
+    ],
+
     'drivers' => [
         // list<class-string<Modules\SAO\Drivers\Contracts\DriverInterface>>
         'registered' => [

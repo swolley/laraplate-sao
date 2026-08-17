@@ -75,11 +75,12 @@ final class SAOServiceProvider extends ModuleServiceProvider
     }
 
     /**
-     * Schedule the inbound issue poll and the signal auto-open. Both are gated
-     * by config so an operator can keep them manual-only, and both are harmless
-     * when on with nothing configured (a binding must opt into an inbound sync
-     * direction to be polled; a signal must reach the threshold to open a
-     * ticket).
+     * Schedule the inbound issue poll, the signal auto-open and the connection
+     * health probe. Each is gated by its own config flag so an operator can keep
+     * it manual-only, and each is harmless when on with nothing configured (a
+     * binding must opt into an inbound sync direction to be polled; a signal must
+     * reach the threshold to open a ticket; the health probe simply finds no
+     * connections).
      */
     #[Override]
     protected function registerCommandSchedules(): void
@@ -96,6 +97,12 @@ final class SAOServiceProvider extends ModuleServiceProvider
             if (config('sao.signals.auto_open.enabled', false)) {
                 $schedule->command('sao:signals:auto-open')
                     ->everyFiveMinutes()
+                    ->withoutOverlapping();
+            }
+
+            if (config('sao.health.enabled', false)) {
+                $schedule->command('sao:connection:health')
+                    ->cron((string) config('sao.health.cron', '*/15 * * * *'))
                     ->withoutOverlapping();
             }
         });
