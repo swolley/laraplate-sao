@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\SAO\Services\DomainActions;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Modules\Core\Models\User;
 use Modules\Core\Services\Crud\DomainActionRegistry;
 use Modules\SAO\Data\ChangeContext;
@@ -17,6 +18,7 @@ use Modules\SAO\Models\OwnershipSuggestion;
 use Modules\SAO\Models\SourceProfile;
 use Modules\SAO\Models\Ticket;
 use Modules\SAO\Models\TicketStatus;
+use Modules\SAO\Models\WorkflowTransition;
 use Modules\SAO\Services\ClosureApplicationService;
 use Modules\SAO\Services\ConnectionHealthService;
 use Modules\SAO\Services\OwnershipSuggestionApplier;
@@ -40,6 +42,23 @@ final class SaoDomainActionRegistrar
             TicketStatus::query()->findOrFail($payload['to_status_id']),
             ChangeContext::forUser($user),
         ));
+
+        $registry->register(Ticket::class, 'transitions', static function (Model $record, array $payload, User $user): array {
+            $transitions = resolve(WorkflowService::class)->availableTransitions($record);
+            $labels = TicketStatus::query()
+                ->whereIn('id', $transitions->pluck('to_status_id')->all())
+                ->pluck('name', 'id');
+
+            return $transitions
+                ->map(static fn (WorkflowTransition $transition): array => [
+                    'to_status_id' => $transition->to_status_id,
+                    'label' => $labels[$transition->to_status_id] ?? null,
+                    'allowed' => $transition->required_permission === null
+                        || Gate::allows($transition->required_permission),
+                ])
+                ->values()
+                ->all();
+        });
 
         $registry->register(Ticket::class, 'close', static fn (Model $record, array $payload, User $user): ?ClosureAudit => resolve(ClosureApplicationService::class)->apply(
             $record,

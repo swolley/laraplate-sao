@@ -30,6 +30,16 @@ final class SaoModelPolicy
         return $this->allowsDomainAction($user, $record, 'transition', static fn (Model $record): bool => $record instanceof Ticket);
     }
 
+    /**
+     * Reading the moves a ticket may make next is gated by the same
+     * `transition` permission that performs them: only someone allowed to move
+     * a ticket needs to know where it may go.
+     */
+    public function transitions(User $user, Model $record): bool
+    {
+        return $this->allowsDomainAction($user, $record, 'transition', static fn (Model $record): bool => $record instanceof Ticket);
+    }
+
     public function close(User $user, Model $record): bool
     {
         return $this->allowsDomainAction($user, $record, 'close', static fn (Model $record): bool => $record instanceof Ticket);

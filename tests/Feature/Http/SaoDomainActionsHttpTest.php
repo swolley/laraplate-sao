@@ -164,6 +164,19 @@ test('transition to an undeclared status is rejected and leaves the ticket untou
     expect($ticket->fresh()->ticket_status_id)->toBe($open->id);
 });
 
+test('transitions lists the moves a ticket may make from its current status', function (): void {
+    ['ticket' => $ticket, 'doing' => $doing] = saoTransitionFixture();
+    $user = saoUserWith(PermissionName::forModel($ticket, 'transition'));
+
+    $this->actingAs($user)
+        ->postJson(saoDomainActionUrl('transitions', 'tickets'), ['id' => $ticket->id])
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.to_status_id', $doing->id)
+        ->assertJsonPath('data.0.label', 'Doing')
+        ->assertJsonPath('data.0.allowed', true);
+});
+
 test('close applies a satisfied closure policy and moves the ticket to a closed status', function (): void {
     ['ticket' => $ticket, 'done' => $done] = saoClosureFixture();
     $policy = ClosurePolicy::factory()->for($ticket->project)->closes()->create([

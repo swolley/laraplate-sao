@@ -152,6 +152,7 @@ status change still goes through `WorkflowService`). The registered actions are:
 | Action | Entity | Service | Payload (besides `id`) | Returns |
 |--------|--------|---------|------------------------|---------|
 | `transition` | `tickets` | `WorkflowService::transition` | `to_status_id` | the moved `Ticket` |
+| `transitions` | `tickets` | `WorkflowService::availableTransitions` | — | the moves the ticket may make from its current status: `[{to_status_id, label, allowed}]` (`allowed` reflects the transition's `required_permission`). A read for a kanban's guided drop; gated by the same `transition` permission. |
 | `close` | `tickets` | `ClosureApplicationService::apply` | `policy_id`, optional `reporting_environment` | the `ClosureAudit` (null when the policy does not hold) |
 | `accept` | `ownership_suggestions` | `OwnershipSuggestionApplier::apply` | — | the assigned `Ticket` |
 | `health` | `connections` | `ConnectionHealthService::check` | — | `{healthy, detail, health_state, last_checked_at}` |
