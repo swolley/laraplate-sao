@@ -7,6 +7,9 @@ namespace Modules\SAO\Database\Seeders;
 use Modules\Core\Models\Permission;
 use Modules\Core\Overrides\Seeder;
 use Modules\Core\Support\PermissionName;
+use Modules\SAO\Models\Connection;
+use Modules\SAO\Models\IngestEvent;
+use Modules\SAO\Models\OwnershipSuggestion;
 use Modules\SAO\Models\Project;
 use Modules\SAO\Models\Ticket;
 use Modules\SAO\Models\TicketStatus;
@@ -24,17 +27,23 @@ final class SAOPermissionSeeder extends Seeder
 {
     /**
      * Operations beyond CRUD are the ones the domain actually distinguishes:
-     * assigning a ticket, moving it through its workflow, and overriding a
-     * workflow that would otherwise deadlock the work.
+     * assigning a ticket, moving it through its workflow, overriding a workflow
+     * that would otherwise deadlock the work, closing a ticket by applying a
+     * closure policy, accepting an ownership suggestion, probing a connection's
+     * health, and replaying a stored ingest event. The last four back the
+     * SPA-facing domain actions in {@see \Modules\SAO\Services\DomainActions\SaoDomainActionRegistrar}.
      *
      * @var array<class-string, list<string>>
      */
     private const array OPERATIONS = [
-        Ticket::class => ['view', 'create', 'update', 'delete', 'assign', 'transition', 'transition_override'],
+        Ticket::class => ['view', 'create', 'update', 'delete', 'assign', 'transition', 'transition_override', 'close'],
         Project::class => ['view', 'create', 'update', 'delete'],
         TicketStatus::class => ['view', 'create', 'update', 'delete'],
         TicketType::class => ['view', 'create', 'update', 'delete'],
         WorkflowScheme::class => ['view', 'create', 'update', 'delete'],
+        OwnershipSuggestion::class => ['accept'],
+        Connection::class => ['health'],
+        IngestEvent::class => ['replay'],
     ];
 
     public function run(): void
