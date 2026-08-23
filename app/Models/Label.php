@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\LabelFactory;
 use Modules\SAO\Enums\SAOTables;
+use Modules\SAO\Models\Pivot\TicketLabel;
 use Override;
 
 /**
@@ -86,7 +87,9 @@ final class Label extends Model
      */
     public function tickets(): BelongsToMany
     {
-        return $this->belongsToMany(Ticket::class, SAOTables::TicketLabel->value);
+        return $this->belongsToMany(Ticket::class, SAOTables::TicketLabel->value)
+            ->using(TicketLabel::class)
+            ->withTimestamps();
     }
 
     /**

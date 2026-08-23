@@ -21,6 +21,8 @@ use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Enums\StatusCategory;
 use Modules\SAO\Enums\TicketPriority;
 use Modules\SAO\Enums\TicketRelationType;
+use Modules\SAO\Models\Pivot\TicketLabel;
+use Modules\SAO\Models\Pivot\TicketWatcher;
 use Override;
 use Overtrue\LaravelVersionable\VersionStrategy;
 use Spatie\MediaLibrary\HasMedia as MediaContract;
@@ -165,7 +167,9 @@ final class Ticket extends Model implements MediaContract
      */
     public function labels(): BelongsToMany
     {
-        return $this->belongsToMany(Label::class, SAOTables::TicketLabel->value);
+        return $this->belongsToMany(Label::class, SAOTables::TicketLabel->value)
+            ->using(TicketLabel::class)
+            ->withTimestamps();
     }
 
     /**
@@ -298,7 +302,9 @@ final class Ticket extends Model implements MediaContract
      */
     public function watchers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, SAOTables::TicketWatchers->value, 'ticket_id', 'user_id');
+        return $this->belongsToMany(User::class, SAOTables::TicketWatchers->value, 'ticket_id', 'user_id')
+            ->using(TicketWatcher::class)
+            ->withTimestamps();
     }
 
     /**
