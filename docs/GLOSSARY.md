@@ -19,7 +19,7 @@ it rather than invent parallel names.
 |------|---------|
 | **Driver** | Registered code that knows how to talk to one external system. Registered in an open registry: a third-party package can add one without modifying SAO. |
 | **Connection** | A configured instance of a driver: base URL, encrypted credentials, health state, declared capabilities. |
-| **Capability** | What a connection can do: `issues`, `vcs`, `logs`, `releases`. One connection may expose several — a GitHub connection exposes all but `logs`. |
+| **Capability** | What a connection can do: `issues`, `vcs`, `logs`, `releases`, `deploy`, `code`. One connection may expose several — a GitHub connection exposes all but `logs`. |
 | **Ingest mode** | How events reach SAO from a driver: `push` (webhook), `pull` (polling), `in_process` (no transport). Each driver declares which it supports. |
 | **Conformance suite** | The shared test battery every driver of a given capability must pass. A driver is done when it passes conformance, not when it works. |
 
@@ -34,6 +34,8 @@ it rather than invent parallel names.
 | **Environment** | A deployed instance of a project (`production`, `staging`, customer X) with the version currently running on it. |
 | **Environment liveness** | The last time an environment was observed sending anything. Absence of errors is evidence only when the source was demonstrably alive. |
 | **Release** | A version of a project (tag, commit, date) and the map of where it is deployed. |
+| **Deployment** | A recorded deploy of a version to an environment (`sao_deployments`): status (`started`/`succeeded`/`failed`/`rolled_back`/`superseded`), timing, source. The idempotent history behind the deploy census and the time anchor for release health; deduped by `(connection, external_id)`. Fed by `sao:deploy:record` and the `deploy` webhook. |
+| **Release health** | `ReleaseHealthService`'s post-hoc verdict (healthy/degraded/regressed/unknown) on whether a release introduced new or worsening signals versus the previous one over an equal window. Correlation only, never a rollout gate. |
 
 ## Ingest
 
@@ -68,7 +70,7 @@ it rather than invent parallel names.
 | **Ticket** | The canonical unit of work: title, body, canonical status, priority, assignee, comments. Exists with or without an external counterpart. |
 | **TicketLink** | The link between a ticket and its counterpart in an external tracker. No link means an internal ticket. |
 | **Internal ticket** | A ticket with no `TicketLink`. The default, and the reason standalone use needs no special code path. |
-| **ChangeRef** | The link between a code artefact (commit, pull request, tag) and a ticket, with the source that produced it. |
+| **ChangeRef** | The link between a code artefact (commit, pull request, tag) and a ticket, with the source that produced it and its `relation` (`fixes` = resolution evidence, `mentions` = context). Fixes are extracted from commit/PR text by a closing verb before a ticket key; only fixes count toward fix propagation and closure. |
 | **Idempotency key** | The persisted key carried by every outbound write, so a retry can never produce a second comment or a second ticket. Trackers rarely offer idempotent write APIs; the guarantee lives on our side. |
 
 ## Automation
@@ -79,3 +81,5 @@ it rather than invent parallel names.
 | **Closure condition** | One independently testable predicate over verifiable facts: `pull_request_merged`, `no_recurrence_for`, `fix_released`, `fix_deployed_there`, `resolved_for`, `internal_tickets_only`. |
 | **Premature closure** | An automatic closure invalidated by the signal reappearing. Recorded as such, and the data that says whether configured durations are tuned correctly. |
 | **Fix propagation** | The deterministic check for whether a fix already exists upstream and only a deployment is missing. |
+| **Attribution** | Writing the code↔work links from evidence: `TicketReferenceExtractor` + `CodeReferenceWriter` record fix/mention `ChangeRef`s from commit/PR text, and `ReleaseAttributionService` maps a fixing commit to its release (normalizing the tag; a candidate records the future stable version). Fed by the pull scan (`sao:vcs:scan`) and the `code` PR-merge webhook. |
+| **Closure coordinator** | `ClosureCoordinator` + `sao:closure:run`: runs active closure policies with a settings-gated auto-close (`SAO_CLOSURE_AUTO_CLOSE`, off by default → propose only; on → a satisfied `close` policy closes through `ClosureApplicationService`). |
