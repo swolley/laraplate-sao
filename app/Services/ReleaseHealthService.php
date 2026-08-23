@@ -8,7 +8,9 @@ use Carbon\CarbonInterface;
 use Carbon\CarbonInterval;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Modules\SAO\Data\ReleaseHealth;
+use Modules\SAO\Enums\DeploymentStatus;
 use Modules\SAO\Enums\ReleaseHealthVerdict;
+use Modules\SAO\Models\Deployment;
 use Modules\SAO\Models\Environment;
 use Modules\SAO\Models\Release;
 use Modules\SAO\Models\Signal;
@@ -27,7 +29,7 @@ final class ReleaseHealthService
 {
     public function forRelease(Release $release, ?Environment $environment = null, ?CarbonInterval $window = null): ReleaseHealth
     {
-        $anchor = $release->released_at;
+        $anchor = $this->anchor($release, $environment);
 
         if ($anchor === null) {
             return ReleaseHealth::unknown();
@@ -87,6 +89,25 @@ final class ReleaseHealthService
             occurrenceDeltaPct: $deltaPct,
             contributing: $signals->sortByDesc('window_count')->take(10)->values()->all(),
         );
+    }
+
+    /**
+     * When the window starts: the latest terminal `succeeded` deployment's
+     * `finished_at` (scoped to the environment when one is given) gives a precise,
+     * per-deploy anchor; absent any deploy history it falls back to the release's
+     * own `released_at`. Null when neither is known — there is nothing to judge.
+     */
+    private function anchor(Release $release, ?Environment $environment): ?CarbonInterface
+    {
+        $deployment = Deployment::query()
+            ->where('release_id', $release->getKey())
+            ->where('status', DeploymentStatus::Succeeded)
+            ->when($environment?->getKey(), fn (Builder $query, int $environmentId): Builder => $query->where('environment_id', $environmentId))
+            ->whereNotNull('finished_at')
+            ->orderByDesc('finished_at')
+            ->first();
+
+        return $deployment?->finished_at ?? $release->released_at;
     }
 
     /**
