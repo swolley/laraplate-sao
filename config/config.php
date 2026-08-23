@@ -75,6 +75,25 @@ return [
             'close', 'closes', 'closed',
             'resolve', 'resolves', 'resolved',
         ],
+
+        // Non-semver tags carrying one of these markers are treated as candidate
+        // (RC) tags; a semver pre-release segment (1.4.0-rc.1) is always candidate
+        // regardless of this list.
+        'prerelease_markers' => [
+            '-rc', '-beta', '-alpha', '-pre', '-dev', '-snapshot',
+        ],
+    ],
+
+    // Evidence-based closure activation (ClosureCoordinator / sao:closure:run).
+    // Off by default: closure policies only ever *propose* a close (recorded as a
+    // ClosureAudit, no state change). Turn `auto_close.enabled` on to let a
+    // satisfied `close` policy actually close the ticket through WorkflowService
+    // (audited and auto-reversible on recurrence). A `shadow` binding keeps the
+    // prudent `propose` default regardless.
+    'closure' => [
+        'auto_close' => [
+            'enabled' => (bool) env('SAO_CLOSURE_AUTO_CLOSE', false),
+        ],
     ],
 
     'drivers' => [
@@ -101,6 +120,8 @@ return [
             Modules\SAO\Drivers\External\BetterStackDriver::class,
             Modules\SAO\Drivers\External\WebhookDeployDriver::class,
             Modules\SAO\Drivers\External\GitHubDeploymentDriver::class,
+            Modules\SAO\Drivers\External\WebhookCodeDriver::class,
+            Modules\SAO\Drivers\External\GitHubPullRequestDriver::class,
         ],
     ],
 ];

@@ -6,12 +6,13 @@ use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 
 test('capabilities are the families with their wire values', function (): void {
-    expect(Capability::values())->toEqualCanonicalizing(['vcs', 'issues', 'releases', 'logs', 'deploy'])
+    expect(Capability::values())->toEqualCanonicalizing(['vcs', 'issues', 'releases', 'logs', 'deploy', 'code'])
         ->and(Capability::from('issues'))->toBe(Capability::Issues)
         ->and(Capability::from('vcs'))->toBe(Capability::Vcs)
         ->and(Capability::from('releases'))->toBe(Capability::Releases)
         ->and(Capability::from('logs'))->toBe(Capability::Logs)
-        ->and(Capability::from('deploy'))->toBe(Capability::Deploy);
+        ->and(Capability::from('deploy'))->toBe(Capability::Deploy)
+        ->and(Capability::from('code'))->toBe(Capability::Code);
 });
 
 test('ingest modes are push, pull and in_process', function (): void {

@@ -18,6 +18,7 @@ enum Capability: string
     case Releases = 'releases';
     case Logs = 'logs';
     case Deploy = 'deploy';
+    case Code = 'code';
 
     public static function validationRule(): string
     {

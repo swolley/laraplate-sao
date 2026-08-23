@@ -80,6 +80,33 @@ Environment variables (all optional; the defaults are production-safe):
 | `SAO_RELEASE_HEALTH_REGRESSION_FACTOR` | `1.5` | A pre-existing signal counts as regressed only when its in-window count exceeds its baseline count by this factor. |
 | `SAO_RELEASE_HEALTH_REGRESSION_MIN` | `3` | Minimum in-window occurrences before a pre-existing signal can be flagged as regressed (noise floor). |
 | `SAO_RELEASE_HEALTH_REGRESSED_NEW_SIGNALS` | `3` | Number of brand-new signals in the window that on their own tip the verdict to `regressed`. |
+| `SAO_CLOSURE_AUTO_CLOSE` | `false` | When `true`, `sao:closure:run` lets a satisfied `close` policy actually close the ticket; when `false` it only proposes (records a `ClosureAudit`, no state change). |
+
+## Code-to-work attribution & closure
+
+SAO derives "is this ticket actually fixed, and everywhere?" from evidence, not a
+human flag. It reads ticket keys out of commit messages and merged pull-request
+text and records a `ChangeRef` per (ticket, artefact): a closing verb
+(`fixes|closes|resolves…`, configurable via `sao.attribution.closing_verbs`)
+marks a **fix**, any other reference a **mention**. Only fixes count as resolution
+evidence. A fixing commit is attributed to the release that carries it via the
+`releases` capability (`firstTagContaining`), classifying the tag as stable →
+`shipped` or a candidate (RC) → `promised` by a semver heuristic
+(`sao.attribution.prerelease_markers`).
+
+Two transports feed the same writer:
+
+- **Pull** — `php artisan sao:vcs:scan {connection?} {--range=main}` walks a `vcs`
+  binding's commits; idempotent, so it also backfills history.
+- **Push** — a `code` webhook at `POST api/v1/webhooks/{connection}` (the shared
+  route, branched by driver capability). Drivers: a generic `webhook-code` (token
+  in `X-Code-Token`) and `github-pull-request` (GitHub's `pull_request` webhook,
+  HMAC-verified, only *merged* PRs count).
+
+`php artisan sao:closure:run {project?} {--env=}` evaluates active closure policies
+over non-terminal tickets. By default it only **proposes** a close; set
+`SAO_CLOSURE_AUTO_CLOSE=true` to let a satisfied `close` policy actually close the
+ticket (through `WorkflowService`, audited and auto-reversible on recurrence).
 
 ## Current Status
 
