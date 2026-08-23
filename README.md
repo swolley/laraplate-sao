@@ -76,6 +76,10 @@ Environment variables (all optional; the defaults are production-safe):
 | `SAO_SYNC_CRON` | `0 * * * *` | Cron expression for the scheduled inbound issue poll. |
 | `SAO_HEALTH_SCHEDULE` | `false` | Whether `sao:connection:health` runs on the scheduler. The command is always runnable manually. |
 | `SAO_HEALTH_CRON` | `*/15 * * * *` | Cron expression for the scheduled connection health probe. |
+| `SAO_RELEASE_HEALTH_WINDOW_DAYS` | `7` | How many days after a release its signals are attributed to it when judging release health. |
+| `SAO_RELEASE_HEALTH_REGRESSION_FACTOR` | `1.5` | A pre-existing signal counts as regressed only when its in-window count exceeds its baseline count by this factor. |
+| `SAO_RELEASE_HEALTH_REGRESSION_MIN` | `3` | Minimum in-window occurrences before a pre-existing signal can be flagged as regressed (noise floor). |
+| `SAO_RELEASE_HEALTH_REGRESSED_NEW_SIGNALS` | `3` | Number of brand-new signals in the window that on their own tip the verdict to `regressed`. |
 
 ## Current Status
 
