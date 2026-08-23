@@ -7,6 +7,7 @@ namespace Modules\SAO\Providers;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
 use Modules\Core\Exceptions\ConfigurationException;
+use Modules\Core\Import\Support\EntityImporterRegistry;
 use Modules\Core\Logging\Fingerprint\Fingerprinter;
 use Modules\Core\Logging\Fingerprint\FingerprintNormalizer;
 use Modules\Core\Overrides\ModuleServiceProvider;
@@ -14,6 +15,7 @@ use Modules\Core\Services\Crud\DomainActionRegistry;
 use Modules\SAO\Contracts\SuggestionPhraser;
 use Modules\SAO\Contracts\SuggestionTextGenerator;
 use Modules\SAO\Drivers\DriverRegistry;
+use Modules\SAO\Import\TicketImporter;
 use Modules\SAO\Ingest\PipelineContext;
 use Modules\SAO\Models\Connection;
 use Modules\SAO\Models\IngestEvent;
@@ -92,21 +94,8 @@ final class SAOServiceProvider extends ModuleServiceProvider
         }
 
         resolve(SaoDomainActionRegistrar::class)->register(resolve(DomainActionRegistry::class));
-    }
 
-    /**
-     * SAO models that expose domain actions through {@see SaoModelPolicy}.
-     *
-     * @return list<class-string<\Illuminate\Database\Eloquent\Model>>
-     */
-    private function policyModels(): array
-    {
-        return [
-            Ticket::class,
-            OwnershipSuggestion::class,
-            Connection::class,
-            IngestEvent::class,
-        ];
+        resolve(EntityImporterRegistry::class)->register(resolve(TicketImporter::class));
     }
 
     /**
@@ -147,5 +136,20 @@ final class SAOServiceProvider extends ModuleServiceProvider
                     ->withoutOverlapping();
             }
         });
+    }
+
+    /**
+     * SAO models that expose domain actions through {@see SaoModelPolicy}.
+     *
+     * @return list<class-string<\Illuminate\Database\Eloquent\Model>>
+     */
+    private function policyModels(): array
+    {
+        return [
+            Ticket::class,
+            OwnershipSuggestion::class,
+            Connection::class,
+            IngestEvent::class,
+        ];
     }
 }
