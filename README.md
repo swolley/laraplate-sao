@@ -81,6 +81,12 @@ Environment variables (all optional; the defaults are production-safe):
 | `SAO_RELEASE_HEALTH_REGRESSION_MIN` | `3` | Minimum in-window occurrences before a pre-existing signal can be flagged as regressed (noise floor). |
 | `SAO_RELEASE_HEALTH_REGRESSED_NEW_SIGNALS` | `3` | Number of brand-new signals in the window that on their own tip the verdict to `regressed`. |
 | `SAO_CLOSURE_AUTO_CLOSE` | `false` | When `true`, `sao:closure:run` lets a satisfied `close` policy actually close the ticket; when `false` it only proposes (records a `ClosureAudit`, no state change). |
+| `SAO_RETENTION_SCHEDULE` | `false` | Whether `sao:prune` runs on the scheduler. The command is always runnable manually (with `--dry-run`). |
+| `SAO_RETENTION_CRON` | `0 3 * * *` | Cron expression for the scheduled prune. |
+| `SAO_RETENTION_OCCURRENCES_DAYS` | `90` | Delete signal occurrences older than this many days (the signal and its counters are kept). |
+| `SAO_RETENTION_INGEST_DAYS` | `30` | Delete ingest-event audit rows older than this many days. |
+| `SAO_RETENTION_DEPLOYMENTS_DAYS` | `180` | Delete deployments older than this many days, keeping the latest per environment so the census stays valid. |
+| `SAO_RETENTION_CLOSED_PROJECT_DAYS` | `30` | Grace period after a project is deactivated before its heavy data (signals, occurrences, ingest, deployments, tickets) is purged; the project, environments and releases are kept. |
 
 ## Code-to-work attribution & closure
 

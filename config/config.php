@@ -96,6 +96,21 @@ return [
         ],
     ],
 
+    // Data retention (sao:prune). Hard-deletes aged, high-volume data so the store
+    // does not grow without bound. Off the scheduler by default (`enabled`); the
+    // command is always runnable, and `--dry-run` reports without deleting. Windows
+    // are in days. `closed_project_days` is a grace period after a project is
+    // deactivated before its heavy data (signals, occurrences, ingest, deployments,
+    // tickets) is purged — the project, environments and releases stay as anagraphic.
+    'retention' => [
+        'enabled' => (bool) env('SAO_RETENTION_SCHEDULE', false),
+        'cron' => (string) env('SAO_RETENTION_CRON', '0 3 * * *'),
+        'signal_occurrences_days' => (int) env('SAO_RETENTION_OCCURRENCES_DAYS', 90),
+        'ingest_events_days' => (int) env('SAO_RETENTION_INGEST_DAYS', 30),
+        'deployments_days' => (int) env('SAO_RETENTION_DEPLOYMENTS_DAYS', 180),
+        'closed_project_days' => (int) env('SAO_RETENTION_CLOSED_PROJECT_DAYS', 30),
+    ],
+
     'drivers' => [
         // list<class-string<Modules\SAO\Drivers\Contracts\DriverInterface>>
         'registered' => [

@@ -140,6 +140,12 @@ final class SAOServiceProvider extends ModuleServiceProvider
                     ->cron((string) config('sao.health.cron', '*/15 * * * *'))
                     ->withoutOverlapping();
             }
+
+            if (config('sao.retention.enabled', false)) {
+                $schedule->command('sao:prune')
+                    ->cron((string) config('sao.retention.cron', '0 3 * * *'))
+                    ->withoutOverlapping();
+            }
         });
     }
 }
