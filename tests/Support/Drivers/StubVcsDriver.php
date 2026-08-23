@@ -26,11 +26,13 @@ final readonly class StubVcsDriver implements DriverInterface, ReleasesCapabilit
 {
     /**
      * @param  list<array<string, mixed>>  $commits
+     * @param  list<string>  $tags  tags returned by tags(); defaults to just $tag
      */
     public function __construct(
         private array $commits = [],
         private ?string $tag = null,
         private string $key = 'stub-vcs',
+        private array $tags = [],
     ) {}
 
     #[Override]
@@ -103,6 +105,10 @@ final readonly class StubVcsDriver implements DriverInterface, ReleasesCapabilit
     #[Override]
     public function tags(BindingContext $context, ?string $cursor = null): Page
     {
+        if ($this->tags !== []) {
+            return new Page(array_map(static fn (string $tag): array => ['tag' => $tag], $this->tags));
+        }
+
         return new Page($this->tag === null ? [] : [['tag' => $this->tag]]);
     }
 
