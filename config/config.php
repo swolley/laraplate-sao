@@ -87,6 +87,8 @@ return [
             Modules\SAO\Drivers\External\DatadogDriver::class,
             Modules\SAO\Drivers\External\ElasticDriver::class,
             Modules\SAO\Drivers\External\BetterStackDriver::class,
+            Modules\SAO\Drivers\External\WebhookDeployDriver::class,
+            Modules\SAO\Drivers\External\GitHubDeploymentDriver::class,
         ],
     ],
 ];

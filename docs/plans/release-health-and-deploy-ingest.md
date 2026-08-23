@@ -12,10 +12,12 @@
   `DeploymentRecorded` event), `sao:deploy:record` command, read-only Filament
   `DeploymentResource`. `ReleaseHealthService` now anchors its window on a
   succeeded deployment's `finished_at` when present, else `released_at`.
-- **Remaining (#1 transport)** — the `deploy` capability contract, its conformance
-  battery, a generic webhook deploy driver and the inbound HTTP route. The CLI
-  command already provides an integration-free path; the webhook transport is the
-  next increment.
+- **#1 Deploy webhook transport** — shipped. The `deploy` capability contract
+  (`DeployCapability`), a `DeployConformance` battery, a generic
+  `WebhookDeployDriver` (token) and a concrete `GitHubDeploymentDriver` (HMAC over
+  GitHub's `deployment_status`), and `DeployWebhookIngestService` behind the shared
+  `POST api/v1/webhooks/{connection}` route (branched by driver capability),
+  deduped and audited as `IngestEvent`s. #1 is now complete end-to-end (CLI + push).
 
 Distilled from the talk *“The Self-Healing Canary: Integrating Agentic AIOps into
 Your Releases”* (K. Dubois). SAO takes the **post-hoc, correlation half** of that

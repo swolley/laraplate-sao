@@ -141,6 +141,15 @@ any external integration (CLI-only CD steps, replay) with:
 php artisan sao:deploy:record {project} {version} --env=production --status=succeeded --external-id=ci-run-42
 ```
 
+Deploys can also arrive as a **push webhook** through the `deploy` capability at
+`POST api/v1/webhooks/{connection}` (the same endpoint the `logs` push uses; the
+route branches by the connection's driver capability). Two drivers ship: a generic
+`webhook-deploy` (shared token in the `X-Deploy-Token` header) and
+`github-deployment` (GitHub's `deployment_status` webhook, HMAC-SHA256 signature).
+Each delivery is verified by the driver, unpacked into deploy events, recorded via
+the same `DeploymentIngestService` (deduped, census-projecting), and audited as an
+`IngestEvent`. The secret lives on the connection.
+
 ## Scripts
 
 Run commands from the **SAO module root** after `composer install`.
