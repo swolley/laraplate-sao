@@ -114,6 +114,26 @@ over non-terminal tickets. By default it only **proposes** a close; set
 `SAO_CLOSURE_AUTO_CLOSE=true` to let a satisfied `close` policy actually close the
 ticket (through `WorkflowService`, audited and auto-reversible on recurrence).
 
+## Migrating from an external tracker
+
+To switch a project from an external issue tracker to Laraplate, import its
+history through the existing `issues` binding:
+
+```bash
+php artisan sao:tracker:import "Acme Jira" --project="Web" --scope=open --cutover
+```
+
+- `--scope=open` imports only issues still active — an issue whose remote status
+  maps (through the binding's `status_map`) to a terminal category
+  (closed/rejected) is skipped; `--scope=all` (default) imports everything. An
+  unmapped remote status is treated as open, so nothing active is dropped.
+- The import is **idempotent** (matched by `TicketLink`), so it is safe to re-run
+  and effectively resumable; `--queue` dispatches one background job per binding.
+- `--cutover` makes SAO authoritative afterwards by flipping the binding's sync
+  direction — `disabled` by default (external tracker abandoned) or
+  `--cutover-direction=outbound` to keep pushing changes back during a transition.
+  The `TicketLink`s are kept as provenance.
+
 ## Current Status
 
 Slice 1a — the internal ticketing core — is implemented. SAO is usable as a

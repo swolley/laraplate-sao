@@ -116,6 +116,41 @@ final readonly class IssueSyncService
             return SyncOutcome::UnmappedStatus;
         }
 
+        return $this->upsertFromIssue($binding, $issue);
+    }
+
+    /**
+     * Bulk-import one already-normalized remote issue into SAO for a migration.
+     * Unlike {@see reconcile()} it does not gate on an unmapped remote status — a
+     * migration brings the whole history in and every imported ticket opens at the
+     * workflow's initial status. Idempotent by `TicketLink`, so re-running skips
+     * what already imported. Status-based filtering (e.g. open-only) is the
+     * importer's job, applied before this call.
+     *
+     * @param  array<string, mixed>  $issue
+     */
+    public function import(ProjectBinding $binding, array $issue): SyncOutcome
+    {
+        $remoteId = (string) ($issue['remote_id'] ?? '');
+
+        if ($remoteId === '') {
+            return SyncOutcome::NotFound;
+        }
+
+        return $this->upsertFromIssue($binding, $issue);
+    }
+
+    /**
+     * Link-or-create the SAO ticket for a normalized remote issue. The shared
+     * primitive behind {@see reconcile()} and {@see import()}; matches on
+     * `TicketLink` by `(connection, remote_id)` so it never duplicates.
+     *
+     * @param  array<string, mixed>  $issue
+     */
+    private function upsertFromIssue(ProjectBinding $binding, array $issue): SyncOutcome
+    {
+        $remoteId = (string) ($issue['remote_id'] ?? '');
+
         $link = TicketLink::query()
             ->where('connection_id', $binding->connection_id)
             ->where('remote_id', $remoteId)
