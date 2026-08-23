@@ -54,6 +54,25 @@ test('a candidate tag only promises the release', function (): void {
         ->and($ticketRelease->state)->toBe(TicketReleaseState::Promised);
 });
 
+test('an RC records the normalized future-stable version, still announced', function (): void {
+    $ticket = Ticket::factory()->create();
+
+    // Both an unprefixed and a v-prefixed RC of the same release normalize to the
+    // one future-stable version, realized so far only by candidate tags.
+    $this->service->attribute($ticket, 'sha-a', new StubReleasesDriver('1.4.0-rc.1'), stubContext());
+    $this->service->attribute($ticket, 'sha-b', new StubReleasesDriver('v1.4.0-rc.2'), stubContext());
+
+    $release = Release::query()->withoutGlobalScopes()->where('project_id', $ticket->project_id)->sole();
+
+    expect($release->version)->toBe('1.4.0')
+        ->and($release->status)->toBe(ReleaseStatus::Announced)
+        ->and($release->released_at)->toBeNull()
+        ->and(ReleaseTag::query()->withoutGlobalScopes()->where('release_id', $release->id)->pluck('kind')->all())
+        ->each->toBe(ReleaseTagKind::Candidate)
+        ->and(TicketRelease::query()->withoutGlobalScopes()->where('ticket_id', $ticket->id)->sole()->state)
+        ->toBe(TicketReleaseState::Promised);
+});
+
 test('a candidate then a stable tag of the same release promotes to shipped', function (): void {
     $ticket = Ticket::factory()->create();
 

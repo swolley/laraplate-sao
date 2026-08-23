@@ -19,7 +19,7 @@ it rather than invent parallel names.
 |------|---------|
 | **Driver** | Registered code that knows how to talk to one external system. Registered in an open registry: a third-party package can add one without modifying SAO. |
 | **Connection** | A configured instance of a driver: base URL, encrypted credentials, health state, declared capabilities. |
-| **Capability** | What a connection can do: `issues`, `vcs`, `logs`, `releases`. One connection may expose several — a GitHub connection exposes all but `logs`. |
+| **Capability** | What a connection can do: `issues`, `vcs`, `logs`, `releases`, `deploy`, `code`. One connection may expose several — a GitHub connection exposes all but `logs`. |
 | **Ingest mode** | How events reach SAO from a driver: `push` (webhook), `pull` (polling), `in_process` (no transport). Each driver declares which it supports. |
 | **Conformance suite** | The shared test battery every driver of a given capability must pass. A driver is done when it passes conformance, not when it works. |
 
@@ -38,6 +38,10 @@ it rather than invent parallel names.
 | **Release** | A product version of a project, named as its stable label, with status `announced` (being assembled) or `shipped` (a stable tag realizing it exists). |
 | **ReleaseTag** | A concrete VCS tag realizing a release, `stable` (shippable) or `candidate` (an RC keeping a testable reference for staging). |
 | **TicketRelease** | The attribution of a ticket to a release as `promised` or `shipped`. The pair is unique and the state is deliberately independent of the ticket's own workflow status. |
+| **Deployment** | A recorded deploy/rollout of a version to an environment (`sao_deployments`): status, `started_at`/`finished_at`, source connection + `external_id`. The durable, idempotent history behind the deploy census (which becomes a projection of it) and the precise time anchor release health reads from. The pair `(connection, external_id)` is unique so a re-delivery is recorded once. |
+| **DeploymentStatus** | The lifecycle of a deployment: `started` (the only non-terminal), `succeeded`, `failed`, `rolled_back`, `superseded`. Only a terminal `succeeded` advances the environment's version census; a failed or rolled-back deploy is history, never asserted as running. |
+| **Deploy ingest** | `DeploymentIngestService`: turns one normalized `DeployEvent` into a `Deployment`, deduped by `(connection, external_id)`, advancing the census on `succeeded` and announcing `DeploymentRecorded`. Fed by the `sao:deploy:record` command and the `deploy` push webhook (`WebhookDeployDriver` token / `GitHubDeploymentDriver` HMAC). |
+| **Release health** | `ReleaseHealthService`: a post-hoc, correlation-only verdict (`ReleaseHealthVerdict`: healthy / degraded / regressed / unknown) on whether a release introduced new or worsening signals versus the previous release over an equal window. Never a rollout gate. The window anchors on a succeeded deployment's `finished_at` when present, else `Release.released_at`. |
 
 ## Ingest
 
@@ -72,7 +76,8 @@ it rather than invent parallel names.
 | **Ticket** | The canonical unit of work: title, body, canonical status, priority, assignee, comments. Exists with or without an external counterpart. |
 | **TicketLink** | The link between a ticket and its counterpart in an external tracker. No link means an internal ticket. |
 | **Internal ticket** | A ticket with no `TicketLink`. The default, and the reason standalone use needs no special code path. |
-| **ChangeRef** | The link between a code artefact (commit, pull request, tag) and a ticket, with the source that produced it. |
+| **ChangeRef** | The link between a code artefact (commit, pull request, tag) and a ticket, with the source that produced it and its `relation`. |
+| **ChangeRef relation** | Whether a change ref `fixes` a ticket (resolution evidence) or only `mentions` it (timeline context). A closing verb before a ticket key (`fixes SAO-1`) is a fix, a bare reference a mention; only fixes count toward `FixStatusResolver`/`TimeToTruthService`/closure. An upsert may upgrade a mention to a fix, never the reverse. |
 | **Idempotency key** | The persisted key carried by every outbound write, so a retry can never produce a second comment or a second ticket. Trackers rarely offer idempotent write APIs; the guarantee lives on our side. |
 | **Due date** | A ticket's `due_at`. The `overdue` scope selects past-due tickets not in a terminal status; `dueWithin` selects tickets due in the next N days. |
 | **Label** | A project-scoped tag on a ticket (unique name per project). Attached many-to-many through `sao_ticket_label`. |
@@ -103,3 +108,9 @@ it rather than invent parallel names.
 | **Ownership evidence resolvers** | The services that turn `vcs` reads into `OwnershipEvidence`: `CodeownersOwnershipResolver` (CODEOWNERS patterns, last-match-wins), `RecentTouchOwnershipResolver` (commit count per author over a range) and `BlameConcentrationOwnershipResolver` (owned-line count per author across the touched files, via the optional `BlameCapability` — GitHub-only). All resolve identities (handle or email) to user ids through an injected identity map and skip the unmappable. |
 | **Fix propagation** | `FixStatusResolver`'s deterministic read of whether a fix's PR is merged, a **shipped** release carries it, and which environments run that version — the "already fixed on dev, deploy missing" answer. |
 | **Time-to-truth** | `TimeToTruthService`'s lag, from a signal's first sighting, until the fix was merged, a deploy gap was knowable, and (if it happened) a premature closure was reopened. |
+| **Ticket reference extractor** | `TicketReferenceExtractor`: pulls ticket keys from commit/PR text and classifies each as a fix (a configured closing verb — `sao.attribution.closing_verbs` — precedes the key) or a mention. |
+| **Code reference writer** | `CodeReferenceWriter`: resolves the extracted keys to tickets and upserts one `ChangeRef` per `(ticket, type, identifier)`, monotonic on relation (mention→fix upgrade, never downgrade), reporting keys that resolve to no ticket. The transport-agnostic middle both transports feed. |
+| **Release attribution** | `ReleaseAttributionService`: maps a fixing commit to the release that carries it via `ReleasesCapability::firstTagContaining`, upserting `Release`/`ReleaseTag`/`TicketRelease`. `ReleaseTagClassifier` normalizes the tag to its stable version (semver core, `v1.4.0-rc.1` → `1.4.0`) and its kind — so a candidate (RC) records the future stable version, still `announced`, until a stable tag ships it. |
+| **Commit scan** | `VcsScanService` + `sao:vcs:scan`: the pull transport — walks a `vcs` binding's commits into the code reference writer and attributes fixes to releases. Idempotent, so it also backfills history. |
+| **Code webhook** | `CodeWebhookIngestService`: the push transport — a `code` connection's merged-PR delivery, verified by its driver (`WebhookCodeDriver` token / `GitHubPullRequestDriver` HMAC, merged PRs only), unpacked into `CodeReference`s and recorded through the writer. On the shared `webhooks/{connection}` route, branched by capability. |
+| **Closure coordinator** | `ClosureCoordinator` + `sao:closure:run`: runs a ticket's active closure policies, gating auto-close by the `sao.closure.auto_close.enabled` setting (off by default). When off, every `close` policy is downgraded to `propose` in-memory — evidence is recorded, the ticket never moves; when on, a satisfied `close` policy closes through `ClosureApplicationService`. |

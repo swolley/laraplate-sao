@@ -21,6 +21,12 @@ use Modules\SAO\Models\TicketRelease;
  * {@see TicketRelease} — so "which version fixes this ticket" is answered from
  * data, feeding `FixStatusResolver` and closure.
  *
+ * The release version is always the normalized stable label (the semver core,
+ * `v1.4.0-rc.1` → `1.4.0`), so a candidate (RC) records the future stable version
+ * it will become: the same `Release` row, still `announced` and realized only by a
+ * `candidate` tag, until a stable tag of that version ships it. Both the RC and its
+ * eventual stable tag therefore attach to one release.
+ *
  * Idempotent and monotonic: a stable tag ships the release (status + a best-effort
  * `released_at`) and the ticket attribution (`shipped`), and neither is ever
  * walked back by a later candidate tag. `released_at` is a best-effort stamp; the
