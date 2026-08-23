@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Modules\SAO\Drivers\Contracts\CodeEventCapability;
 use Modules\SAO\Drivers\Contracts\DeployCapability;
 use Modules\SAO\Drivers\DriverRegistry;
+use Modules\SAO\Ingest\CodeWebhookIngestService;
 use Modules\SAO\Ingest\DeployWebhookIngestService;
 use Modules\SAO\Ingest\DriverWebhookIngestService;
 use Modules\SAO\Models\Connection;
@@ -45,6 +47,7 @@ final class WebhookIngestController extends Controller
         DriverRegistry $registry,
         DriverWebhookIngestService $logsService,
         DeployWebhookIngestService $deployService,
+        CodeWebhookIngestService $codeService,
     ): JsonResponse {
         $deliveryId = $this->deliveryId($request);
         $body = $request->getContent();
@@ -52,9 +55,11 @@ final class WebhookIngestController extends Controller
 
         $driver = $connection->driver($registry);
 
-        $outcome = $driver instanceof DeployCapability
-            ? $deployService->ingest($connection, $deliveryId, $body, $headers)
-            : $logsService->ingest($connection, $deliveryId, $body, $headers);
+        $outcome = match (true) {
+            $driver instanceof DeployCapability => $deployService->ingest($connection, $deliveryId, $body, $headers),
+            $driver instanceof CodeEventCapability => $codeService->ingest($connection, $deliveryId, $body, $headers),
+            default => $logsService->ingest($connection, $deliveryId, $body, $headers),
+        };
 
         return response()->json([
             'result' => $outcome->result,
