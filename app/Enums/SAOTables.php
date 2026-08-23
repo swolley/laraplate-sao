@@ -42,4 +42,5 @@ enum SAOTables: string
     case ProjectBindings = 'sao_project_bindings';
     case TicketLinks = 'sao_ticket_links';
     case SyncOperations = 'sao_sync_operations';
+    case ImportRuns = 'sao_import_runs';
 }

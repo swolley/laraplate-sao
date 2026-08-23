@@ -7,7 +7,8 @@ namespace Modules\SAO\Data;
 /**
  * The result of importing an external tracker's history into a binding: tickets
  * created, existing links updated, issues skipped by the open-only filter, issues
- * with no usable remote id, and whether the page walk was truncated.
+ * with no usable remote id, comments and attachments imported, and whether the
+ * page walk was truncated.
  */
 final readonly class TrackerImportReport
 {
@@ -17,6 +18,8 @@ final readonly class TrackerImportReport
         public int $updated = 0,
         public int $filtered = 0,
         public int $skipped = 0,
+        public int $comments = 0,
+        public int $attachments = 0,
         public int $pages = 0,
         public bool $truncated = false,
     ) {}

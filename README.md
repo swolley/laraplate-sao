@@ -133,8 +133,20 @@ php artisan sao:tracker:import "Acme Jira" --project="Web" --scope=open --cutove
   maps (through the binding's `status_map`) to a terminal category
   (closed/rejected) is skipped; `--scope=all` (default) imports everything. An
   unmapped remote status is treated as open, so nothing active is dropped.
-- The import is **idempotent** (matched by `TicketLink`), so it is safe to re-run
-  and effectively resumable; `--queue` dispatches one background job per binding.
+- The import is **idempotent** (matched by `TicketLink`) and **resumable**: it
+  persists an `ImportRun` per (binding, scope) that stores the driver's next-page
+  cursor and running counts, saved after every page. An import cut short by a
+  crash, a redeploy or a requeue resumes from the exact page it stopped on instead
+  of re-walking from the start; the run flips to `completed` only when the page
+  walk is exhausted, and re-importing a finished migration opens a fresh run.
+  `--queue` dispatches one background job per binding.
+- When the tracker's driver also implements `IssueHistoryCapability`, each imported
+  ticket gets its **comment thread and attachments** too — comments as `system`
+  `TicketComment`s keyed by the remote comment id, attachments stored in the
+  ticket's `attachments` media collection keyed by the remote attachment id — both
+  idempotent, so a resumed or re-run import never duplicates them. The driver
+  downloads attachment bytes itself (only it holds the connection credentials), so
+  the importer never makes an unauthenticated request.
 - `--cutover` makes SAO authoritative afterwards by flipping the binding's sync
   direction — `disabled` by default (external tracker abandoned) or
   `--cutover-direction=outbound` to keep pushing changes back during a transition.

@@ -110,6 +110,8 @@ final class ImportTrackerCommand extends Command
                 (string) $report->updated,
                 (string) $report->filtered,
                 (string) $report->skipped,
+                (string) $report->comments,
+                (string) $report->attachments,
                 $report->truncated ? 'yes' : 'no',
                 $cutover?->value ?? '—',
             ];
@@ -121,7 +123,7 @@ final class ImportTrackerCommand extends Command
             return self::SUCCESS;
         }
 
-        $this->table(['Project', 'Created', 'Updated', 'Filtered', 'Skipped', 'Truncated', 'Cutover'], $rows);
+        $this->table(['Project', 'Created', 'Updated', 'Filtered', 'Skipped', 'Comments', 'Attachments', 'Truncated', 'Cutover'], $rows);
 
         return self::SUCCESS;
     }
