@@ -1,7 +1,21 @@
 # Plan — Release Health & Deploy Ingest
 
-**Status:** proposed · **Module:** SAO · **Method:** TDD (Pest feature tests)
+**Status:** in progress · **Module:** SAO · **Method:** TDD (Pest feature tests)
 **Builds on:** phase 5b (releases / deploy census) and phase 6 (fix propagation & evidence-based closure).
+
+**Implemented so far**
+- **#2 Release health** — shipped. `ReleaseHealthService` + `ReleaseHealth` /
+  `ReleaseHealthVerdict`, config `sao.release_health.*`, feature tests.
+- **#1 Deploy ingest core** — shipped. `Deployment` model + `sao_deployments`
+  migration + factory, `DeploymentStatus`, `DeployEvent`, `DeploymentIngestService`
+  (dedupe by `(connection, external_id)`, census projection on `succeeded`,
+  `DeploymentRecorded` event), `sao:deploy:record` command, read-only Filament
+  `DeploymentResource`. `ReleaseHealthService` now anchors its window on a
+  succeeded deployment's `finished_at` when present, else `released_at`.
+- **Remaining (#1 transport)** — the `deploy` capability contract, its conformance
+  battery, a generic webhook deploy driver and the inbound HTTP route. The CLI
+  command already provides an integration-free path; the webhook transport is the
+  next increment.
 
 Distilled from the talk *“The Self-Healing Canary: Integrating Agentic AIOps into
 Your Releases”* (K. Dubois). SAO takes the **post-hoc, correlation half** of that

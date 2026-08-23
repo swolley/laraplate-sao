@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\SAO\Data\ReleaseHealth;
 use Modules\SAO\Enums\ReleaseHealthVerdict;
+use Modules\SAO\Models\Deployment;
 use Modules\SAO\Models\Environment;
 use Modules\SAO\Models\Project;
 use Modules\SAO\Models\Release;
@@ -126,6 +127,33 @@ test('an existing signal whose rate jumps past the baseline is a regression', fu
         ->and($health->regressedSignals)->toBe(['noisy-signal'])
         ->and($health->newSignals)->toBe([])
         ->and($health->occurrenceDeltaPct)->toBeGreaterThan(0.0);
+});
+
+test('a succeeded deployment finished_at anchors the window over released_at', function (): void {
+    $project = Project::factory()->create();
+    $release = Release::factory()->for($project)->create([
+        'version' => '5.0.0',
+        'released_at' => now()->subDays(20),
+    ]);
+
+    Deployment::factory()->for($project)->succeeded()->create([
+        'release_id' => $release->id,
+        'version' => '5.0.0',
+        'finished_at' => now()->subDays(3),
+    ]);
+
+    // First seen after released_at but before the deploy finished: the release
+    // window must start at the deploy, so this signal is not "new" in-window.
+    $preDeploy = Signal::factory()->for($project)->create([
+        'group_key' => 'pre-deploy',
+        'first_seen_at' => now()->subDays(10),
+    ]);
+    seedOccurrences($preDeploy, 1, now()->subDays(2));
+
+    $health = $this->service->forRelease($release);
+
+    expect($health->windowStart->toDateString())->toBe(now()->subDays(3)->toDateString())
+        ->and($health->newSignals)->toBe([]);
 });
 
 test('the verdict is scoped to the requested environment', function (): void {

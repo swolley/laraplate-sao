@@ -121,6 +121,25 @@ Design: `docs/superpowers/specs/2026-07-31-sao-module-design.md` in the applicat
 -   Phase 7 — second driver wave
 -   Phase 8 — AI, as a hard module requirement
 -   Phase 9 — Vue surfaces
+-   Release health & deploy ingest — post-hoc, correlation only (never a rollout
+    gate). `ReleaseHealthService` judges whether a release introduced new or
+    worsening signals versus the previous release over an equal window;
+    `DeploymentIngestService` records a durable, idempotent deploy history
+    (`sao_deployments`) that makes the environment version census a projection and
+    gives release health a precise per-deploy anchor. Plan:
+    `docs/plans/release-health-and-deploy-ingest.md`.
+
+### Deployments
+
+A deployment is recorded by the ingest — never by hand — deduped by
+`(connection, external_id)` so a re-delivery advances the same record. A terminal
+`succeeded` deployment advances the environment's `current_version`; its
+`finished_at` is the window anchor release health reads from. Record one without
+any external integration (CLI-only CD steps, replay) with:
+
+```bash
+php artisan sao:deploy:record {project} {version} --env=production --status=succeeded --external-id=ci-run-42
+```
 
 ## Scripts
 
