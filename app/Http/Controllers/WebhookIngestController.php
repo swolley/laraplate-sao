@@ -8,17 +8,21 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Modules\SAO\Drivers\Contracts\DeployCapability;
+use Modules\SAO\Drivers\DriverRegistry;
+use Modules\SAO\Ingest\DeployWebhookIngestService;
 use Modules\SAO\Ingest\DriverWebhookIngestService;
 use Modules\SAO\Models\Connection;
 
 /**
- * The public entry point for a `logs` connection's push deliveries. It is
+ * The public entry point for a connection's push deliveries. It is
  * unauthenticated at the framework level on purpose: the delivery authenticates
- * itself with the driver's own signature/token scheme, checked inside
- * {@see DriverWebhookIngestService}. The controller only lifts the raw body and
- * headers off the request — the raw body is what the HMAC is computed over, so it
- * must not be re-encoded — derives a stable delivery id for idempotency, and maps
- * the service outcome onto an HTTP status.
+ * itself with the driver's own signature/token scheme, checked inside the ingest
+ * service. The controller only lifts the raw body and headers off the request —
+ * the raw body is what the signature is computed over, so it must not be
+ * re-encoded — derives a stable delivery id for idempotency, routes to the
+ * `deploy` or `logs` ingest by the connection's driver capability, and maps the
+ * service outcome onto an HTTP status.
  */
 final class WebhookIngestController extends Controller
 {
@@ -35,14 +39,22 @@ final class WebhookIngestController extends Controller
         'Idempotency-Key',
     ];
 
-    public function __invoke(Request $request, Connection $connection, DriverWebhookIngestService $service): JsonResponse
-    {
-        $outcome = $service->ingest(
-            $connection,
-            $this->deliveryId($request),
-            $request->getContent(),
-            $this->headers($request),
-        );
+    public function __invoke(
+        Request $request,
+        Connection $connection,
+        DriverRegistry $registry,
+        DriverWebhookIngestService $logsService,
+        DeployWebhookIngestService $deployService,
+    ): JsonResponse {
+        $deliveryId = $this->deliveryId($request);
+        $body = $request->getContent();
+        $headers = $this->headers($request);
+
+        $driver = $connection->driver($registry);
+
+        $outcome = $driver instanceof DeployCapability
+            ? $deployService->ingest($connection, $deliveryId, $body, $headers)
+            : $logsService->ingest($connection, $deliveryId, $body, $headers);
 
         return response()->json([
             'result' => $outcome->result,
