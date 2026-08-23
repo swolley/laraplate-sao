@@ -40,7 +40,7 @@ final class TimeToTruthService
 
     private function timeToFixMerged(Ticket $ticket, CarbonInterface $anchor): ?int
     {
-        $mergedAt = $ticket->changeRefs()->mergedPullRequests()->min('merged_at');
+        $mergedAt = $ticket->changeRefs()->mergedPullRequests()->fixes()->min('merged_at');
 
         return $mergedAt === null ? null : (int) $anchor->diffInSeconds($mergedAt, absolute: true);
     }

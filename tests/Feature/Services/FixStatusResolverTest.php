@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\SAO\Enums\ChangeRefRelation;
 use Modules\SAO\Enums\ChangeRefType;
 use Modules\SAO\Enums\TicketReleaseState;
 use Modules\SAO\Models\ChangeRef;
@@ -36,6 +37,29 @@ test('the merged pull requests scope selects only merged pull-request refs', fun
 
     expect(ChangeRef::query()->mergedPullRequests()->pluck('id')->all())->toBe([$merged->id])
         ->and($merged->isMergedPullRequest())->toBeTrue();
+});
+
+test('a merged pull request that only mentions the ticket is not counted as a fix', function (): void {
+    $ticket = Ticket::factory()->create();
+    ChangeRef::factory()->create([
+        'ticket_id' => $ticket->id,
+        'type' => ChangeRefType::PullRequest,
+        'identifier' => '11',
+        'merged_at' => now(),
+        'relation' => ChangeRefRelation::Mentions,
+    ]);
+
+    expect($this->resolver->forTicket($ticket->refresh())->pull_request_merged)->toBeFalse();
+
+    ChangeRef::factory()->create([
+        'ticket_id' => $ticket->id,
+        'type' => ChangeRefType::PullRequest,
+        'identifier' => '12',
+        'merged_at' => now(),
+        'relation' => ChangeRefRelation::Fixes,
+    ]);
+
+    expect($this->resolver->forTicket($ticket->refresh())->pull_request_merged)->toBeTrue();
 });
 
 test('a fix released but deployed only to staging is reported as missing on production', function (): void {
