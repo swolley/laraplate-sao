@@ -92,7 +92,13 @@ marks a **fix**, any other reference a **mention**. Only fixes count as resoluti
 evidence. A fixing commit is attributed to the release that carries it via the
 `releases` capability (`firstTagContaining`), classifying the tag as stable →
 `shipped` or a candidate (RC) → `promised` by a semver heuristic
-(`sao.attribution.prerelease_markers`).
+(`sao.attribution.prerelease_markers`). The release **version is always the
+normalized stable label** (`v1.4.0-rc.1` → `1.4.0`), so a candidate records the
+future stable version — the release stays `announced` (the stable tag does not
+exist yet), realized only by candidate tags. `php artisan sao:releases:sync
+{connection?}` lists a `releases` binding's tags and **promotes** such a release
+to `shipped` once its stable tag is actually cut — deterministically, rather than
+depending on which tag `firstTagContaining` returns.
 
 Two transports feed the same writer:
 

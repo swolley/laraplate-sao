@@ -7,10 +7,8 @@ namespace Modules\SAO\Attribution;
 use Modules\SAO\Drivers\Contracts\ReleasesCapability;
 use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Enums\ReleaseStatus;
-use Modules\SAO\Enums\ReleaseTagKind;
 use Modules\SAO\Enums\TicketReleaseState;
 use Modules\SAO\Models\Release;
-use Modules\SAO\Models\ReleaseTag;
 use Modules\SAO\Models\Ticket;
 use Modules\SAO\Models\TicketRelease;
 
@@ -34,7 +32,7 @@ use Modules\SAO\Models\TicketRelease;
  */
 final readonly class ReleaseAttributionService
 {
-    public function __construct(private ReleaseTagClassifier $classifier) {}
+    public function __construct(private ReleaseRegistrar $registrar) {}
 
     public function attribute(Ticket $ticket, string $commitSha, ReleasesCapability $driver, BindingContext $context): ?TicketRelease
     {
@@ -44,45 +42,15 @@ final readonly class ReleaseAttributionService
             return null;
         }
 
-        $classification = $this->classifier->classify($tag);
-        $isStable = $classification->kind === ReleaseTagKind::Stable;
+        $registration = $this->registrar->register($ticket->project_id, $tag, createIfMissing: true);
 
-        $release = $this->upsertRelease($ticket, $classification->version, $isStable);
-        $this->upsertTag($release, $tag, $classification->kind);
-
-        return $this->upsertTicketRelease($ticket, $release, $isStable);
-    }
-
-    private function upsertRelease(Ticket $ticket, string $version, bool $isStable): Release
-    {
-        $release = Release::query()->firstOrNew([
-            'project_id' => $ticket->project_id,
-            'version' => $version,
-        ]);
-
-        if (! $release->exists) {
-            $release->status = ReleaseStatus::Announced;
+        if ($registration === null) {
+            return null;
         }
 
-        if ($isStable) {
-            $release->status = ReleaseStatus::Shipped;
-            $release->released_at ??= now();
-        }
+        $isStable = $registration->release->status === ReleaseStatus::Shipped;
 
-        $release->save();
-
-        return $release;
-    }
-
-    private function upsertTag(Release $release, string $tag, ReleaseTagKind $kind): void
-    {
-        $releaseTag = ReleaseTag::query()->firstOrNew([
-            'release_id' => $release->getKey(),
-            'tag' => $tag,
-        ]);
-
-        $releaseTag->kind = $kind;
-        $releaseTag->save();
+        return $this->upsertTicketRelease($ticket, $registration->release, $isStable);
     }
 
     private function upsertTicketRelease(Ticket $ticket, Release $release, bool $isStable): TicketRelease
