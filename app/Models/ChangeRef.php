@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ChangeRefFactory;
+use Modules\SAO\Enums\ChangeRefRelation;
 use Modules\SAO\Enums\ChangeRefType;
 use Modules\SAO\Enums\SAOTables;
 use Override;
@@ -24,6 +25,7 @@ use Override;
  * @property int $id
  * @property int $ticket_id
  * @property ChangeRefType $type
+ * @property ChangeRefRelation $relation
  * @property string $identifier
  * @property string|null $url
  * @property string|null $source
@@ -42,6 +44,7 @@ final class ChangeRef extends Model
     protected $fillable = [
         'ticket_id',
         'type',
+        'relation',
         'identifier',
         'url',
         'source',
@@ -87,6 +90,19 @@ final class ChangeRef extends Model
     }
 
     /**
+     * References that claim to resolve the ticket — the only ones that count as
+     * fix evidence. Mentions are excluded.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function fixes(Builder $query): Builder
+    {
+        return $query->where('relation', ChangeRefRelation::Fixes->value);
+    }
+
+    /**
      * @return Factory<ChangeRef>
      */
     protected static function newFactory(): Factory
@@ -103,6 +119,7 @@ final class ChangeRef extends Model
         return [
             'ticket_id' => 'integer',
             'type' => ChangeRefType::class,
+            'relation' => ChangeRefRelation::class,
             'merged_at' => 'datetime',
         ];
     }

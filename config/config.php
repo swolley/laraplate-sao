@@ -65,6 +65,18 @@ return [
         'regressed_new_signals' => (int) env('SAO_RELEASE_HEALTH_REGRESSED_NEW_SIGNALS', 3),
     ],
 
+    // Code-to-work attribution (CodeReferenceWriter / TicketReferenceExtractor).
+    // A ticket key in a commit message or PR body preceded by one of these verbs
+    // is recorded as a fix (counts as resolution evidence); any other reference is
+    // a mention (timeline context only).
+    'attribution' => [
+        'closing_verbs' => [
+            'fix', 'fixes', 'fixed',
+            'close', 'closes', 'closed',
+            'resolve', 'resolves', 'resolved',
+        ],
+    ],
+
     'drivers' => [
         // list<class-string<Modules\SAO\Drivers\Contracts\DriverInterface>>
         'registered' => [

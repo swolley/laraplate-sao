@@ -20,7 +20,7 @@ final class FixStatusResolver
 {
     public function forTicket(Ticket $ticket, ?string $reportingEnvironment = null): FixStatus
     {
-        $pullRequestMerged = $ticket->changeRefs()->mergedPullRequests()->exists();
+        $pullRequestMerged = $ticket->changeRefs()->mergedPullRequests()->fixes()->exists();
 
         $shippedRelease = $ticket->releases()
             ->where('status', ReleaseStatus::Shipped->value)
