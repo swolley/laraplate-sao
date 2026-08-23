@@ -29,7 +29,9 @@ it rather than invent parallel names.
 |------|---------|
 | **Project** | The correlation anchor: a tracked software project. Holds no URLs or credentials of its own — only bindings. |
 | **ProjectBinding** | A link from a project to a connection for one capability, plus binding-scoped configuration: sync direction, status map, priority map. |
-| **Sync direction** | Who owns a ticket. `mirror`: SAO owns it, the external system receives writes. `shadow`: the external system owns it, SAO reads and correlates. A project with no `issues` binding is local. |
+| **Sync direction** | Who owns a ticket. `mirror`: SAO owns it, the external system receives writes. `shadow`: the external system owns it, SAO reads and correlates. A project with no `issues` binding is local. (The persisted `sync_direction` enum is `inbound`/`outbound`/`bidirectional`/`disabled`.) |
+| **Tracker import** | `TrackerImportService` + `sao:tracker:import`: the "switch to Laraplate, import your history" migration — walks an `issues` binding's whole list and upserts each issue via `IssueSyncService::import()` (idempotent by `TicketLink`, independent of ongoing sync direction). `ImportScope::Open` skips issues whose remote status maps to a terminal category; an unmapped status is kept as open. Runs inline or as `ImportTrackerHistoryJob`. |
+| **Cutover** | `BindingCutoverService`: after a migration, makes SAO authoritative by flipping the binding's `sync_direction` — `disabled` (external tracker abandoned) by default, or `outbound` during a transition. `TicketLink`s are kept as provenance. |
 | **Status map** | The translation between canonical statuses and one specific remote installation's statuses. Lives on the binding, never on the driver: Redmine statuses are per-installation and Jira workflows per-project. |
 | **Environment** | A deployment target of a project (`production`, `staging`, …), unique by name per project, recording `current_version` last seen running and `last_seen_at`. |
 | **Environment liveness** | The last time an environment was observed sending anything. Absence of errors is evidence only when the source was demonstrably alive. |

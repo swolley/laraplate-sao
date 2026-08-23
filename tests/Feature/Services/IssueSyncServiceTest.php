@@ -129,3 +129,16 @@ test('an outbound-only binding refuses an inbound pull', function (): void {
 
     expect(app(IssueSyncService::class)->pull($binding, 'R1'))->toBe(SyncOutcome::SkippedDirection);
 });
+
+test('import brings in an unmapped-status issue that reconcile would skip', function (): void {
+    [$project, $type] = sync_fixture();
+    $binding = sync_binding(SyncDirection::Inbound, $project, $type, statusMap: ['Done' => 'closed']);
+    $issue = ['remote_id' => 'R42', 'title' => 'Legacy', 'remote_status' => 'Weird'];
+
+    // reconcile gates an unmapped remote status; a migration import does not.
+    expect(app(IssueSyncService::class)->reconcile($binding, $issue))->toBe(SyncOutcome::UnmappedStatus)
+        ->and(TicketLink::query()->where('remote_id', 'R42')->exists())->toBeFalse();
+
+    expect(app(IssueSyncService::class)->import($binding, $issue))->toBe(SyncOutcome::Created)
+        ->and(TicketLink::query()->where('remote_id', 'R42')->exists())->toBeTrue();
+});
