@@ -50,6 +50,21 @@ return [
         'cron' => (string) env('SAO_HEALTH_CRON', '*/15 * * * *'),
     ],
 
+    // Release-health read model (ReleaseHealthService). Post-hoc, correlation
+    // only — never a promote/rollback gate. `window_days` bounds how long after a
+    // release its signals are attributed to it; the baseline is the previous
+    // release over an equal window. A pre-existing group key is "regressed" only
+    // when its in-window count clears `regression_min_occurrences` AND exceeds its
+    // baseline count by `regression_rate_factor`. The verdict turns Regressed once
+    // any signal regresses or at least `regressed_new_signals` brand-new group
+    // keys appear inside the window.
+    'release_health' => [
+        'window_days' => (int) env('SAO_RELEASE_HEALTH_WINDOW_DAYS', 7),
+        'regression_rate_factor' => (float) env('SAO_RELEASE_HEALTH_REGRESSION_FACTOR', 1.5),
+        'regression_min_occurrences' => (int) env('SAO_RELEASE_HEALTH_REGRESSION_MIN', 3),
+        'regressed_new_signals' => (int) env('SAO_RELEASE_HEALTH_REGRESSED_NEW_SIGNALS', 3),
+    ],
+
     'drivers' => [
         // list<class-string<Modules\SAO\Drivers\Contracts\DriverInterface>>
         'registered' => [
