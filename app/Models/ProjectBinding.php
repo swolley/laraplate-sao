@@ -31,6 +31,7 @@ use Override;
  * @property array<string, mixed> $config
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperProjectBinding
  */
 final class ProjectBinding extends Model
 {

@@ -23,6 +23,7 @@ use Override;
  * @property ?string $last_sync_state
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperTicketLink
  */
 final class TicketLink extends Model
 {

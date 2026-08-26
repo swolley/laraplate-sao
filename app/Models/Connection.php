@@ -36,6 +36,7 @@ use Override;
  * @property ?\Illuminate\Support\Carbon $last_checked_at
  *
  * @mixin \Eloquent
+ * @mixin IdeHelperConnection
  */
 final class Connection extends Model
 {
