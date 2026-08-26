@@ -96,6 +96,7 @@ final class DevSAODatabaseSeeder extends Seeder
             [$doing, $todo, 'Send back'],
             [$doing, $done, 'Resolve'],
         ];
+
         foreach ($edges as [$from, $to, $label]) {
             WorkflowTransition::factory()->for($scheme, 'scheme')->create([
                 'from_status_id' => $from?->id,
@@ -109,6 +110,7 @@ final class DevSAODatabaseSeeder extends Seeder
         $project->ticketTypes()->attach($type->id, ['is_default' => true]);
 
         $statuses = ['todo' => $todo, 'doing' => $doing, 'blocked' => $blocked, 'done' => $done];
+
         /**
          * @var array<int, array{0: string, 1: TicketPriority, 2: string}> $tickets
          */
@@ -123,6 +125,7 @@ final class DevSAODatabaseSeeder extends Seeder
             ['done', TicketPriority::Low, 'Aggiornare dipendenze minori'],
         ];
         $createdTickets = [];
+
         foreach ($tickets as [$statusKey, $priority, $title]) {
             $createdTickets[] = Ticket::factory()->forProject($project)->create([
                 'ticket_type_id' => $type->id,
@@ -162,16 +165,32 @@ final class DevSAODatabaseSeeder extends Seeder
             $permissions[] = PermissionName::forClass($model, 'select');
         }
 
+        // Bypass Spatie Permission::findOrCreate — it hydrates from
+        // `spatie.permission.cache`, which can be a bare Collection (no "alias"
+        // key) after parallel seeding / cache failover. Match MES/ERP seeders:
+        // firstOrCreate on the query builder, with explicit cache flushes.
+        $registrar = app(PermissionRegistrar::class);
+        $registrar->forgetCachedPermissions();
+
+        $permission = new Permission;
+
         foreach (array_unique($permissions) as $name) {
-            Permission::findOrCreate($name, 'web');
+            $permission->newQuery()->firstOrCreate([
+                'name' => $name,
+                'guard_name' => 'web',
+            ]);
         }
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $registrar->forgetCachedPermissions();
 
-        $role = Role::findOrCreate('sao-agent', 'web');
+        $role = Role::query()->firstOrCreate([
+            'name' => 'sao-agent',
+            'guard_name' => 'web',
+        ]);
         $role->givePermissionTo($permissions);
 
         $user = User::query()->where('email', 'sao.agent@laraplate.test')->first();
+
         if ($user === null) {
             $user = User::factory()->create([
                 'name' => 'SAO Agent',

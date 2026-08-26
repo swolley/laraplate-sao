@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Modules\Core\Models\Role;
 use Modules\Core\Services\Authorization\AuthorizationService;
 use Modules\Core\Support\PermissionName;
@@ -14,6 +16,7 @@ use Modules\SAO\Models\Project;
 use Modules\SAO\Models\Ticket;
 use Modules\SAO\Models\TicketStatus;
 use Modules\SAO\Models\WorkflowTransition;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class);
 
@@ -58,4 +61,17 @@ test('seeded agent passes the sao scope and holds the ticket abilities', functio
     $perms = Role::findByName('sao-agent', 'web')->permissions->pluck('name');
     expect($perms)->toContain(PermissionName::forClass(Ticket::class, 'transition'));
     expect($perms)->toContain(PermissionName::forClass(Ticket::class, 'select'));
+});
+
+test('dev seeder survives a corrupt spatie.permission.cache without alias key', function (): void {
+    // Reproduce the production failure: cache hit is a bare Eloquent Collection,
+    // so Permission::findOrCreate → loadPermissions → $permissions['alias'] blows up.
+    $cache_key = (string) config('permission.cache.key');
+    Cache::forever($cache_key, new EloquentCollection());
+    app(PermissionRegistrar::class)->clearPermissionsCollection();
+
+    $this->seed(DevSAODatabaseSeeder::class);
+
+    expect(User::query()->where('email', 'sao.agent@laraplate.test')->exists())->toBeTrue()
+        ->and(Role::findByName('sao-agent', 'web')->permissions)->not->toBeEmpty();
 });
