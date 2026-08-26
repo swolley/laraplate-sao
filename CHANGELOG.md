@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- *(seeder)* Enhance DevSAODatabaseSeeder to handle corrupt permission cache
+
+## [1.0.0] - 2026-08-25
+
 ### 🚀 Features
 
 - *(sao)* Add the ticket surface and close slice 1a
