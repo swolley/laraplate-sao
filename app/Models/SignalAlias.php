@@ -17,12 +17,10 @@ use Override;
  * format changes, the old key is aliased to the signal it used to open.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $signal_id
  * @property string $group_key
  * @property int $algo_version
- *
  * @mixin IdeHelperSignalAlias
  */
 final class SignalAlias extends Model

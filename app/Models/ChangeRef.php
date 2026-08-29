@@ -21,7 +21,6 @@ use Override;
  * code-to-work correlation (commit → ticket) built in phase 6.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $ticket_id
  * @property ChangeRefType $type
@@ -32,7 +31,6 @@ use Override;
  * @property \Illuminate\Support\Carbon|null $merged_at
  * @property string|null $base_ref
  * @property string|null $head_ref
- *
  * @mixin IdeHelperChangeRef
  */
 final class ChangeRef extends Model

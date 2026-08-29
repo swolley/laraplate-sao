@@ -19,7 +19,6 @@ use Override;
  * discard says why, without reading application logs.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int|null $connection_id
  * @property string $delivery_id
@@ -30,7 +29,6 @@ use Override;
  * @property int|null $project_id
  * @property string|null $winning_rule
  * @property int|null $signal_id
- *
  * @mixin IdeHelperIngestEvent
  */
 final class IngestEvent extends Model

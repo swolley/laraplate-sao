@@ -19,12 +19,10 @@ use Override;
  * ticket is still open, and vice versa.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $ticket_id
  * @property int $release_id
  * @property TicketReleaseState $state
- *
  * @mixin IdeHelperTicketRelease
  */
 final class TicketRelease extends Model

@@ -20,7 +20,6 @@ use Override;
  * whether configured durations are tuned correctly.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $ticket_id
  * @property int|null $closure_policy_id
@@ -32,7 +31,6 @@ use Override;
  * @property int|null $returned_after_seconds
  * @property int|null $returned_occurrence_id
  * @property bool $is_premature
- *
  * @mixin IdeHelperClosureAudit
  */
 final class ClosureAudit extends Model

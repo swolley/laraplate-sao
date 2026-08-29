@@ -21,7 +21,6 @@ use Override;
  * recorded once.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $project_id
  * @property int|null $environment_id
@@ -33,7 +32,6 @@ use Override;
  * @property \Illuminate\Support\Carbon $started_at
  * @property \Illuminate\Support\Carbon|null $finished_at
  * @property array<string, mixed>|null $meta
- *
  * @mixin IdeHelperDeployment
  */
 final class Deployment extends Model

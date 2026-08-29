@@ -20,7 +20,6 @@ use Override;
  * fingerprint algorithm produced the key, so the algorithm can evolve later.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $project_id
  * @property int|null $ticket_id
@@ -30,7 +29,6 @@ use Override;
  * @property int $occurrence_count
  * @property \Illuminate\Support\Carbon|null $first_seen_at
  * @property \Illuminate\Support\Carbon|null $last_seen_at
- *
  * @mixin IdeHelperSignal
  */
 final class Signal extends Model

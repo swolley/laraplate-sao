@@ -18,7 +18,6 @@ use Override;
  *
  * @property int $ticket_id
  * @property int $label_id
- *
  * @mixin \Eloquent
  * @mixin IdeHelperTicketLabel
  */

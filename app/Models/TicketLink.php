@@ -21,7 +21,6 @@ use Override;
  * @property ?string $url
  * @property ?\Illuminate\Support\Carbon $last_synced_at
  * @property ?string $last_sync_state
- *
  * @mixin \Eloquent
  * @mixin IdeHelperTicketLink
  */

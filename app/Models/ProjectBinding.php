@@ -29,7 +29,6 @@ use Override;
  * @property array<string, string> $status_map
  * @property array<string, string> $priority_map
  * @property array<string, mixed> $config
- *
  * @mixin \Eloquent
  * @mixin IdeHelperProjectBinding
  */

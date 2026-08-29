@@ -17,13 +17,11 @@ use Override;
  * for "recurring for three days" and closure evidence, not forever.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $signal_id
  * @property string|null $environment
  * @property array<string, mixed>|null $context
  * @property \Illuminate\Support\Carbon|null $occurred_at
- *
  * @mixin IdeHelperSignalOccurrence
  */
 final class SignalOccurrence extends Model

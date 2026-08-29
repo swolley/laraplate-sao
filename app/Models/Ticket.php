@@ -29,7 +29,6 @@ use Spatie\MediaLibrary\HasMedia as MediaContract;
 
 /**
  * @mixin \Eloquent
- *
  * @property int $id
  * @property int $project_id
  * @property int $number
@@ -42,7 +41,6 @@ use Spatie\MediaLibrary\HasMedia as MediaContract;
  * @property int|null $reporter_id
  * @property int|null $assignee_id
  * @property \Illuminate\Support\Carbon|null $due_at
- *
  * @mixin IdeHelperTicket
  */
 final class Ticket extends Model implements MediaContract

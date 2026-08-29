@@ -17,7 +17,6 @@ use Override;
  *
  * @property int $ticket_id
  * @property int $user_id
- *
  * @mixin \Eloquent
  * @mixin IdeHelperTicketWatcher
  */

@@ -34,7 +34,6 @@ use Override;
  * @property \Illuminate\Support\Collection<int, Capability> $capabilities
  * @property ConnectionHealth $health_state
  * @property ?\Illuminate\Support\Carbon $last_checked_at
- *
  * @mixin \Eloquent
  * @mixin IdeHelperConnection
  */
