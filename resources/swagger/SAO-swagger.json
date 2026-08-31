@@ -1,0 +1,42 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Laraplate SAO module",
+        "description": "SAO module \u2014 Simply Another Orchestrator: correlation engine between code, errors and work. (sao, orchestrator, issue-tracking, observability, laraplate)",
+        "version": "v1.0.1"
+    },
+    "host": "localhost:8000",
+    "basePath": "\/",
+    "paths": {
+        "\/api\/v1\/webhooks\/{connection}": {
+            "post": {
+                "summary": "",
+                "description": "",
+                "deprecated": false,
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "connection",
+                        "type": "string",
+                        "required": true,
+                        "description": ""
+                    }
+                ],
+                "operationId": "post-api-v1-webhooks-connection",
+                "tags": [
+                    "Api",
+                    "SAO"
+                ]
+            }
+        }
+    },
+    "tags": [
+        "SAO",
+        "Api"
+    ]
+}
