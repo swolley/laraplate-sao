@@ -45,12 +45,17 @@ function internal_driver_fixture(): array
 
 function internal_driver_login(): void
 {
-    $permission = Permission::query()
-        ->where('name', PermissionName::forClass(Ticket::class, 'view'))
-        ->firstOrFail();
+    // `update` is not driver-specific: the model-level guard in HasValidations checks
+    // it on every write, so a driver user that only reads cannot save a ticket back.
+    $permissions = Permission::query()
+        ->whereIn('name', [
+            PermissionName::forClass(Ticket::class, 'view'),
+            PermissionName::forClass(Ticket::class, 'update'),
+        ])
+        ->get();
 
     $user = User::factory()->create();
-    $user->givePermissionTo($permission);
+    $user->givePermissionTo($permissions);
 
     Auth::login($user);
 }

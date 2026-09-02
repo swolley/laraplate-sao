@@ -159,7 +159,12 @@ test('an override held by a permitted user bypasses an undeclared transition', f
     $this->seed(SAOPermissionSeeder::class);
 
     $user = User::factory()->create();
-    $user->givePermissionTo(PermissionName::forClass(Ticket::class, 'transition_override'));
+    // The override lets the user skip the scheme; `update` is what lets the ticket be
+    // saved at all, checked by the model-level guard in HasValidations.
+    $user->givePermissionTo([
+        PermissionName::forClass(Ticket::class, 'transition_override'),
+        PermissionName::forClass(Ticket::class, 'update'),
+    ]);
     $this->actingAs($user);
 
     $moved = app(WorkflowService::class)->transition(
