@@ -8,26 +8,24 @@ use Modules\Core\Authorization\Contracts\DeclaresPermissions;
 use Modules\SAO\Models\Connection;
 use Modules\SAO\Models\IngestEvent;
 use Modules\SAO\Models\OwnershipSuggestion;
-use Modules\SAO\Models\Project;
 use Modules\SAO\Models\Ticket;
-use Modules\SAO\Models\TicketStatus;
-use Modules\SAO\Models\TicketType;
-use Modules\SAO\Models\WorkflowScheme;
 use Override;
 
 /**
  * SAO domain permissions.
  *
- * Operations beyond CRUD are the ones the domain actually distinguishes:
- * assigning a ticket, moving it through its workflow, overriding a workflow that
- * would otherwise deadlock the work, closing a ticket by applying a closure
- * policy, accepting an ownership suggestion, probing a connection's health, and
- * replaying a stored ingest event. The last four back the SPA-facing domain
- * actions in {@see \Modules\SAO\Services\DomainActions\SaoDomainActionRegistrar}.
+ * Only what the domain adds on top of CRUD: assigning a ticket, moving it
+ * through its workflow, overriding a workflow that would otherwise deadlock the
+ * work, closing a ticket by applying a closure policy, accepting an ownership
+ * suggestion, probing a connection's health, and replaying a stored ingest
+ * event. The last four back the SPA-facing domain actions in
+ * {@see \Modules\SAO\Services\DomainActions\SaoDomainActionRegistrar}.
  *
- * `view`/`create` are SAO's own read and write anchors, distinct from Core's
- * generic `select`/`insert`: {@see \Modules\SAO\Services\TicketQueryService}
- * resolves ACLs against `view`.
+ * The generic verbs are deliberately absent. `permission:refresh` already
+ * generates `select`, `insert`, `update`, `delete` and the rest for every table
+ * it manages, so declaring them here would only duplicate them, and a declared
+ * name is exempt from the command's own cleanup branches — which would let this
+ * file override a Core decision without saying so.
  */
 final class SAOPermissions implements DeclaresPermissions
 {
@@ -35,11 +33,7 @@ final class SAOPermissions implements DeclaresPermissions
     public static function operations(): array
     {
         return [
-            Ticket::class => ['view', 'create', 'update', 'delete', 'assign', 'transition', 'transition_override', 'close'],
-            Project::class => ['view', 'create', 'update', 'delete'],
-            TicketStatus::class => ['view', 'create', 'update', 'delete'],
-            TicketType::class => ['view', 'create', 'update', 'delete'],
-            WorkflowScheme::class => ['view', 'create', 'update', 'delete'],
+            Ticket::class => ['assign', 'transition', 'transition_override', 'close'],
             OwnershipSuggestion::class => ['accept'],
             Connection::class => ['health'],
             IngestEvent::class => ['replay'],

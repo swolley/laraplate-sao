@@ -15,6 +15,10 @@ use Modules\Core\Overrides\Seeder;
  * and created by `permission:refresh`, which runs before every module seeder in
  * the graph. This seeder keeps SAO seeded in isolation self-sufficient, which is
  * what the module test suites rely on.
+ *
+ * Only the domain verbs come through here. The CRUD ones (`select`, `insert`,
+ * `update`, `delete` and the rest) belong to `permission:refresh`, which
+ * generates them for every table it manages.
  */
 final class SAOPermissionSeeder extends Seeder
 {

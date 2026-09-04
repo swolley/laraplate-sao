@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Models\Permission;
 use Modules\Core\Support\PermissionName;
 use Modules\SAO\Database\Seeders\SAOPermissionSeeder;
@@ -15,30 +16,69 @@ uses(RefreshDatabase::class);
 test('permission names follow the Laraplate convention', function (): void {
     expect(PermissionName::forClass(Ticket::class, 'transition'))
         ->toBe('default.sao_tickets.transition');
-    expect(PermissionName::forClass(Project::class, 'view'))
-        ->toBe('default.sao_projects.view');
+    expect(PermissionName::forClass(Project::class, ActionEnum::Select->value))
+        ->toBe('default.sao_projects.select');
 });
 
+/**
+ * Only the verbs the domain adds. The CRUD ones belong to `permission:refresh`,
+ * which generates them for every managed table, so seeding them here as well
+ * would be declaring the same row twice.
+ */
 test('the seeder registers every SAO domain permission', function (): void {
     $this->seed(SAOPermissionSeeder::class);
 
     $expected = [
-        'default.sao_tickets.view',
-        'default.sao_tickets.create',
-        'default.sao_tickets.update',
-        'default.sao_tickets.delete',
         'default.sao_tickets.assign',
         'default.sao_tickets.transition',
         'default.sao_tickets.transition_override',
-        'default.sao_projects.view',
-        'default.sao_projects.create',
-        'default.sao_projects.update',
-        'default.sao_projects.delete',
+        'default.sao_tickets.close',
+        'default.sao_ownership_suggestions.accept',
+        'default.sao_connections.health',
+        'default.sao_ingest_events.replay',
     ];
 
     foreach ($expected as $name) {
         expect(Permission::query()->where('name', $name)->exists())
             ->toBeTrue("Missing permission: {$name}");
+    }
+});
+
+test('the seeder leaves the CRUD verbs to permission:refresh', function (): void {
+    $this->seed(SAOPermissionSeeder::class);
+
+    $crud = [
+        'default.sao_tickets.select',
+        'default.sao_tickets.insert',
+        'default.sao_tickets.update',
+        'default.sao_tickets.delete',
+        'default.sao_projects.select',
+    ];
+
+    foreach ($crud as $name) {
+        expect(Permission::query()->where('name', $name)->exists())
+            ->toBeFalse("Seeder should not create: {$name}");
+    }
+});
+
+/**
+ * The Filament policy verbs SAO used to seed. `view` was a second read anchor on
+ * a table Core already reads with `select`, which meant two ACL sets on one
+ * table and one of them always unconfigured; `create` was never checked at all.
+ */
+test('the retired Filament verbs are gone for good', function (): void {
+    $this->seed(SAOPermissionSeeder::class);
+
+    $retired = [
+        'default.sao_tickets.view',
+        'default.sao_tickets.create',
+        'default.sao_projects.view',
+        'default.sao_projects.create',
+    ];
+
+    foreach ($retired as $name) {
+        expect(Permission::query()->where('name', $name)->exists())
+            ->toBeFalse("Retired permission still seeded: {$name}");
     }
 });
 

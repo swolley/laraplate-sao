@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Models\Permission;
 use Modules\Core\Models\User;
 use Modules\Core\Support\PermissionName;
@@ -47,12 +48,14 @@ function internal_driver_login(): void
 {
     // `update` is not driver-specific: the model-level guard in HasValidations checks
     // it on every write, so a driver user that only reads cannot save a ticket back.
-    $permissions = Permission::query()
-        ->whereIn('name', [
-            PermissionName::forClass(Ticket::class, 'view'),
-            PermissionName::forClass(Ticket::class, 'update'),
-        ])
-        ->get();
+    // Both verbs come from `permission:refresh`, not from the module seeder.
+    $permissions = array_map(
+        static fn (ActionEnum $action): Permission => Permission::findOrCreate(
+            PermissionName::forClass(Ticket::class, $action->value),
+            'web',
+        ),
+        [ActionEnum::Select, ActionEnum::Update],
+    );
 
     $user = User::factory()->create();
     $user->givePermissionTo($permissions);

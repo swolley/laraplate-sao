@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Casts\Filter;
 use Modules\Core\Casts\FilterOperator;
 use Modules\Core\Casts\FiltersGroup;
@@ -19,14 +20,17 @@ use Modules\SAO\Services\TicketQueryService;
 uses(RefreshDatabase::class);
 
 /**
- * Attaches an ACL restricting the ticket view permission to one project, gives
+ * Attaches an ACL restricting the ticket read permission to one project, gives
  * the current user a role holding it, and returns the user.
  */
 function sao_restrict_tickets_to(Project $project): User
 {
-    $permission = Permission::query()
-        ->where('name', PermissionName::forClass(Ticket::class, 'view'))
-        ->firstOrFail();
+    // Reads anchor on `select`, which `permission:refresh` generates rather than
+    // the module seeder, so the test creates it the way ERP's policy tests do.
+    $permission = Permission::findOrCreate(
+        PermissionName::forClass(Ticket::class, ActionEnum::Select->value),
+        'web',
+    );
 
     // Same recipe Core's own AclResolverServiceTest uses: FiltersGroupCast
     // serializes the value before the QueryBuilder rule sees it, so the rule
@@ -58,7 +62,7 @@ function sao_restrict_tickets_to(Project $project): User
  * This is the test the design asks for. Task 10 could only assert that a read
  * path service exists; this proves the filters actually hide rows.
  */
-test('an ACL restricting the view permission hides other projects tickets', function (): void {
+test('an ACL restricting the read permission hides other projects tickets', function (): void {
     $this->seed(SAOPermissionSeeder::class);
 
     $mine = Project::factory()->create(['key_prefix' => 'MINE']);

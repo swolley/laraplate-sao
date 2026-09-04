@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Casts\ActionEnum;
+use Modules\Core\Models\Permission;
 use Modules\Core\Models\User;
 use Modules\Core\Support\PermissionName;
 use Modules\SAO\Data\ChangeContext;
@@ -160,10 +162,17 @@ test('an override held by a permitted user bypasses an undeclared transition', f
 
     $user = User::factory()->create();
     // The override lets the user skip the scheme; `update` is what lets the ticket be
-    // saved at all, checked by the model-level guard in HasValidations.
+    // saved at all, checked by the model-level guard in HasValidations. The seeder
+    // carries the domain verbs only, so the CRUD one is created here the way
+    // `permission:refresh` creates it in a real installation.
+    $update = Permission::findOrCreate(
+        PermissionName::forClass(Ticket::class, ActionEnum::Update->value),
+        'web',
+    );
+
     $user->givePermissionTo([
         PermissionName::forClass(Ticket::class, 'transition_override'),
-        PermissionName::forClass(Ticket::class, 'update'),
+        $update->name,
     ]);
     $this->actingAs($user);
 

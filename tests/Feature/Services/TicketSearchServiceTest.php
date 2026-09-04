@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Casts\Filter;
 use Modules\Core\Casts\FilterOperator;
 use Modules\Core\Casts\FiltersGroup;
@@ -103,9 +104,12 @@ test('it never surfaces a ticket hidden by the ACL even when it matches', functi
     $visible = Ticket::factory()->forProject($mine)->create(['title' => 'shared subject']);
     Ticket::factory()->forProject($theirs)->create(['title' => 'shared subject']);
 
-    $permission = Permission::query()
-        ->where('name', PermissionName::forClass(Ticket::class, 'view'))
-        ->firstOrFail();
+    // Reads anchor on `select`, which `permission:refresh` generates rather than
+    // the module seeder, so the test creates it the way ERP's policy tests do.
+    $permission = Permission::findOrCreate(
+        PermissionName::forClass(Ticket::class, ActionEnum::Select->value),
+        'web',
+    );
 
     $acl = new ACL;
     $acl->setSkipValidation(true);
