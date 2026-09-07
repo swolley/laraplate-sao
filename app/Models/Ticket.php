@@ -16,6 +16,7 @@ use Modules\Core\Helpers\HasMedia;
 use Modules\Core\Locking\Traits\HasOptimisticLocking;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
+use Modules\Core\Search\Traits\Searchable;
 use Modules\SAO\Database\Factories\TicketFactory;
 use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Enums\StatusCategory;
@@ -29,6 +30,7 @@ use Spatie\MediaLibrary\HasMedia as MediaContract;
 
 /**
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $project_id
  * @property int $number
@@ -41,12 +43,16 @@ use Spatie\MediaLibrary\HasMedia as MediaContract;
  * @property int|null $reporter_id
  * @property int|null $assignee_id
  * @property \Illuminate\Support\Carbon|null $due_at
+ *
  * @mixin IdeHelperTicket
  */
 final class Ticket extends Model implements MediaContract
 {
     use HasMedia;
     use HasOptimisticLocking;
+    use Searchable {
+        Searchable::toSearchableArray as private toSearchableArrayTrait;
+    }
 
     /**
      * Mirrors the migration default so a new instance reports what it will hold
@@ -327,6 +333,59 @@ final class Ticket extends Model implements MediaContract
     public function type(): BelongsTo
     {
         return $this->belongsTo(TicketType::class, 'ticket_type_id');
+    }
+
+    /**
+     * The relations to eager load when building the searchable document, so
+     * `toSearchableArray()` denormalizes them without triggering N+1 queries.
+     *
+     * @return list<string>
+     */
+    public function toSearchableWith(): array
+    {
+        return ['project', 'type', 'status', 'assignee', 'reporter', 'watchers', 'labels'];
+    }
+
+    /**
+     * Denormalizes the ticket's own attributes plus its related entities
+     * (project, type, status, people, labels) into a flat search document.
+     * Related entities are `{id, name}`-shaped; `status` also carries its
+     * category. `Project` has no `key` column of its own (only `key_prefix`,
+     * already folded into the ticket's own `key`), so it is not duplicated here.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        $document = $this->toSearchableArrayTrait();
+
+        $document['title'] = $this->title;
+        $document['description'] = $this->description;
+        $document['priority'] = $this->priority?->value;
+        $document['key'] = $this->key;
+        $document['number'] = $this->number;
+        $document['due_at'] = $this->due_at;
+
+        $document['project'] = $this->project === null ? null
+            : ['id' => $this->project->getKey(), 'name' => (string) $this->project->name];
+        $document['type'] = $this->type === null ? null
+            : ['id' => $this->type->getKey(), 'name' => (string) $this->type->name];
+        $document['status'] = $this->status === null ? null
+            : ['id' => $this->status->getKey(), 'name' => (string) $this->status->name, 'category' => $this->status->category->value];
+        $document['assignee'] = $this->assignee === null ? null
+            : ['id' => $this->assignee->getKey(), 'name' => (string) $this->assignee->name];
+        $document['reporter'] = $this->reporter === null ? null
+            : ['id' => $this->reporter->getKey(), 'name' => (string) $this->reporter->name];
+        $document['watchers'] = $this->watchers
+            ->map(static fn (User $watcher): array => ['id' => $watcher->getKey(), 'name' => (string) $watcher->name])
+            ->values()
+            ->all();
+        $document['labels'] = $this->labels
+            ->map(static fn (Label $label): array => ['id' => $label->getKey(), 'name' => (string) $label->name])
+            ->values()
+            ->all();
+
+        return $document;
     }
 
     /**
