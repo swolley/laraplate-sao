@@ -6,6 +6,7 @@ namespace Modules\SAO\ApplicationContent;
 
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Core\ApplicationContent\Contracts\ApplicationContentRetrievalProviderInterface;
+use Modules\Core\ApplicationContent\Contracts\ProvidesPermissionModel;
 use Modules\Core\ApplicationContent\Data\ApplicationContentAuthorization;
 use Modules\Core\ApplicationContent\Data\ApplicationContentQuery;
 use Modules\Core\ApplicationContent\Data\ApplicationContentResult;
@@ -19,7 +20,7 @@ use Modules\SAO\Services\TicketQueryService;
 use Override;
 use Throwable;
 
-final class SaoApplicationContentRetrievalProvider implements ApplicationContentRetrievalProviderInterface
+final class SaoApplicationContentRetrievalProvider implements ApplicationContentRetrievalProviderInterface, ProvidesPermissionModel
 {
     public function __construct(
         private readonly AdvancedSearchService $search,
@@ -27,6 +28,12 @@ final class SaoApplicationContentRetrievalProvider implements ApplicationContent
         private readonly QueryBuilder $queryBuilder,
         private readonly SaoTicketEvidenceProjector $projector,
     ) {}
+
+    #[Override]
+    public function permissionModel(): string
+    {
+        return Ticket::class;
+    }
 
     #[Override]
     public function descriptor(): ApplicationContentSourceDescriptor
