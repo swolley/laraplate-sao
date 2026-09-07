@@ -14,12 +14,20 @@ use Override;
 /**
  * SAO domain permissions.
  *
- * Only what the domain adds on top of CRUD: assigning a ticket, moving it
- * through its workflow, overriding a workflow that would otherwise deadlock the
- * work, closing a ticket by applying a closure policy, accepting an ownership
+ * Only what the domain adds on top of CRUD: moving a ticket through its
+ * workflow, overriding a workflow that would otherwise deadlock the work,
+ * closing a ticket by applying a closure policy, accepting an ownership
  * suggestion, probing a connection's health, and replaying a stored ingest
- * event. The last four back the SPA-facing domain actions in
- * {@see \Modules\SAO\Services\DomainActions\SaoDomainActionRegistrar}.
+ * event. All but `transition_override` back a SPA-facing domain action in
+ * {@see \Modules\SAO\Services\DomainActions\SaoDomainActionRegistrar}; the
+ * override is read straight from a gate by {@see \Modules\SAO\Services\WorkflowService}.
+ *
+ * Nothing is declared here that no code reads. A permission with no consumer is
+ * worse than a missing one: an administrator grants or withholds it and believes
+ * the operation is governed, while the operation runs on some other verb. That
+ * is why assigning a ticket is not on this list — the assignee is a column like
+ * any other, written through `update`, and the one sanctioned assignment path is
+ * accepting an ownership suggestion, which carries its own permission.
  *
  * The generic verbs are deliberately absent. `permission:refresh` already
  * generates `select`, `insert`, `update`, `delete` and the rest for every table
@@ -33,7 +41,7 @@ final class SAOPermissions implements DeclaresPermissions
     public static function operations(): array
     {
         return [
-            Ticket::class => ['assign', 'transition', 'transition_override', 'close'],
+            Ticket::class => ['transition', 'transition_override', 'close'],
             OwnershipSuggestion::class => ['accept'],
             Connection::class => ['health'],
             IngestEvent::class => ['replay'],

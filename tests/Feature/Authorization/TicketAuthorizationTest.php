@@ -29,7 +29,6 @@ test('the seeder registers every SAO domain permission', function (): void {
     $this->seed(SAOPermissionSeeder::class);
 
     $expected = [
-        'default.sao_tickets.assign',
         'default.sao_tickets.transition',
         'default.sao_tickets.transition_override',
         'default.sao_tickets.close',
@@ -62,9 +61,12 @@ test('the seeder leaves the CRUD verbs to permission:refresh', function (): void
 });
 
 /**
- * The Filament policy verbs SAO used to seed. `view` was a second read anchor on
- * a table Core already reads with `select`, which meant two ACL sets on one
+ * The verbs SAO used to seed and no longer does. `view` was a second read anchor
+ * on a table Core already reads with `select`, which meant two ACL sets on one
  * table and one of them always unconfigured; `create` was never checked at all.
+ * `assign` had no consumer either: no handler, no policy method, no gate. The
+ * assignee is written through `update` like any other column, and the sanctioned
+ * assignment path carries `sao_ownership_suggestions.accept`.
  */
 test('the retired Filament verbs are gone for good', function (): void {
     $this->seed(SAOPermissionSeeder::class);
@@ -74,6 +76,7 @@ test('the retired Filament verbs are gone for good', function (): void {
         'default.sao_tickets.create',
         'default.sao_projects.view',
         'default.sao_projects.create',
+        'default.sao_tickets.assign',
     ];
 
     foreach ($retired as $name) {
