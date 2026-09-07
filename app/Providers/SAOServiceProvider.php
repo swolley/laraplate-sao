@@ -6,12 +6,14 @@ namespace Modules\SAO\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
+use Modules\Core\ApplicationContent\Contracts\ApplicationContentRetrievalProviderRegistryInterface;
 use Modules\Core\Exceptions\ConfigurationException;
 use Modules\Core\Import\Support\EntityImporterRegistry;
 use Modules\Core\Logging\Fingerprint\Fingerprinter;
 use Modules\Core\Logging\Fingerprint\FingerprintNormalizer;
 use Modules\Core\Overrides\ModuleServiceProvider;
 use Modules\Core\Services\Crud\DomainActionRegistry;
+use Modules\SAO\ApplicationContent\SaoApplicationContentRetrievalProvider;
 use Modules\SAO\Contracts\SuggestionPhraser;
 use Modules\SAO\Contracts\SuggestionTextGenerator;
 use Modules\SAO\Drivers\DriverRegistry;
@@ -88,6 +90,10 @@ final class SAOServiceProvider extends ModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        $this->app
+            ->make(ApplicationContentRetrievalProviderRegistryInterface::class)
+            ->register($this->app->make(SaoApplicationContentRetrievalProvider::class));
 
         foreach ($this->policyModels() as $model) {
             Gate::policy($model, SaoModelPolicy::class);
