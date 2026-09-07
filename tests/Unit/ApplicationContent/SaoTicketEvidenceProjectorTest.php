@@ -35,6 +35,11 @@ it('returns null when the ticket has no title', function (): void {
     expect((new SaoTicketEvidenceProjector)->project($ticket, 'en', 'lexical', null))->toBeNull();
 });
 
+it('returns null when the title reduces to nothing after sanitization', function (): void {
+    $ticket = Ticket::factory()->make(['title' => '<b></b>']);
+    expect((new SaoTicketEvidenceProjector)->project($ticket, 'en', 'lexical', null))->toBeNull();
+});
+
 it('falls back to the title when the description is empty', function (): void {
     $ticket = Ticket::factory()->create(['title' => 'Login broken', 'description' => null]);
 

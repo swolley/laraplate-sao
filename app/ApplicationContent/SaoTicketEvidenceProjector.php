@@ -20,9 +20,10 @@ final class SaoTicketEvidenceProjector
 
         $key = (string) $ticket->key;
         $description = $this->plainText((string) ($ticket->description ?? ''));
-        $source = $description === '' ? $label : $description;
-        $excerpt = Str::limit($source, 1000, '');
-        $truncated = mb_strlen($source) > mb_strlen($excerpt);
+        $body = $description === '' ? $label : $description;
+
+        [$excerpt, $excerptTruncated] = $this->truncate($body, $this->maximumChars('max_excerpt_chars', 2000, 1000));
+        [$label, $labelTruncated] = $this->truncate($label, $this->maximumChars('max_label_chars', 200, 200));
 
         return new ApplicationContentHit(
             id: 'sao.tickets:' . $key,
@@ -31,14 +32,36 @@ final class SaoTicketEvidenceProjector
             entity: 'tickets',
             recordKey: $key,
             excerpt: $excerpt,
-            label: Str::limit($label, 200, ''),
+            label: $label,
             canonicalReference: '/app/sao/tickets/' . $key,
             locale: $requestedLocale,
             strategy: $strategy,
             score: $score,
             revision: $ticket->updated_at?->toIso8601String(),
-            truncated: $truncated,
+            truncated: $excerptTruncated || $labelTruncated,
         );
+    }
+
+    /**
+     * Resolve a character cap: the projector's own ceiling, never above the
+     * DTO's configured maximum, so a lowered config can never make the hit
+     * exceed its validation bound.
+     */
+    private function maximumChars(string $key, int $default, int $ceiling): int
+    {
+        return min($ceiling, max(1, (int) config('application-content.' . $key, $default)));
+    }
+
+    /**
+     * @return array{string, bool}
+     */
+    private function truncate(string $value, int $maximum): array
+    {
+        if ($maximum >= mb_strlen($value)) {
+            return [$value, false];
+        }
+
+        return [Str::limit($value, $maximum, ''), true];
     }
 
     /**
