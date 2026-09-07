@@ -3,9 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Scout\EngineManager;
+use Modules\Core\ApplicationContent\ApplicationContentRetrievalProviderRegistry;
+use Modules\Core\ApplicationContent\ApplicationContentRetrievalService;
 use Modules\Core\ApplicationContent\Data\ApplicationContentAuthorization;
 use Modules\Core\ApplicationContent\Data\ApplicationContentQuery;
+use Modules\Core\ApplicationContent\Exceptions\ApplicationContentUnavailableException;
 use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Casts\Filter;
 use Modules\Core\Casts\FilterOperator;
@@ -20,6 +25,8 @@ use Modules\Core\Search\Services\AdvancedSearchService;
 use Modules\Core\Search\Services\EnsembleSearchService;
 use Modules\Core\Search\Services\FallbackSearchPlanner;
 use Modules\Core\Search\Services\SimpleQueryIntentParser;
+use Modules\Core\Services\AclResolverService;
+use Modules\Core\Services\Authorization\AuthorizationService;
 use Modules\Core\Services\Crud\QueryBuilder;
 use Modules\Core\Support\PermissionName;
 use Modules\SAO\ApplicationContent\SaoApplicationContentRetrievalProvider;
@@ -122,6 +129,28 @@ function sao_retrieval_query(string $locale = 'en', int $limit = 5): Application
     return new ApplicationContentQuery('sao.tickets', 'deploy', $locale, $limit);
 }
 
+/**
+ * Builds the real entry-point service around the given provider, so a test can
+ * exercise the full path: identity + permission gate + provider + result
+ * invariants, exactly as the AI assistant reaches it.
+ */
+function sao_retrieval_service(SaoApplicationContentRetrievalProvider $provider): ApplicationContentRetrievalService
+{
+    $registry = new ApplicationContentRetrievalProviderRegistry;
+    $registry->register($provider);
+
+    return new ApplicationContentRetrievalService($registry, new AuthorizationService(new AclResolverService));
+}
+
+function sao_retrieval_request(User $user): Request
+{
+    Auth::login($user);
+    $request = Request::create('/app/ai/messages', 'POST');
+    $request->setUserResolver(static fn (): User => $user);
+
+    return $request;
+}
+
 it('returns ACL-authorized ticket evidence ranked by the engine', function (): void {
     $this->seed(SAOPermissionSeeder::class);
 
@@ -185,4 +214,49 @@ it('never returns a ticket outside visible() even if the engine matches it', fun
     $result = $provider->retrieve(sao_retrieval_query(), sao_retrieval_authorization());
 
     expect($result->hits)->toBe([]);
+});
+
+it('serves ACL-authorized ticket evidence to a non-superadmin through the retrieval service', function (): void {
+    $this->seed(SAOPermissionSeeder::class);
+    config()->set('app.locale', 'en');
+
+    $mine = Project::factory()->create(['key_prefix' => 'MINE']);
+    $theirs = Project::factory()->create(['key_prefix' => 'THRS']);
+
+    $visible = Ticket::factory()->forProject($mine)->create(['title' => 'Deploy pipeline fix']);
+    $hidden = Ticket::factory()->forProject($theirs)->create(['title' => 'Deploy secret ticket']);
+
+    $user = sao_retrieval_restrict_tickets_to($mine);
+    $provider = sao_retrieval_provider_with_hits([
+        ['id' => (string) $hidden->getKey(), 'score' => 0.99],
+        ['id' => (string) $visible->getKey(), 'score' => 0.75],
+    ], ['strategies' => ['keyword']]);
+
+    // Before the model-table fix, the service gate checked `default.tickets.select`
+    // (the short entity), which no role holds, so this non-superadmin was denied
+    // here even though they hold `default.sao_tickets.select`.
+    $result = sao_retrieval_service($provider)->retrieve(sao_retrieval_request($user), sao_retrieval_query());
+
+    $keys = array_map(static fn ($hit) => $hit->recordKey, $result->hits);
+
+    expect($keys)->toContain($visible->key)
+        ->and($keys)->not->toContain($hidden->key)
+        ->and($result->source)->toBe('sao.tickets');
+});
+
+it('denies a non-superadmin lacking the ticket select permission at the service gate', function (): void {
+    $this->seed(SAOPermissionSeeder::class);
+    config()->set('app.locale', 'en');
+
+    $project = Project::factory()->create(['key_prefix' => 'MINE']);
+    $ticket = Ticket::factory()->forProject($project)->create(['title' => 'Deploy pipeline fix']);
+
+    $provider = sao_retrieval_provider_with_hits([
+        ['id' => (string) $ticket->getKey(), 'score' => 0.9],
+    ], ['strategies' => ['keyword']]);
+
+    expect(fn () => sao_retrieval_service($provider)->retrieve(
+        sao_retrieval_request(User::factory()->create()),
+        sao_retrieval_query(),
+    ))->toThrow(ApplicationContentUnavailableException::class);
 });
