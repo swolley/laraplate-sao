@@ -361,7 +361,7 @@ final class Ticket extends Model implements MediaContract
 
         $document['title'] = $this->title;
         $document['description'] = $this->description;
-        $document['priority'] = $this->priority?->value;
+        $document['priority'] = $this->priority->value;
         $document['key'] = $this->key;
         $document['number'] = $this->number;
         $document['due_at'] = $this->due_at;
