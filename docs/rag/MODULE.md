@@ -166,6 +166,43 @@ sanctioned assignment path is accepting an ownership suggestion, which carries i
 `accept` permission. The dead permission was dropped rather than left on the role screen
 looking like a rule on who may assign.
 
+### Application-content provider (assistant retrieval)
+
+SAO tickets are exposed to the in-app assistant as the `sao.tickets`
+application-content source (`SaoApplicationContentRetrievalProvider`, registered
+into Core's `ApplicationContentRetrievalProviderRegistry` from
+`SAOServiceProvider::boot()`). The AI module discovers the source through that
+registry and the assistant's module scope, with no SAO-specific hook: adding the
+provider is the whole integration.
+
+A `Ticket` is **Core-searchable** (`Modules\Core\Search\Traits\Searchable`) over a
+denormalized document — `title` and `description` for full text, plus the
+`{id, name}` of `project`, `type`, `status`, `assignee`, `reporter`, `watchers`
+and `labels` — so a natural-language query matches on the people, project, type
+and status names, not only the title. Denormalized names go stale in the index
+until reindex; that affects **ranking only**, because the projection reads fresh
+DB records.
+
+Authorization is the same rule as every other read: the engine is a **relevance
+oracle**, never trusted for access. `retrieve()` ranks candidate ids with
+`AdvancedSearchService`, then re-authorizes them by rehydrating through
+`TicketQueryService::visible()->whereKey($ids)` (Core's ACL filters) before
+projecting — a ticket the requester may not see is dropped at rehydration, and
+the search index carries no ACL data. The lexical fallback (a bounded `LIKE` on
+`title`/`description` when the engine yields nothing) runs over the same
+`visible()` query, so no path can surface a hidden ticket. Every query is
+bounded; a failed engine degrades to the fallback or an authorized-empty result,
+never an unbounded scan.
+
+The **safe projection** (`SaoTicketEvidenceProjector`) exposes only title,
+excerpt, `recordKey` (the ticket key) and the authorized `/app/sao/tickets/{key}`
+reference; free-text fields are reduced to plain text and bounded. Comments,
+attachments, internal ids and ACL data never reach a hit. Ticket comments and
+attachments, a SAO assistant evaluation dataset, structured filter arguments, and
+cross-module **global tags** are deliberately out of scope (labels already give
+tag-like matching); see
+`docs/superpowers/specs/2026-08-29-sao-application-content-provider-design.md`.
+
 ## Driver framework (phase 3a)
 
 The integration layer's foundation is in place, and nine concrete external `issues` drivers ship in `Modules\SAO\Drivers\External` (all registered by default in `config('sao.drivers.registered')`): **Redmine** (`X-Redmine-API-Key`, `remoteIdentifier` = project id), **Jira** Cloud (Basic email+token, JQL by project key), **GitHub** (bearer token, `owner/repo`, `Link`-header pagination), **GitLab** (`PRIVATE-TOKEN`, project id, `X-Next-Page` pagination), **Bitbucket** Cloud (Basic username+app-password, `workspace/repo`, body `next` pagination), **Gitea** (`Authorization: token`, `owner/repo`, `Link`-header pagination over its GitHub-shaped API), **YouTrack** (bearer permanent token, `remoteIdentifier` = project short name, `$skip`/`$top` pagination, status/priority/assignee read from named custom fields), **Azure DevOps** Boards (Basic PAT, `remoteIdentifier` = project name, the documented WIQL-ids-then-batch-read listing with the cursor an offset into the id list, JSON-Patch writes), and **Linear** (GraphQL, personal API key in `Authorization`, `remoteIdentifier` = team key, `pageInfo.endCursor` pagination; the canonical `remote_id` is the issue UUID and the human `identifier` is `key`). Each maps its remote representation to `NormalizedIssue`, translates statuses only through the binding-provided map (never hardcoded), and passes the `issues` conformance suite against a network-free `Http::fake()`. The three Git hosts (GitHub, GitLab, Bitbucket) additionally serve the **`vcs`** (commits, compare, file-at-ref, open pull/merge request) and **`releases`** (tags, bounded first-tag-containing) capabilities, each passing the `VcsConformance` and `ReleasesConformance` batteries over an `Http::fake()`. Normalized commits carry the author shape — `author` (the account handle, null on GitLab which exposes no username and on unlinked GitHub commits), `author_name`, `author_email` — which `VcsConformance` asserts on every commit; this is the raw material for blame/recent-touch ownership evidence. Ten **`logs`** drivers ship too, all push/webhook and all sharing the `LogsDriverBoilerplate` trait (capabilities, ingest modes, secret-based `healthCheck()`, HMAC/token verification, safe decode). They split into two families. The **error trackers** carry a **native** grouping key (`carriesNativeGroupKey()` true; `GroupKeyResolver` namespaces it `<source>:<id>`): **Sentry** (HMAC-SHA256 signature, `sentry:<id>`), **GlitchTip** (`X-GlitchTip-Token`, unpacks `data.issue.id`), **Rollbar** (`X-Rollbar-Token`, `data.item.counter`), **Bugsnag** (`X-Bugsnag-Token`, `error.errorId`), and **Honeybadger** (`X-Honeybadger-Token`, `fault.id`). The **log aggregators** carry **no** native key (`carriesNativeGroupKey()` false) and let SAO fingerprint each event through its own chain: **Graylog** (shared token header, one event per backlog message), **Grafana** (`X-Grafana-Token`, one event per alert), **Datadog** (`X-Datadog-Token`), **Elastic** (`X-Elastic-Token`, message/reason or alerts), and **BetterStack** (`X-BetterStack-Token`, `data.attributes.name/cause`). A connection's live reachability is checked by `ConnectionHealthService` (resolve credentials → driver `healthCheck()` → record `health_state` + `last_checked_at`), surfaced by the `sao:connection:health {name?}` command and a "Test connection" action on the Filament `ConnectionResource`. Push deliveries for a `logs` connection arrive over a single unauthenticated endpoint, `POST api/v1/webhooks/{connection}` (`WebhookIngestController` → `DriverWebhookIngestService`): the delivery authenticates itself through the driver's own signature/token scheme (never framework auth), the driver `unpack()`s the raw body into canonical events, and each event is ingested into every project bound to the connection with the `logs` capability via `SignalIngestService`. Every ingested event becomes an `IngestEvent`, deduped per (connection, delivery, binding, index) so a re-delivery is recorded once and never re-ingested; a forged body is a 401 and never stored, while an authentic delivery that lands nowhere (no binding) is a 202 with an audited `Discarded` event so the sender stops retrying. The whole run is wrapped in the `PipelineContext` loop guard. Live-instance verification stays a manual/opt-in step (offline the drivers are proven by conformance over `Http::fake()`). A **driver** is registered code (`Modules\SAO\Drivers`); a **connection** (`Connection` model) is a configured instance of it. The registry is **open**: `DriverRegistry` is a singleton populated from `config('sao.drivers.registered')` and by any provider's `boot()` — adding a provider never requires editing SAO. Duplicate keys throw so a collision surfaces at boot.
