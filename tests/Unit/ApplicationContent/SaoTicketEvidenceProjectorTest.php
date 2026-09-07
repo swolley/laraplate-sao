@@ -34,3 +34,25 @@ it('returns null when the ticket has no title', function (): void {
     $ticket = Ticket::factory()->make(['title' => '']);
     expect((new SaoTicketEvidenceProjector)->project($ticket, 'en', 'lexical', null))->toBeNull();
 });
+
+it('falls back to the title when the description is empty', function (): void {
+    $ticket = Ticket::factory()->create(['title' => 'Login broken', 'description' => null]);
+
+    $hit = (new SaoTicketEvidenceProjector)->project($ticket->fresh(), 'en', 'lexical', 0.5);
+
+    expect($hit)->toBeInstanceOf(ApplicationContentHit::class)
+        ->and($hit->excerpt)->toBe('Login broken')
+        ->and($hit->truncated)->toBeFalse();
+});
+
+it('sanitizes markup and control characters so the hit stays plain text', function (): void {
+    $ticket = Ticket::factory()->create([
+        'title' => "Crash <b>now</b>\x07",
+        'description' => "<p>Stack&nbsp;trace</p>\x00 line",
+    ]);
+
+    $hit = (new SaoTicketEvidenceProjector)->project($ticket->fresh(), 'en', 'lexical', 0.5);
+
+    expect($hit->label)->toBe('Crash now')
+        ->and($hit->excerpt)->toBe('Stack trace line');
+});
