@@ -142,7 +142,6 @@ final class SaoApplicationContentRetrievalProvider implements ApplicationContent
 
         return $this->authorizedQuery($authorization)
             ->whereKey($recordIds)
-            ->with(['status', 'type', 'project', 'assignee'])
             ->get()
             ->mapWithKeys(static fn (Ticket $ticket): array => [(string) $ticket->getKey() => $ticket])
             ->all();
