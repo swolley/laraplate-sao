@@ -7,6 +7,7 @@ namespace Modules\SAO\Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Scout\ModelObserver;
 use Modules\Core\Models\Permission;
 use Modules\Core\Models\Role;
 use Modules\Core\Overrides\Seeder;
@@ -66,10 +67,19 @@ final class DevSAODatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        Model::unguarded(function (): void {
-            $this->seedRoleAndUser();
-            $this->seedProjectData();
-        });
+        // Suppress synchronous search indexing while bulk-creating searchable
+        // tickets: a dev seed must not hammer the search engine per row. Indexing
+        // is left to an explicit reindex (scout:reindex) once the engine is ready.
+        ModelObserver::disableSyncingFor(Ticket::class);
+
+        try {
+            Model::unguarded(function (): void {
+                $this->seedRoleAndUser();
+                $this->seedProjectData();
+            });
+        } finally {
+            ModelObserver::enableSyncingFor(Ticket::class);
+        }
     }
 
     private function seedProjectData(): void

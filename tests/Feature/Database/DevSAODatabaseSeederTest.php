@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
+use Modules\Core\Events\ModelRequiresIndexing;
 use Modules\Core\Models\Role;
 use Modules\Core\Services\Authorization\AuthorizationService;
 use Modules\Core\Support\PermissionName;
@@ -36,6 +38,16 @@ test('dev seeder creates the demo project, workflow and tickets across statuses'
         expect(Ticket::query()->withoutGlobalScopes()->where('ticket_status_id', $statusIds[$status])->exists())
             ->toBeTrue("expected at least one ticket in status {$status}");
     }
+});
+
+test('dev seeder suppresses search indexing while bulk-creating tickets', function (): void {
+    // A dev seed must not synchronously index every ticket into the search
+    // engine (it floods a small ES); indexing is left to an explicit reindex.
+    Event::fake([ModelRequiresIndexing::class]);
+
+    $this->seed(DevSAODatabaseSeeder::class);
+
+    Event::assertNotDispatched(ModelRequiresIndexing::class);
 });
 
 test('dev seeder seeds operational data and is idempotent', function (): void {
