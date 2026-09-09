@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- *(swagger)* Add initial Swagger documentation for SAO module API
+
+### 🐛 Bug Fixes
+
+- *(tests)* Share SAO sync and closure fixtures via Pest helpers
+
+### 🚜 Refactor
+
+- *(sao)* Declare domain permissions instead of seeding a private list
+- *(sao)* [**breaking**] Read tickets with Core's `select` verb
+- *(sao)* [**breaking**] Drop the ticket assign permission nothing read
+
+### 🧪 Testing
+
+- *(sao)* Grant the ticket update permission the writes actually need
+- *(sao)* Prove the optimistic conflict end to end on tickets
+
+## [1.0.1] - 2026-08-26
+
 ### 🐛 Bug Fixes
 
 - *(seeder)* Enhance DevSAODatabaseSeeder to handle corrupt permission cache
