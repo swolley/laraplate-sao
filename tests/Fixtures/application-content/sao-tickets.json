@@ -16,7 +16,7 @@
       "expect_supported_answer": true,
       "expect_abstention": false,
       "slices": ["exact"],
-      "authorization": {"permission": "evaluation.tickets.select", "filters": {"operator": "and", "filters": [{"property": "key", "operator": "=", "value": "SAO-1"}]}}
+      "authorization": {"permission": "evaluation.tickets.select", "filters": null}
     },
     {
       "id": "exact-typo-homepage",
@@ -29,7 +29,7 @@
       "expect_supported_answer": true,
       "expect_abstention": false,
       "slices": ["exact"],
-      "authorization": {"permission": "evaluation.tickets.select", "filters": {"operator": "and", "filters": [{"property": "key", "operator": "=", "value": "SAO-7"}]}}
+      "authorization": {"permission": "evaluation.tickets.select", "filters": null}
     },
     {
       "id": "exact-dependencies-update",
@@ -42,7 +42,7 @@
       "expect_supported_answer": true,
       "expect_abstention": false,
       "slices": ["exact"],
-      "authorization": {"permission": "evaluation.tickets.select", "filters": {"operator": "and", "filters": [{"property": "key", "operator": "=", "value": "SAO-8"}]}}
+      "authorization": {"permission": "evaluation.tickets.select", "filters": null}
     },
     {
       "id": "exact-notifications-refactor",
@@ -55,7 +55,7 @@
       "expect_supported_answer": true,
       "expect_abstention": false,
       "slices": ["exact"],
-      "authorization": {"permission": "evaluation.tickets.select", "filters": {"operator": "and", "filters": [{"property": "key", "operator": "=", "value": "SAO-5"}]}}
+      "authorization": {"permission": "evaluation.tickets.select", "filters": null}
     },
     {
       "id": "payment-timeout",
@@ -68,7 +68,7 @@
       "expect_supported_answer": true,
       "expect_abstention": false,
       "slices": ["paraphrase"],
-      "authorization": {"permission": "evaluation.tickets.select", "filters": {"operator": "and", "filters": [{"property": "key", "operator": "=", "value": "SAO-4"}]}}
+      "authorization": {"permission": "evaluation.tickets.select", "filters": null}
     },
     {
       "id": "paraphrase-vendor-credentials",
@@ -81,7 +81,7 @@
       "expect_supported_answer": true,
       "expect_abstention": false,
       "slices": ["paraphrase"],
-      "authorization": {"permission": "evaluation.tickets.select", "filters": {"operator": "and", "filters": [{"property": "key", "operator": "=", "value": "SAO-6"}]}}
+      "authorization": {"permission": "evaluation.tickets.select", "filters": null}
     },
     {
       "id": "multi-term-csv-export",
@@ -94,7 +94,7 @@
       "expect_supported_answer": true,
       "expect_abstention": false,
       "slices": ["multi_term"],
-      "authorization": {"permission": "evaluation.tickets.select", "filters": {"operator": "and", "filters": [{"property": "key", "operator": "=", "value": "SAO-2"}]}}
+      "authorization": {"permission": "evaluation.tickets.select", "filters": null}
     },
     {
       "id": "multi-term-vendor-wait",
@@ -107,7 +107,7 @@
       "expect_supported_answer": true,
       "expect_abstention": false,
       "slices": ["multi_term"],
-      "authorization": {"permission": "evaluation.tickets.select", "filters": {"operator": "and", "filters": [{"property": "key", "operator": "=", "value": "SAO-6"}]}}
+      "authorization": {"permission": "evaluation.tickets.select", "filters": null}
     },
     {
       "id": "unicode-accessibility-form",
@@ -120,7 +120,7 @@
       "expect_supported_answer": true,
       "expect_abstention": false,
       "slices": ["unicode"],
-      "authorization": {"permission": "evaluation.tickets.select", "filters": {"operator": "and", "filters": [{"property": "key", "operator": "=", "value": "SAO-3"}]}}
+      "authorization": {"permission": "evaluation.tickets.select", "filters": null}
     },
     {
       "id": "authorized-empty-quarterly-report",
