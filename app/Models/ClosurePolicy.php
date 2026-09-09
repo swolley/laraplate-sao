@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Models\Concerns\HasActivation;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ClosurePolicyFactory;
 use Modules\SAO\Enums\ClosureAction;
@@ -19,16 +20,20 @@ use Override;
  * not code.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $project_id
  * @property string $name
  * @property list<array{key: string, config?: array<string, mixed>}> $conditions
  * @property ClosureAction $action
  * @property bool $is_active
+ *
  * @mixin IdeHelperClosurePolicy
  */
 final class ClosurePolicy extends Model
 {
+    use HasActivation;
+
     /**
      * @var array<string, mixed>
      */

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Core\Models\Concerns\HasActivation;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\SourceProfileFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -17,15 +18,19 @@ use Override;
  * not writing code.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property string $name
  * @property bool $is_active
  * @property list<array{path: string, operator: string, value?: mixed}> $matchers
  * @property array<string, string> $field_bindings
+ *
  * @mixin IdeHelperSourceProfile
  */
 final class SourceProfile extends Model
 {
+    use HasActivation;
+
     /**
      * @var array<string, mixed>
      */

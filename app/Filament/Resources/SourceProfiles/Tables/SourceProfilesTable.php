@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Filament\Resources\SourceProfiles\Tables;
 
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
@@ -32,9 +31,6 @@ final class SourceProfilesTable
                         ->label('Bindings')
                         ->badge()
                         ->state(static fn (SourceProfile $record): int => count($record->field_bindings)),
-                    IconColumn::make('is_active')
-                        ->label('Active')
-                        ->boolean(),
                 );
             },
         );

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Filament\Resources\ClosurePolicies\Tables;
 
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
@@ -36,9 +35,6 @@ final class ClosurePoliciesTable
                             static fn (array $condition): string => (string) ($condition['key'] ?? ''),
                             $record->conditions,
                         )),
-                    IconColumn::make('is_active')
-                        ->label('Active')
-                        ->boolean(),
                 );
             },
         );
