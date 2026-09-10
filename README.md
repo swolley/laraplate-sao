@@ -172,7 +172,8 @@ exists yet.
 -   Authorization entirely Laraplate's: permissions through `PermissionName`, and
     row-level visibility through Core's ACL filters — an ACL restricting the view
     permission to one project hides the others, with no mechanism of SAO's own
--   Filament surfaces for projects, statuses, types, workflow schemes and tickets
+-   Filament surfaces for projects, statuses, types, workflow schemes and tickets,
+    exposed in the admin panel through `Modules\SAO\Filament\SAOPlugin`
 
 Not yet present: labels, watchers, attachments, due dates, ticket relations and
 the board (slices 1b and 1c), and every form of external integration.
