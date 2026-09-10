@@ -3,6 +3,7 @@
     "laraplate_owned": true,
     "alias": "sao",
     "description": "SAO module — Simply Another Orchestrator: correlation engine between code, errors and work.",
+    "color": "bright-red",
     "keywords": [
         "sao",
         "orchestrator",
