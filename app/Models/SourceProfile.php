@@ -18,13 +18,11 @@ use Override;
  * not writing code.
  *
  * @mixin \Eloquent
- *
  * @property int $id
  * @property string $name
  * @property bool $is_active
  * @property list<array{path: string, operator: string, value?: mixed}> $matchers
  * @property array<string, string> $field_bindings
- *
  * @mixin IdeHelperSourceProfile
  */
 final class SourceProfile extends Model
