@@ -29,7 +29,7 @@ final class ScanCommitsCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Scan vcs bindings for ticket references and attribute fixes to releases';
+    protected $description = 'Scan vcs bindings for ticket references and attribute fixes to releases <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     public function handle(VcsScanService $service): int
     {

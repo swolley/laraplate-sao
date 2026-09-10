@@ -27,7 +27,7 @@ final class AutoOpenSignalTicketsCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Open tickets from error signals that reached the occurrence threshold';
+    protected $description = 'Open tickets from error signals that reached the occurrence threshold <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     public function handle(SignalTicketOpener $opener): int
     {

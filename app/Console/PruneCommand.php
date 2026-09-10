@@ -23,7 +23,7 @@ final class PruneCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Prune aged occurrences, ingest events, deployments and closed-project data';
+    protected $description = 'Prune aged occurrences, ingest events, deployments and closed-project data <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     public function handle(RetentionService $retention): int
     {

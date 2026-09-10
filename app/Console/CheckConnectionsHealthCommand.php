@@ -22,7 +22,7 @@ final class CheckConnectionsHealthCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Probe SAO connections and record their health state';
+    protected $description = 'Probe SAO connections and record their health state <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     #[Override]
     public function handle(ConnectionHealthService $service): int

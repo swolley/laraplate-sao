@@ -26,7 +26,7 @@ final class ReplayIngestEventCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Dry-run an ingest event against a source profile without writing anything';
+    protected $description = 'Dry-run an ingest event against a source profile without writing anything <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     public function handle(IngestReplayService $service): int
     {

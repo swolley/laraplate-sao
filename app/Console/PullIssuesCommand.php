@@ -27,7 +27,7 @@ final class PullIssuesCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Pull inbound issue bindings from their external trackers';
+    protected $description = 'Pull inbound issue bindings from their external trackers <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     public function handle(IssueSyncPoller $poller): int
     {

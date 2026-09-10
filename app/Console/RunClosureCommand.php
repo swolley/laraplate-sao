@@ -31,7 +31,7 @@ final class RunClosureCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Evaluate closure policies over non-terminal tickets (propose, or auto-close when enabled)';
+    protected $description = 'Evaluate closure policies over non-terminal tickets (propose, or auto-close when enabled) <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     public function handle(ClosureCoordinator $coordinator): int
     {

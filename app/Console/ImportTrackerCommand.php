@@ -37,7 +37,7 @@ final class ImportTrackerCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Import an external tracker history into SAO (optionally open-only, with cutover)';
+    protected $description = 'Import an external tracker history into SAO (optionally open-only, with cutover) <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     public function handle(TrackerImportService $importer, BindingCutoverService $cutoverService): int
     {

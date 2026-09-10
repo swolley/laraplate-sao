@@ -31,7 +31,7 @@ final class RecordDeploymentCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Record a deployment for a project (integration-free CD / replay)';
+    protected $description = 'Record a deployment for a project (integration-free CD / replay) <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     public function handle(DeploymentIngestService $ingest): int
     {

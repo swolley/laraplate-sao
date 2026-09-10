@@ -27,7 +27,7 @@ final class SyncReleasesCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Sync release tags and promote announced releases whose stable tag now exists';
+    protected $description = 'Sync release tags and promote announced releases whose stable tag now exists <fg=bright-red>(🎫 Modules\SAO)</fg=bright-red>';
 
     public function handle(ReleaseSyncService $service): int
     {
