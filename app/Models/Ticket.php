@@ -16,6 +16,9 @@ use Modules\Core\Helpers\HasMedia;
 use Modules\Core\Locking\Traits\HasOptimisticLocking;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
+use Modules\Core\Search\Schema\FieldDefinition;
+use Modules\Core\Search\Schema\FieldType;
+use Modules\Core\Search\Schema\IndexType;
 use Modules\Core\Search\Traits\Searchable;
 use Modules\SAO\Database\Factories\TicketFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -50,6 +53,7 @@ final class Ticket extends Model implements MediaContract
     use HasOptimisticLocking;
     use Searchable {
         Searchable::toSearchableArray as private toSearchableArrayTrait;
+        Searchable::getSearchMapping as private getSearchMappingTrait;
     }
 
     /**
@@ -110,6 +114,15 @@ final class Ticket extends Model implements MediaContract
      * changed, which is what a timeline needs.
      */
     protected VersionStrategy $versionStrategy = VersionStrategy::DIFF;
+
+    /**
+     * Free-text fields concatenated for embedding generation. Ticket is
+     * non-translated (keyword-only otherwise), so this exercises the generic,
+     * mono-lingual embedding path: one vector, `locale = null`.
+     *
+     * @var list<string>
+     */
+    protected array $embed = ['title', 'description'];
 
     /**
      * @return array<string, array<string, list<string>>>
@@ -384,6 +397,43 @@ final class Ticket extends Model implements MediaContract
             ->all();
 
         return $document;
+    }
+
+    /**
+     * The base trait's automatic per-key mapping (used when no explicit schema
+     * is passed to `getSearchMapping()`) special-cases only a singular
+     * `embedding` key; `toSearchableArray()` emits the agnostic plural
+     * `embeddings` array instead (one `{vector}` entry per `ModelEmbedding`
+     * row), so the generic path would otherwise type it as flat text and break
+     * vector indexing. Every other field keeps that same automatic mapping —
+     * only `embeddings` gets an explicit nested vector field declared, the way
+     * `Content::getSearchMapping()` declares its own.
+     *
+     * @return array<string, mixed>
+     */
+    public function getSearchMapping(): array
+    {
+        $schema = $this->getSchemaDefinition();
+        $document = $this->toSearchableArray();
+
+        // toSearchableArray() only includes `embeddings` when this instance already has
+        // ModelEmbedding rows (see base Searchable::toSearchableArray()), but the mapping
+        // must declare the field regardless — an index is typically created before any
+        // ticket has been embedded. Declare it explicitly and unconditionally instead of
+        // deriving it from the document, the same way Content does.
+        foreach ($document as $key => $value) {
+            if ($key === 'embeddings') {
+                continue;
+            }
+
+            $schema->addField(new FieldDefinition($key, FieldType::fromValue($value), [IndexType::Searchable]));
+        }
+
+        $schema->addField(new FieldDefinition('embeddings', FieldType::Array, [IndexType::Searchable, IndexType::Vector], [
+            'vector' => ['dimensions' => (int) config('search.vector.dimensions', 384), 'similarity' => config('search.vector.similarity', 'cosine')],
+        ]));
+
+        return $this->getSearchMappingTrait($schema);
     }
 
     /**
