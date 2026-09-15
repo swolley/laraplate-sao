@@ -118,7 +118,7 @@ final readonly class GitHubPullRequestDriver implements CodeEventCapability, Dri
         return [new CodeReference(
             type: ChangeRefType::PullRequest,
             identifier: $number,
-            text: trim($title . "\n" . $body),
+            text: mb_trim($title . "\n" . $body),
             url: $this->stringOrNull($pr['html_url'] ?? null),
             source: $this->key(),
             mergedAt: $this->dateOrNull($pr['merged_at'] ?? null),

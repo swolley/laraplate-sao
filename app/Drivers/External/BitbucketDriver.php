@@ -415,7 +415,7 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         }
 
         $raw = isset($commit['author']['raw']) ? (string) $commit['author']['raw'] : '';
-        $name = trim((string) preg_replace('/<[^>]*>/', '', $raw));
+        $name = mb_trim((string) preg_replace('/<[^>]*>/', '', $raw));
 
         return $name === '' ? null : $name;
     }

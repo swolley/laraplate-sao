@@ -100,6 +100,7 @@ final readonly class SentryDriver implements DriverInterface, LogsCapability
 
         /** @var array<string, mixed> $issue */
         $issue = is_array($data['issue'] ?? null) ? $data['issue'] : [];
+
         /** @var array<string, mixed> $event */
         $event = is_array($data['event'] ?? null) ? $data['event'] : [];
 
@@ -143,7 +144,7 @@ final readonly class SentryDriver implements DriverInterface, LogsCapability
     private function signatureHeader(array $headers): ?string
     {
         foreach ($headers as $name => $value) {
-            if (strtolower($name) === 'sentry-hook-signature') {
+            if (mb_strtolower($name) === 'sentry-hook-signature') {
                 return $value;
             }
         }

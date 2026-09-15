@@ -59,6 +59,6 @@ final class TemplateSuggestionPhraser implements SuggestionPhraser
 
     private function formatScore(float $score): string
     {
-        return rtrim(rtrim(number_format($score, 2, '.', ''), '0'), '.');
+        return mb_rtrim(mb_rtrim(number_format($score, 2, '.', ''), '0'), '.');
     }
 }

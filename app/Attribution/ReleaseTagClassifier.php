@@ -20,7 +20,7 @@ final class ReleaseTagClassifier
 {
     public function classify(string $tag): ReleaseTagClassification
     {
-        $normalized = preg_replace('/^v/i', '', trim($tag)) ?? $tag;
+        $normalized = preg_replace('/^v/i', '', mb_trim($tag)) ?? $tag;
 
         if (preg_match('/^(\d+(?:\.\d+)*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/', $normalized, $matches) === 1) {
             $isCandidate = ($matches[2] ?? '') !== '';
@@ -56,10 +56,8 @@ final class ReleaseTagClassifier
     private function preReleaseMarkers(): array
     {
         /** @var list<string> $markers */
-        $markers = (array) config('sao.attribution.prerelease_markers', [
+        return (array) config('sao.attribution.prerelease_markers', [
             '-rc', '-beta', '-alpha', '-pre', '-dev', '-snapshot',
         ]);
-
-        return $markers;
     }
 }

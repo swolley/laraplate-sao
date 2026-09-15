@@ -96,7 +96,7 @@ final class CodeownersOwnershipResolver
         $rules = [];
 
         foreach (preg_split('/\R/', $content) ?: [] as $line) {
-            $line = trim($line);
+            $line = mb_trim($line);
 
             if ($line === '' || str_starts_with($line, '#')) {
                 continue;
@@ -136,8 +136,8 @@ final class CodeownersOwnershipResolver
 
     private function matches(string $pattern, string $path): bool
     {
-        $pattern = ltrim($pattern, '/');
-        $path = ltrim($path, '/');
+        $pattern = mb_ltrim($pattern, '/');
+        $path = mb_ltrim($path, '/');
 
         if ($pattern === '*') {
             return true;

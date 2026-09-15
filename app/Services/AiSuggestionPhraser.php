@@ -36,7 +36,7 @@ final readonly class AiSuggestionPhraser implements SuggestionPhraser
         }
 
         try {
-            $rephrased = trim($this->generator->generate($this->prompt($factual, $name)));
+            $rephrased = mb_trim($this->generator->generate($this->prompt($factual, $name)));
         } catch (Throwable) {
             return $factual;
         }
