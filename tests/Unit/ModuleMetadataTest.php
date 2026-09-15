@@ -65,24 +65,31 @@ test('composer.json declares the platform floors', function (): void {
     expect($require['laravel/framework'])->toBe('^12.0');
 });
 
-test('composer.json exposes the full quality script battery', function (): void {
+test('composer.json declares no test or quality script', function (): void {
     $config = sao_read_json('composer.json');
 
     /** @var array<string, mixed> $scripts */
-    $scripts = $config['scripts'];
+    $scripts = $config['scripts'] ?? [];
 
-    expect($scripts)->toHaveKeys([
-        'test',
-        'test:unit',
-        'test:integration',
-        'test:feature',
-        'test:lint',
-        'test:types',
-        'test:refactor',
-        'test:type-coverage',
-        'test:typos',
-        'test:licenses',
-    ]);
+    // Those scripts called a relative vendor/bin that a module has never had. They are the
+    // application's, and composer-merge-plugin used to surface them at the root as if they
+    // were the root's own.
+    foreach (array_keys($scripts) as $name) {
+        expect(str_starts_with((string) $name, 'test'))->toBeFalse("The application owns the {$name} script");
+        expect(str_starts_with((string) $name, 'version'))->toBeFalse("The application owns the {$name} script");
+    }
+
+    expect($scripts)->not->toHaveKey('lint');
+    expect($scripts)->not->toHaveKey('check');
+    expect($scripts)->not->toHaveKey('setup:hooks');
+});
+
+test('composer.json declares no development dependency', function (): void {
+    $config = sao_read_json('composer.json');
+
+    // A module's require-dev used to feed the application's vendor/ through composer-merge-plugin,
+    // which meant six files decided which Pest the project ran and the loser was dropped silently.
+    expect($config)->not->toHaveKey('require-dev');
 });
 
 test('composer.json maps the module and test namespaces', function (): void {
