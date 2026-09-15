@@ -6,28 +6,83 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- *(filament)* Expose the SAO surfaces in the admin panel
+- *(sao)* Add color attribute to module and integrate it into the admin panel
+- *(search)* Make Ticket embeddable (mono-lingual vector)
+
+### 🐛 Bug Fixes
+
+- *(eval)* Open SAO baseline candidates to measure real ranking
+- *(sao)* Pick a transition's required permission instead of typing it
+
+### 🚜 Refactor
+
+- *(sao)* Remove IconColumn from ClosurePoliciesTable and SourceProfilesTable, and implement HasActivation trait in ClosurePolicy and SourceProfile models
+- Remove unnecessary docblock annotations in ClosurePolicy and SourceProfile models
+
+### 🎨 Styling
+
+- Format with the application's Pint configuration
+- Apply the module's own mb_str_functions rule
+
+### 🧪 Testing
+
+- *(eval)* Add SAO application-content ranking baseline with @k metrics
+
+### ⚙️ Miscellaneous Tasks
+
+- Update command descriptions to include SAO module indicator
+- The module carries functionality, not the toolchain
+
+## [1.1.0] - 2026-09-09
+
+### 🚀 Features
+
 - *(swagger)* Add initial Swagger documentation for SAO module API
+- *(sao)* Make Ticket Core-searchable with denormalized relations
+- *(sao)* Ticket evidence projector for application content
+- *(sao)* Sao.tickets application-content retrieval provider
+- *(sao)* Register sao.tickets application-content provider
 
 ### 🐛 Bug Fixes
 
 - *(tests)* Share SAO sync and closure fixtures via Pest helpers
+- *(sao)* Drop needless nullsafe on non-nullable Ticket priority in search doc
+- *(sao)* Guard projector against empty description and non-plain-text fields
+- *(sao)* Declare Ticket as the application-content permission model
+- *(sao)* Suppress search indexing during dev seeding to avoid hammering the engine
 
 ### 🚜 Refactor
 
+- Remove unnecessary docblock comments in model classes for cleaner code
 - *(sao)* Declare domain permissions instead of seeding a private list
 - *(sao)* [**breaking**] Read tickets with Core's `select` verb
 - *(sao)* [**breaking**] Drop the ticket assign permission nothing read
+- *(sao)* Config-derived projector caps and label-aware truncation flag
+
+### 📚 Documentation
+
+- *(sao)* Document the sao.tickets application-content provider
+
+### ⚡ Performance
+
+- *(sao)* Drop unused eager-load in application-content rehydration
 
 ### 🧪 Testing
 
 - *(sao)* Grant the ticket update permission the writes actually need
 - *(sao)* Prove the optimistic conflict end to end on tickets
+- *(sao)* End-to-end application-content retrieval through the service gate for a non-superadmin
 
 ## [1.0.1] - 2026-08-26
 
 ### 🐛 Bug Fixes
 
 - *(seeder)* Enhance DevSAODatabaseSeeder to handle corrupt permission cache
+
+### ⚙️ Miscellaneous Tasks
+
+- Add IdeHelper mixins to Connection, ProjectBinding, and TicketLink models for improved IDE support
 
 ## [1.0.0] - 2026-08-25
 
@@ -112,6 +167,7 @@ All notable changes to this project will be documented in this file.
 - *(sao)* Model ticket↔label and ticket↔watcher pivots explicitly
 - *(sao)* Add release-health read-model (#2)
 - *(sao)* Deploy & rollout ingest core (#1)
+- *(sao)* Deploy webhook transport — deploy capability + drivers + ingest (#1)
 - *(sao)* Attribution core — Fixes/Mentions change refs from code text (spec #1 phase 1)
 - *(sao)* Complete fix-attribution pipeline — release attr, pull scan, PR webhook, closure (spec #1 phases 2-5)
 - *(sao)* Deterministic release promotion — ReleaseRegistrar + ReleaseSyncService (spec #1)
