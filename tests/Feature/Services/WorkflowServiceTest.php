@@ -190,7 +190,7 @@ test('a transition declaring a required permission refuses a user without it', f
 
     WorkflowTransition::query()
         ->where('to_status_id', $doing->id)
-        ->update(['required_permission' => 'default.sao_tickets.assign']);
+        ->update(['required_permission' => 'default.sao_tickets.transition_override']);
 
     $ticket = Ticket::factory()->forProject($project)->create([
         'ticket_type_id' => $type->id,

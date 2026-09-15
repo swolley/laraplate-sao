@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Enums\CoreTables;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\WorkflowTransitionFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -16,12 +17,14 @@ use Override;
  * transition, which is how a scheme declares the status a new ticket starts in.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $workflow_scheme_id
  * @property int|null $from_status_id
  * @property int $to_status_id
  * @property string $label
  * @property string|null $required_permission
+ *
  * @mixin IdeHelperWorkflowTransition
  */
 final class WorkflowTransition extends Model
@@ -54,17 +57,24 @@ final class WorkflowTransition extends Model
 
         $statuses = SAOTables::TicketStatuses->value;
 
+        // The value is handed straight to `Gate::allows()` by WorkflowService, which
+        // fails closed on a name nobody holds — and on a name that does not exist at
+        // all. A typo here used to deny the transition for everybody, for good, without
+        // saying so, so the name is checked against the permission table on the way in.
+        $permissions = (string) config('permission.table_names.permissions', CoreTables::Permissions->value);
+        $permission_rules = ['nullable', 'string', 'max:255', "exists:{$permissions},name"];
+
         $rules['create'] = array_merge($rules['create'], [
             'workflow_scheme_id' => ['required', 'integer', 'exists:' . SAOTables::WorkflowSchemes->value . ',id'],
             'from_status_id' => ['nullable', 'integer', "exists:{$statuses},id"],
             'to_status_id' => ['required', 'integer', "exists:{$statuses},id"],
             'label' => ['required', 'string', 'max:255'],
-            'required_permission' => ['nullable', 'string', 'max:255'],
+            'required_permission' => $permission_rules,
         ]);
 
         $rules['update'] = array_merge($rules['update'], [
             'label' => ['sometimes', 'string', 'max:255'],
-            'required_permission' => ['nullable', 'string', 'max:255'],
+            'required_permission' => $permission_rules,
         ]);
 
         return $rules;
