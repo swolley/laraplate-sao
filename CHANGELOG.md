@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [1.2.0] - 2026-09-15
 
 ### 🚀 Features
 
@@ -19,6 +19,10 @@ All notable changes to this project will be documented in this file.
 
 - *(sao)* Remove IconColumn from ClosurePoliciesTable and SourceProfilesTable, and implement HasActivation trait in ClosurePolicy and SourceProfile models
 - Remove unnecessary docblock annotations in ClosurePolicy and SourceProfile models
+
+### 📚 Documentation
+
+- *(changelog)* Regenerate with the corrected git-cliff configuration
 
 ### 🎨 Styling
 
