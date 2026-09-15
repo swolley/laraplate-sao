@@ -18,6 +18,7 @@ use Override;
  * @property int $binding_id
  * @property string $idempotency_key
  * @property SyncOutcome $outcome
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperSyncOperation
  */

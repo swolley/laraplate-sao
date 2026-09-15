@@ -16,10 +16,14 @@ namespace Modules\SAO\Enums;
  */
 enum ChangeRefRelation: string
 {
-    /** The change claims to resolve the ticket — counts as evidence. */
+    /**
+     * The change claims to resolve the ticket — counts as evidence.
+     */
     case Fixes = 'fixes';
 
-    /** The change references the ticket in passing — context only. */
+    /**
+     * The change references the ticket in passing — context only.
+     */
     case Mentions = 'mentions';
 
     public static function validationRule(): string

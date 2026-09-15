@@ -10,15 +10,23 @@ namespace Modules\SAO\Enums;
  */
 enum ReleaseHealthVerdict: string
 {
-    /** No new signals and error rate flat or down versus the baseline release. */
+    /**
+     * No new signals and error rate flat or down versus the baseline release.
+     */
     case Healthy = 'healthy';
 
-    /** New signals appeared, but below the regression threshold. */
+    /**
+     * New signals appeared, but below the regression threshold.
+     */
     case Degraded = 'degraded';
 
-    /** New or worsening signals past the configured regression threshold. */
+    /**
+     * New or worsening signals past the configured regression threshold.
+     */
     case Regressed = 'regressed';
 
-    /** Not enough data to judge (no deploy time, no occurrences and no baseline). */
+    /**
+     * Not enough data to judge (no deploy time, no occurrences and no baseline).
+     */
     case Unknown = 'unknown';
 }

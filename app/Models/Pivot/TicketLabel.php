@@ -18,6 +18,7 @@ use Override;
  *
  * @property int $ticket_id
  * @property int $label_id
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperTicketLabel
  */
@@ -35,6 +36,16 @@ final class TicketLabel extends Pivot
     #[Override]
     protected $table = SAOTables::TicketLabel->value;
 
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(Ticket::class);
+    }
+
+    public function label(): BelongsTo
+    {
+        return $this->belongsTo(Label::class);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -45,15 +56,5 @@ final class TicketLabel extends Pivot
             'ticket_id' => 'integer',
             'label_id' => 'integer',
         ];
-    }
-
-    public function ticket(): BelongsTo
-    {
-        return $this->belongsTo(Ticket::class);
-    }
-
-    public function label(): BelongsTo
-    {
-        return $this->belongsTo(Label::class);
     }
 }

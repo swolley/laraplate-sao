@@ -22,6 +22,7 @@ use Override;
  * when the page walk is exhausted.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $binding_id
  * @property ImportScope $scope
@@ -33,6 +34,7 @@ use Override;
  * @property int $skipped_count
  * @property int $pages
  * @property bool $truncated
+ *
  * @mixin IdeHelperImportRun
  */
 final class ImportRun extends Model

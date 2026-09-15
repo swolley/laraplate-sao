@@ -18,10 +18,12 @@ use Override;
  * is unique within one.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $project_id
  * @property string $name
  * @property string $colour
+ *
  * @mixin IdeHelperLabel
  */
 final class Label extends Model

@@ -19,10 +19,12 @@ use Override;
  * the mapping applies to any provider.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $user_id
  * @property string $provider
  * @property string $identity
+ *
  * @mixin IdeHelperContributorIdentity
  */
 final class ContributorIdentity extends Model

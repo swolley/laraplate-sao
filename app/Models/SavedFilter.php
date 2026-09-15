@@ -20,11 +20,13 @@ use Override;
  * project the user can see.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $user_id
  * @property int|null $project_id
  * @property string $name
  * @property array<string, mixed> $criteria
+ *
  * @mixin IdeHelperSavedFilter
  */
 final class SavedFilter extends Model

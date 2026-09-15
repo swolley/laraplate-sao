@@ -17,10 +17,12 @@ use Override;
  * release shippable; a `candidate` keeps a testable reference for staging.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $release_id
  * @property string $tag
  * @property ReleaseTagKind $kind
+ *
  * @mixin IdeHelperReleaseTag
  */
 final class ReleaseTag extends Model

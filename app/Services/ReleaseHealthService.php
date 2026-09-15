@@ -53,6 +53,7 @@ final class ReleaseHealthService
         $signals = Signal::query()
             ->where(function (Builder $query) use ($release, $ticketIds): void {
                 $query->where('project_id', $release->project_id);
+
                 if ($ticketIds !== []) {
                     $query->orWhereIn('ticket_id', $ticketIds);
                 }
@@ -117,6 +118,7 @@ final class ReleaseHealthService
     {
         return function (Builder $query) use ($start, $end, $environmentName): void {
             $query->whereBetween('occurred_at', [$start, $end]);
+
             if ($environmentName !== null) {
                 $query->where('environment', $environmentName);
             }
@@ -185,6 +187,7 @@ final class ReleaseHealthService
         return $signals
             ->filter(function (Signal $signal) use ($windowStart, $baselineCounts, $factor, $minOccurrences): bool {
                 $isExisting = $signal->first_seen_at !== null && $signal->first_seen_at->lessThan($windowStart);
+
                 if (! $isExisting) {
                     return false;
                 }
@@ -212,7 +215,7 @@ final class ReleaseHealthService
         $regressedNewThreshold = (int) config('sao.release_health.regressed_new_signals', 3);
 
         return match (true) {
-            $regressedSignals !== [] || count($newSignals) >= $regressedNewThreshold => ReleaseHealthVerdict::Regressed,
+            $regressedSignals !== [] || $regressedNewThreshold <= count($newSignals) => ReleaseHealthVerdict::Regressed,
             $newSignals !== [] => ReleaseHealthVerdict::Degraded,
             default => ReleaseHealthVerdict::Healthy,
         };

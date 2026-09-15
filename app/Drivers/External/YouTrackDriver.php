@@ -128,7 +128,7 @@ final readonly class YouTrackDriver implements DriverInterface, IssuesCapability
         // No total is returned; a full page means there may be more.
         return new Page(
             array_values($items),
-            nextCursor: count($rows) === $top ? (string) ($skip + $top) : null,
+            nextCursor: $top === count($rows) ? (string) ($skip + $top) : null,
         );
     }
 

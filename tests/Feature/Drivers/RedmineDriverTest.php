@@ -27,7 +27,7 @@ function fakeRedmine(): void
     ];
     $nextId = 6;
 
-    Http::fake(function (Request $request) use (&$store, &$nextId): Illuminate\Http\Client\Response|\GuzzleHttp\Promise\PromiseInterface {
+    Http::fake(function (Request $request) use (&$store, &$nextId): Illuminate\Http\Client\Response|GuzzleHttp\Promise\PromiseInterface {
         $path = parse_url($request->url(), PHP_URL_PATH) ?? '';
         parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
         $method = $request->method();

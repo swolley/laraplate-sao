@@ -17,6 +17,7 @@ use Override;
  *
  * @property int $ticket_id
  * @property int $user_id
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperTicketWatcher
  */
@@ -34,6 +35,16 @@ final class TicketWatcher extends Pivot
     #[Override]
     protected $table = SAOTables::TicketWatchers->value;
 
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(Ticket::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -44,15 +55,5 @@ final class TicketWatcher extends Pivot
             'ticket_id' => 'integer',
             'user_id' => 'integer',
         ];
-    }
-
-    public function ticket(): BelongsTo
-    {
-        return $this->belongsTo(Ticket::class);
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 }

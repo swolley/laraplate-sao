@@ -21,6 +21,7 @@ use Override;
  * code-to-work correlation (commit → ticket) built in phase 6.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $ticket_id
  * @property ChangeRefType $type
@@ -31,6 +32,7 @@ use Override;
  * @property \Illuminate\Support\Carbon|null $merged_at
  * @property string|null $base_ref
  * @property string|null $head_ref
+ *
  * @mixin IdeHelperChangeRef
  */
 final class ChangeRef extends Model
@@ -74,6 +76,14 @@ final class ChangeRef extends Model
     }
 
     /**
+     * @return Factory<ChangeRef>
+     */
+    protected static function newFactory(): Factory
+    {
+        return ChangeRefFactory::new();
+    }
+
+    /**
      * Merged pull-request references only.
      *
      * @param  Builder<static>  $query
@@ -98,14 +108,6 @@ final class ChangeRef extends Model
     protected function fixes(Builder $query): Builder
     {
         return $query->where('relation', ChangeRefRelation::Fixes->value);
-    }
-
-    /**
-     * @return Factory<ChangeRef>
-     */
-    protected static function newFactory(): Factory
-    {
-        return ChangeRefFactory::new();
     }
 
     /**

@@ -20,12 +20,14 @@ use Override;
  * not code.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $project_id
  * @property string $name
  * @property list<array{key: string, config?: array<string, mixed>}> $conditions
  * @property ClosureAction $action
  * @property bool $is_active
+ *
  * @mixin IdeHelperClosurePolicy
  */
 final class ClosurePolicy extends Model

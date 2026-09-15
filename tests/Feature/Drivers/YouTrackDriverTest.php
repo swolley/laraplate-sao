@@ -33,6 +33,7 @@ function youtrackIssue(int $n, string $summary): array
 function fakeYouTrack(): void
 {
     $store = [];
+
     foreach (range(1, 5) as $n) {
         $store["PRJ-{$n}"] = youtrackIssue($n, "Issue {$n}");
     }

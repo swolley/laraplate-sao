@@ -68,4 +68,3 @@ it('accepts the update when the client holds the current version', function (): 
 
     expect($ticket->fresh()?->title)->toBe('written over a fresh read');
 });
-

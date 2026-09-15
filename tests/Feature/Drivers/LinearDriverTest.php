@@ -33,6 +33,7 @@ function linearIssue(int $n, string $title): array
 function fakeLinear(): void
 {
     $store = [];
+
     foreach (range(1, 5) as $n) {
         $store["id-{$n}"] = linearIssue($n, "Issue {$n}");
     }

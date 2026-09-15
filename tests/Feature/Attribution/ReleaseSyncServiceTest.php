@@ -20,7 +20,7 @@ uses(RefreshDatabase::class);
  */
 function bindReleasesSync(array $tags, Project $project): ProjectBinding
 {
-    app(\Modules\SAO\Drivers\DriverRegistry::class)->register(new StubVcsDriver([], null, 'stub-vcs', $tags));
+    app(Modules\SAO\Drivers\DriverRegistry::class)->register(new StubVcsDriver([], null, 'stub-vcs', $tags));
 
     $connection = Connection::factory()->create([
         'driver_key' => 'stub-vcs',

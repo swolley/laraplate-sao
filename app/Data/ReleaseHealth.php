@@ -17,9 +17,9 @@ use Modules\SAO\Models\Signal;
 final readonly class ReleaseHealth
 {
     /**
-     * @param  list<string>  $newSignals        group keys first seen inside the window
+     * @param  list<string>  $newSignals  group keys first seen inside the window
      * @param  list<string>  $regressedSignals  existing group keys whose rate rose vs baseline
-     * @param  list<Signal>  $contributing      the signals behind the verdict, ranked by window occurrences
+     * @param  list<Signal>  $contributing  the signals behind the verdict, ranked by window occurrences
      */
     public function __construct(
         public ReleaseHealthVerdict $verdict,

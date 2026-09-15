@@ -19,7 +19,7 @@ beforeEach(function (): void {
     $this->service = new ReleaseHealthService();
 });
 
-function seedOccurrences(Signal $signal, int $count, \Carbon\CarbonInterface $at, string $environment = 'production'): void
+function seedOccurrences(Signal $signal, int $count, Carbon\CarbonInterface $at, string $environment = 'production'): void
 {
     SignalOccurrence::factory()->count($count)->create([
         'signal_id' => $signal->id,

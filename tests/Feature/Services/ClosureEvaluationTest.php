@@ -75,7 +75,7 @@ test('recording a closure stores which conditions held', function (): void {
 
 test('a recurrence reopens the closure and marks it premature with returned-after', function (): void {
     $ticket = Ticket::factory()->create();
-    $audit = \Modules\SAO\Models\ClosureAudit::factory()->create([
+    $audit = Modules\SAO\Models\ClosureAudit::factory()->create([
         'ticket_id' => $ticket->id,
         'closed_at' => CarbonImmutable::parse('2026-08-01 00:00:00'),
     ]);

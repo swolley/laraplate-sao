@@ -247,6 +247,7 @@ final readonly class AzureDevOpsDriver implements DriverInterface, IssuesCapabil
     private function normalize(BindingContext $context, array $item): NormalizedIssue
     {
         $id = (string) ($item['id'] ?? '');
+
         /** @var array<string, mixed> $fields */
         $fields = is_array($item['fields'] ?? null) ? $item['fields'] : [];
 

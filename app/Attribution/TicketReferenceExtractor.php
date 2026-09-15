@@ -86,12 +86,10 @@ final class TicketReferenceExtractor
     private function closingVerbs(): array
     {
         /** @var list<string> $verbs */
-        $verbs = (array) config('sao.attribution.closing_verbs', [
+        return (array) config('sao.attribution.closing_verbs', [
             'fix', 'fixes', 'fixed',
             'close', 'closes', 'closed',
             'resolve', 'resolves', 'resolved',
         ]);
-
-        return $verbs;
     }
 }

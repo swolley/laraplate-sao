@@ -34,6 +34,7 @@ function azureWorkItem(int $id, string $title): array
 function fakeAzure(): void
 {
     $store = [];
+
     foreach (range(1, 5) as $id) {
         $store[$id] = azureWorkItem($id, "Work item {$id}");
     }

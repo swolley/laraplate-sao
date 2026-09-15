@@ -102,6 +102,7 @@ final readonly class GitHubDeploymentDriver implements DeployCapability, DriverI
 
         /** @var array<string, mixed> $deployment */
         $deployment = is_array($decoded['deployment'] ?? null) ? $decoded['deployment'] : [];
+
         /** @var array<string, mixed> $deploymentStatus */
         $deploymentStatus = is_array($decoded['deployment_status'] ?? null) ? $decoded['deployment_status'] : [];
 

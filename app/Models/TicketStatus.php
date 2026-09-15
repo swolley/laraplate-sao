@@ -18,11 +18,13 @@ use Spatie\EloquentSortable\Sortable;
  * "In review" is defined once rather than once per scheme.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property string $name
  * @property StatusCategory $category
  * @property string $colour
  * @property int $order_column
+ *
  * @mixin IdeHelperTicketStatus
  */
 final class TicketStatus extends Model implements Sortable

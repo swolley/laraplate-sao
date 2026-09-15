@@ -20,12 +20,14 @@ use Override;
  * data behind the choice so a human can judge it.
  *
  * @mixin \Eloquent
+ *
  * @property int $id
  * @property int $ticket_id
  * @property int|null $suggested_user_id
  * @property OwnershipRule $rule
  * @property float $score
  * @property array<string, mixed> $evidence
+ *
  * @mixin IdeHelperOwnershipSuggestion
  */
 final class OwnershipSuggestion extends Model

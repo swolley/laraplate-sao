@@ -10,7 +10,6 @@ use Modules\SAO\Drivers\Support\BindingContext;
 use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Enums\ChangeRefType;
 use Modules\SAO\Models\ChangeRef;
-use Modules\SAO\Models\Ticket;
 use Modules\SAO\Services\PullRequestChangedPathsResolver;
 
 uses(RefreshDatabase::class);

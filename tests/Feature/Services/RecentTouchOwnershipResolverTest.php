@@ -11,7 +11,8 @@ use Modules\SAO\Enums\OwnershipRule;
 use Modules\SAO\Services\RecentTouchOwnershipResolver;
 
 /**
- * A paginated GitHub commits feed with mixed authorship: three commits by
+ * A paginated GitHub commits feed with mixed authorship: three commits by.
+ *
  * @octocat, one by @hopper, and one with no linked account that carries only a
  * git author email — enough to exercise counting, the email fallback, and
  * pagination.
@@ -32,6 +33,7 @@ function fakeRecentTouchRepo(array $authors): void
         $perPage = (int) ($query['per_page'] ?? 30);
 
         $all = [];
+
         foreach ($authors as $i => $author) {
             $n = $i + 1;
             $all[] = [
