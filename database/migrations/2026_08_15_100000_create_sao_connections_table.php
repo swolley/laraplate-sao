@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('base_url')->nullable()->comment('Non-secret endpoint coordinate');
             $table->text('credential')->nullable()->comment('Encrypted-at-rest secret payload (write-only); null when credential_ref is used');
             $table->string('credential_ref')->nullable()->comment('Env/config key that overrides the encrypted credential when set');
+            $table->json('config')->nullable()->comment('Non-secret connection-level configuration');
             $table->json('capabilities')->comment('Subset of the driver capabilities this connection exposes');
             $table->enum('health_state', ConnectionHealth::values())->default(ConnectionHealth::Unknown->value)->comment('Last known reachability');
             $table->timestamp('last_checked_at')->nullable();

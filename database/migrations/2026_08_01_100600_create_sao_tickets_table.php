@@ -40,6 +40,7 @@ return new class extends Migration
             $table->foreignId('assignee_id')->nullable()
                 ->constrained($users, 'id', "{$table_name}_assignee_FK")
                 ->nullOnDelete();
+            $table->timestamp('due_at')->nullable()->comment('When the ticket is due');
             $table->integer($lock_version_column)->unsigned()->nullable(false)->default(1)->comment('The optimistic lock version of the ticket');
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
@@ -48,6 +49,7 @@ return new class extends Migration
             $table->unique(['project_id', 'number'], "{$table_name}_project_number_UN");
             $table->index(['project_id', 'ticket_status_id'], "{$table_name}_project_status_IDX");
             $table->index('assignee_id', "{$table_name}_assignee_IDX");
+            $table->index('due_at', "{$table_name}_due_at_IDX");
         });
     }
 

@@ -20,6 +20,10 @@ return new class extends Migration
             $table->foreignId('project_id')
                 ->constrained(SAOTables::Projects->value, 'id', "{$table_name}_project_FK")
                 ->cascadeOnDelete();
+            $table->foreignId('ticket_id')
+                ->nullable()
+                ->constrained(SAOTables::Tickets->value, 'id', "{$table_name}_ticket_FK")
+                ->nullOnDelete();
             $table->string('group_key');
             // Stored from the first migration so the fingerprint algorithm can be
             // versioned later without backfilling unknown values (spec §7).
