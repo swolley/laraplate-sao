@@ -26,6 +26,8 @@ return new class extends Migration
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'user_id');
+
             $table->unique(['provider', 'identity'], "{$table_name}_provider_identity_UN");
         });
     }

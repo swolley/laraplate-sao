@@ -38,6 +38,9 @@ return new class extends Migration
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'closure_policy_id');
+            MigrateUtils::prefixIndex($table, 'returned_occurrence_id');
+
             $table->index('ticket_id', "{$table_name}_ticket_IDX");
         });
     }

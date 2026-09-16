@@ -38,6 +38,10 @@ return new class extends Migration
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'source_profile_id');
+            MigrateUtils::prefixIndex($table, 'project_id');
+            MigrateUtils::prefixIndex($table, 'signal_id');
+
             // Idempotency: a re-delivered id for the same connection is recorded once.
             $table->unique(['connection_id', 'delivery_id'], "{$table_name}_delivery_UN");
             $table->index('status', "{$table_name}_status_IDX");

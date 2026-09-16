@@ -35,6 +35,9 @@ return new class extends Migration
             // trait, and its implementation scopes on an is_deleted column.
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'from_status_id');
+            MigrateUtils::prefixIndex($table, 'to_status_id');
+
             $table->unique(
                 ['workflow_scheme_id', 'from_status_id', 'to_status_id'],
                 "{$table_name}_move_UN",

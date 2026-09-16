@@ -33,6 +33,9 @@ return new class extends Migration
             // HasFactory and HasPrefixedTableName, not the soft-delete scope.
             MigrateUtils::timestamps($table, hasCreateUpdate: true);
 
+            MigrateUtils::prefixIndex($table, 'ticket_type_id');
+            MigrateUtils::prefixIndex($table, 'workflow_scheme_id');
+
             $table->unique(['project_id', 'ticket_type_id'], "{$table_name}_pair_UN");
         });
     }

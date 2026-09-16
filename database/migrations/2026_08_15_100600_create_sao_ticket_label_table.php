@@ -26,6 +26,8 @@ return new class extends Migration
             // Plain pivot: no soft deletes, attach/detach is the whole lifecycle.
             MigrateUtils::timestamps($table, hasCreateUpdate: true);
 
+            MigrateUtils::prefixIndex($table, 'label_id');
+
             $table->unique(['ticket_id', 'label_id'], "{$table_name}_pair_UN");
         });
     }

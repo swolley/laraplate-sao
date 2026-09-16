@@ -24,6 +24,8 @@ return new class extends Migration
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'signal_id');
+
             $table->unique('group_key', "{$table_name}_key_UN");
         });
     }

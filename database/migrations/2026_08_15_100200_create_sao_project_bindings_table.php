@@ -29,6 +29,8 @@ return new class extends Migration
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'connection_id');
+
             $table->unique(
                 ['project_id', 'connection_id', 'capability', 'remote_identifier'],
                 "{$table_name}_scope_UN",

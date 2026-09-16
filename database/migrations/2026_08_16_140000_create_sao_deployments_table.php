@@ -41,6 +41,10 @@ return new class extends Migration
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'project_id');
+            MigrateUtils::prefixIndex($table, 'environment_id');
+            MigrateUtils::prefixIndex($table, 'release_id');
+
             $table->unique(['connection_id', 'external_id'], "{$table_name}_connection_external_UN");
         });
     }

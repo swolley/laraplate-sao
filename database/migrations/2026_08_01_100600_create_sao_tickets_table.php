@@ -45,6 +45,10 @@ return new class extends Migration
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'ticket_type_id');
+            MigrateUtils::prefixIndex($table, 'ticket_status_id');
+            MigrateUtils::prefixIndex($table, 'reporter_id');
+
             $table->unique('key', "{$table_name}_key_UN");
             $table->unique(['project_id', 'number'], "{$table_name}_project_number_UN");
             $table->index(['project_id', 'ticket_status_id'], "{$table_name}_project_status_IDX");

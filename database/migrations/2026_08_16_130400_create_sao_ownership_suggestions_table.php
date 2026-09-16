@@ -32,6 +32,8 @@ return new class extends Migration
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'suggested_user_id');
+
             $table->index('ticket_id', "{$table_name}_ticket_IDX");
         });
     }

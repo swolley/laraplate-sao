@@ -37,6 +37,8 @@ return new class extends Migration
 
             // group_key is comparable across projects (D13) but unique within one:
             // the same bug in two projects is two signals, one per project.
+            MigrateUtils::prefixIndex($table, 'ticket_id');
+
             $table->unique(['project_id', 'group_key'], "{$table_name}_project_key_UN");
             $table->index('group_key', "{$table_name}_key_IDX");
         });

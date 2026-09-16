@@ -27,6 +27,8 @@ return new class extends Migration
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);
 
+            MigrateUtils::prefixIndex($table, 'workflow_scheme_id');
+
             $table->unique('slug', "{$table_name}_slug_UN");
             $table->index('is_defect', "{$table_name}_is_defect_IDX");
         });

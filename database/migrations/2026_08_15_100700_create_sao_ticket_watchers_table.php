@@ -27,6 +27,8 @@ return new class extends Migration
             // Plain pivot: watch/unwatch is the whole lifecycle, no soft deletes.
             MigrateUtils::timestamps($table, hasCreateUpdate: true);
 
+            MigrateUtils::prefixIndex($table, 'user_id');
+
             $table->unique(['ticket_id', 'user_id'], "{$table_name}_pair_UN");
         });
     }
