@@ -31,24 +31,6 @@ use Override;
 use Overtrue\LaravelVersionable\VersionStrategy;
 use Spatie\MediaLibrary\HasMedia as MediaContract;
 
-/**
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $project_id
- * @property int $number
- * @property string $key
- * @property int $ticket_type_id
- * @property int $ticket_status_id
- * @property TicketPriority $priority
- * @property string $title
- * @property string|null $description
- * @property int|null $reporter_id
- * @property int|null $assignee_id
- * @property \Illuminate\Support\Carbon|null $due_at
- *
- * @mixin IdeHelperTicket
- */
 final class Ticket extends Model implements MediaContract
 {
     use HasMedia;

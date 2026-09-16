@@ -19,22 +19,6 @@ use Override;
  * terminal `succeeded` deployment's `finished_at` is when that version started
  * running. The pair (connection, external_id) is unique so a re-delivery is
  * recorded once.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $project_id
- * @property int|null $environment_id
- * @property int|null $release_id
- * @property int|null $connection_id
- * @property string $version
- * @property DeploymentStatus $status
- * @property string|null $external_id
- * @property \Illuminate\Support\Carbon $started_at
- * @property \Illuminate\Support\Carbon|null $finished_at
- * @property array<string, mixed>|null $meta
- *
- * @mixin IdeHelperDeployment
  */
 final class Deployment extends Model
 {

@@ -14,13 +14,6 @@ use Override;
  * The idempotency ledger: one row per completed synchronization, keyed so a
  * retry with the same binding, ticket and content is recognised and skipped
  * rather than producing a second remote write.
- *
- * @property int $binding_id
- * @property string $idempotency_key
- * @property SyncOutcome $outcome
- *
- * @mixin \Eloquent
- * @mixin IdeHelperSyncOperation
  */
 final class SyncOperation extends Model
 {

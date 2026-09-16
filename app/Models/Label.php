@@ -16,15 +16,6 @@ use Override;
 /**
  * A label is project-scoped: the same name may exist in different projects but
  * is unique within one.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $project_id
- * @property string $name
- * @property string $colour
- *
- * @mixin IdeHelperLabel
  */
 final class Label extends Model
 {

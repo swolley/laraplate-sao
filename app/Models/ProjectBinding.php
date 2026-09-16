@@ -20,18 +20,6 @@ use Override;
  * Binds a project to one capability of one connection, with the remote object
  * it targets and the binding-scoped configuration (sync direction, status and
  * priority maps). Multiple bindings of the same family are allowed.
- *
- * @property int $project_id
- * @property int $connection_id
- * @property Capability $capability
- * @property ?string $remote_identifier
- * @property SyncDirection $sync_direction
- * @property array<string, string> $status_map
- * @property array<string, string> $priority_map
- * @property array<string, mixed> $config
- *
- * @mixin \Eloquent
- * @mixin IdeHelperProjectBinding
  */
 final class ProjectBinding extends Model
 {

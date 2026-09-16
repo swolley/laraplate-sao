@@ -15,15 +15,6 @@ use Override;
 /**
  * Shareable across ticket types and projects — the valve that stops every new
  * type from spawning a new scheme.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property string $name
- * @property string|null $description
- * @property bool $is_default
- *
- * @mixin IdeHelperWorkflowScheme
  */
 final class WorkflowScheme extends Model
 {

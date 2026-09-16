@@ -18,20 +18,6 @@ use Override;
  * across projects (the same bug in two projects yields two signals with the same
  * key, one per project — never auto-merged). `algo_version` records which
  * fingerprint algorithm produced the key, so the algorithm can evolve later.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $project_id
- * @property int|null $ticket_id
- * @property string $group_key
- * @property int $algo_version
- * @property SignalState $state
- * @property int $occurrence_count
- * @property \Illuminate\Support\Carbon|null $first_seen_at
- * @property \Illuminate\Support\Carbon|null $last_seen_at
- *
- * @mixin IdeHelperSignal
  */
 final class Signal extends Model
 {

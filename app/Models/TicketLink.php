@@ -14,16 +14,6 @@ use Override;
 /**
  * Links a SAO ticket to its counterpart in an external tracker. A ticket with no
  * link is internal; SAO remains authoritative for internal tickets.
- *
- * @property int $ticket_id
- * @property int $connection_id
- * @property string $remote_id
- * @property ?string $url
- * @property ?\Illuminate\Support\Carbon $last_synced_at
- * @property ?string $last_sync_state
- *
- * @mixin \Eloquent
- * @mixin IdeHelperTicketLink
  */
 final class TicketLink extends Model
 {

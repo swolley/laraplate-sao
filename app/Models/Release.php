@@ -17,16 +17,6 @@ use Override;
  * A product version of a project, named as its stable label. It gathers the
  * concrete VCS tags that realize it and the tickets attributed to it, so SAO
  * can answer "which release carries this fix" from data rather than guesses.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $project_id
- * @property string $version
- * @property ReleaseStatus $status
- * @property \Illuminate\Support\Carbon|null $released_at
- *
- * @mixin IdeHelperRelease
  */
 final class Release extends Model
 {

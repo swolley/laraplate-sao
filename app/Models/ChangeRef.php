@@ -19,21 +19,6 @@ use Override;
  * The link between a code artefact — a commit, pull request or tag — and a
  * ticket, recording the source that produced it. It is the raw material of
  * code-to-work correlation (commit → ticket) built in phase 6.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $ticket_id
- * @property ChangeRefType $type
- * @property ChangeRefRelation $relation
- * @property string $identifier
- * @property string|null $url
- * @property string|null $source
- * @property \Illuminate\Support\Carbon|null $merged_at
- * @property string|null $base_ref
- * @property string|null $head_ref
- *
- * @mixin IdeHelperChangeRef
  */
 final class ChangeRef extends Model
 {

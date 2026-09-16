@@ -11,14 +11,6 @@ use Override;
 /**
  * Which types a project offers, which of them is preselected, and — optionally —
  * a workflow scheme that replaces the type's own for this project alone.
- *
- * @property int $project_id
- * @property int $ticket_type_id
- * @property bool $is_default
- * @property int|null $workflow_scheme_id
- *
- * @mixin \Eloquent
- * @mixin IdeHelperProjectTicketType
  */
 final class ProjectTicketType extends Pivot
 {

@@ -18,16 +18,6 @@ use Override;
  * A user's stored ticket search. `criteria` holds the serialised
  * {@see TicketSearchCriteria}; a null `project_id` means the filter spans every
  * project the user can see.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $user_id
- * @property int|null $project_id
- * @property string $name
- * @property array<string, mixed> $criteria
- *
- * @mixin IdeHelperSavedFilter
  */
 final class SavedFilter extends Model
 {

@@ -17,21 +17,6 @@ use Override;
  * matched, the correlation rule that won, the resulting signal, and — always —
  * an explicit status and outcome. It is what makes silence auditable: every
  * discard says why, without reading application logs.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int|null $connection_id
- * @property string $delivery_id
- * @property array<string, mixed> $payload
- * @property int|null $source_profile_id
- * @property IngestStatus $status
- * @property string|null $outcome
- * @property int|null $project_id
- * @property string|null $winning_rule
- * @property int|null $signal_id
- *
- * @mixin IdeHelperIngestEvent
  */
 final class IngestEvent extends Model
 {

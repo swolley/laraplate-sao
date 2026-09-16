@@ -20,22 +20,6 @@ use Override;
  * a crash, a redeploy or a requeue — resumes from the exact page it stopped on
  * instead of restarting. The run flips to {@see ImportRunStatus::Completed} only
  * when the page walk is exhausted.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $binding_id
- * @property ImportScope $scope
- * @property ImportRunStatus $status
- * @property string|null $cursor
- * @property int $created_count
- * @property int $updated_count
- * @property int $filtered_count
- * @property int $skipped_count
- * @property int $pages
- * @property bool $truncated
- *
- * @mixin IdeHelperImportRun
  */
 final class ImportRun extends Model
 {

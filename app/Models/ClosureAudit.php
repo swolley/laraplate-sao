@@ -18,22 +18,6 @@ use Override;
  * that marks it a premature closure ("returned after"). This is what makes an
  * automatic state change auditable and reversible, and the data that tells
  * whether configured durations are tuned correctly.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $ticket_id
- * @property int|null $closure_policy_id
- * @property ClosureAction $action
- * @property array<string, array{held: bool, evidence: array<string, mixed>}> $conditions_held
- * @property string|null $reporting_environment
- * @property \Illuminate\Support\Carbon $closed_at
- * @property \Illuminate\Support\Carbon|null $reopened_at
- * @property int|null $returned_after_seconds
- * @property int|null $returned_occurrence_id
- * @property bool $is_premature
- *
- * @mixin IdeHelperClosureAudit
  */
 final class ClosureAudit extends Model
 {

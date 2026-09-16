@@ -16,15 +16,6 @@ use Override;
 /**
  * A typed link from one ticket to another. Direction is carried by
  * source/target; the meaning of the direction comes from {@see TicketRelationType}.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $source_ticket_id
- * @property int $target_ticket_id
- * @property TicketRelationType $type
- *
- * @mixin IdeHelperTicketRelation
  */
 final class TicketRelation extends Model
 {

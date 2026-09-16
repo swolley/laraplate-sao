@@ -25,18 +25,6 @@ use Override;
  * that overrides it. The raw secret is never rendered back to a UI. A
  * connection may expose only a subset of its driver's capabilities, enforced on
  * save.
- *
- * @property string $driver_key
- * @property string $name
- * @property ?string $base_url
- * @property ?array<string, mixed> $credential
- * @property ?string $credential_ref
- * @property \Illuminate\Support\Collection<int, Capability> $capabilities
- * @property ConnectionHealth $health_state
- * @property ?\Illuminate\Support\Carbon $last_checked_at
- *
- * @mixin \Eloquent
- * @mixin IdeHelperConnection
  */
 final class Connection extends Model
 {

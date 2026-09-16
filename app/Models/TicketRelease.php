@@ -17,15 +17,6 @@ use Override;
  * (ticket, release) is unique and the state is deliberately independent of the
  * ticket's own workflow status: a fix can be shipped in a release while its
  * ticket is still open, and vice versa.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property int $ticket_id
- * @property int $release_id
- * @property TicketReleaseState $state
- *
- * @mixin IdeHelperTicketRelease
  */
 final class TicketRelease extends Model
 {

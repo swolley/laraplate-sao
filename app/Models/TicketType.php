@@ -14,18 +14,6 @@ use Override;
 /**
  * Types are global and enabled per project through a pivot, so that "bug" is
  * defined once rather than once per project.
- *
- * @mixin \Eloquent
- *
- * @property int $id
- * @property string $name
- * @property string $slug
- * @property string|null $icon
- * @property string $colour
- * @property int $workflow_scheme_id
- * @property bool $is_defect
- *
- * @mixin IdeHelperTicketType
  */
 final class TicketType extends Model
 {
