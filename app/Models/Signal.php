@@ -19,7 +19,6 @@ use Override;
  * key, one per project — never auto-merged). `algo_version` records which
  * fingerprint algorithm produced the key, so the algorithm can evolve later.
  *
- * @mixin IdeHelperSignal
  */
 final class Signal extends Model
 {

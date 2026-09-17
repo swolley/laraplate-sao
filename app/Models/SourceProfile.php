@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Core\Contracts\IActivatableModel;
 use Modules\Core\Models\Concerns\HasActivation;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\SourceProfileFactory;
@@ -17,9 +18,8 @@ use Override;
  * turn a payload into canonical fields. Supporting a new source is adding a row,
  * not writing code.
  *
- * @mixin IdeHelperSourceProfile
  */
-final class SourceProfile extends Model
+final class SourceProfile extends Model implements IActivatableModel
 {
     use HasActivation;
 

@@ -15,7 +15,6 @@ use Override;
  * retry with the same binding, ticket and content is recognised and skipped
  * rather than producing a second remote write.
  *
- * @mixin IdeHelperSyncOperation
  */
 final class SyncOperation extends Model
 {

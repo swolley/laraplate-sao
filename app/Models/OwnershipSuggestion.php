@@ -19,7 +19,6 @@ use Override;
  * assignee automatically (D14). The evidence records the paths and rule-specific
  * data behind the choice so a human can judge it.
  *
- * @mixin IdeHelperOwnershipSuggestion
  */
 final class OwnershipSuggestion extends Model
 {

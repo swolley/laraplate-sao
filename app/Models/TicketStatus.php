@@ -17,7 +17,6 @@ use Spatie\EloquentSortable\Sortable;
  * A status is global to the installation. Workflow schemes compose them, so
  * "In review" is defined once rather than once per scheme.
  *
- * @mixin IdeHelperTicketStatus
  */
 final class TicketStatus extends Model implements Sortable
 {

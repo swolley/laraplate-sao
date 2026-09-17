@@ -21,7 +21,6 @@ use Override;
  * instead of restarting. The run flips to {@see ImportRunStatus::Completed} only
  * when the page walk is exhausted.
  *
- * @mixin IdeHelperImportRun
  */
 final class ImportRun extends Model
 {

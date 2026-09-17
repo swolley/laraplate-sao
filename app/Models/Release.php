@@ -18,7 +18,6 @@ use Override;
  * concrete VCS tags that realize it and the tickets attributed to it, so SAO
  * can answer "which release carries this fix" from data rather than guesses.
  *
- * @mixin IdeHelperRelease
  */
 final class Release extends Model
 {

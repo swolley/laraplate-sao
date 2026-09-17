@@ -20,7 +20,6 @@ use Override;
  * ticket, recording the source that produced it. It is the raw material of
  * code-to-work correlation (commit → ticket) built in phase 6.
  *
- * @mixin IdeHelperChangeRef
  */
 final class ChangeRef extends Model
 {

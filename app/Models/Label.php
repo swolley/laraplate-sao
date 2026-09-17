@@ -17,7 +17,6 @@ use Override;
  * A label is project-scoped: the same name may exist in different projects but
  * is unique within one.
  *
- * @mixin IdeHelperLabel
  */
 final class Label extends Model
 {

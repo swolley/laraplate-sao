@@ -20,7 +20,6 @@ use Override;
  * running. The pair (connection, external_id) is unique so a re-delivery is
  * recorded once.
  *
- * @mixin IdeHelperDeployment
  */
 final class Deployment extends Model
 {

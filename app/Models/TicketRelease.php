@@ -18,7 +18,6 @@ use Override;
  * ticket's own workflow status: a fix can be shipped in a release while its
  * ticket is still open, and vice versa.
  *
- * @mixin IdeHelperTicketRelease
  */
 final class TicketRelease extends Model
 {

@@ -34,5 +34,15 @@ test('the table summarises the profile with matcher and binding counts', functio
 
     expect($tableSource)->toContain("TextColumn::make('name')")
         ->and($tableSource)->toContain("TextColumn::make('matchers')")
-        ->and($tableSource)->toContain("IconColumn::make('is_active')");
+        ->and($tableSource)->toContain("TextColumn::make('field_bindings')");
+});
+
+/**
+ * The active flag is not written in the table: `HasTable::configureTable()` adds an
+ * IconColumn for the activation column of every model that declares one, so asserting
+ * the literal in this file would fail while the column is on screen. What the table
+ * depends on is the declaration.
+ */
+test('the profile declares the activation column the shared table renders', function (): void {
+    expect(SourceProfile::activationColumn())->toBe('is_active');
 });

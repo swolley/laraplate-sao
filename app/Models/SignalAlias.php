@@ -16,7 +16,6 @@ use Override;
  * lets the fingerprint algorithm evolve without splitting history: when a key
  * format changes, the old key is aliased to the signal it used to open.
  *
- * @mixin IdeHelperSignalAlias
  */
 final class SignalAlias extends Model
 {

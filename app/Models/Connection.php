@@ -26,7 +26,6 @@ use Override;
  * connection may expose only a subset of its driver's capabilities, enforced on
  * save.
  *
- * @mixin IdeHelperConnection
  */
 final class Connection extends Model
 {

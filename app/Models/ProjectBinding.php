@@ -21,7 +21,6 @@ use Override;
  * it targets and the binding-scoped configuration (sync direction, status and
  * priority maps). Multiple bindings of the same family are allowed.
  *
- * @mixin IdeHelperProjectBinding
  */
 final class ProjectBinding extends Model
 {

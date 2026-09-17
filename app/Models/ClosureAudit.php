@@ -19,7 +19,6 @@ use Override;
  * automatic state change auditable and reversible, and the data that tells
  * whether configured durations are tuned correctly.
  *
- * @mixin IdeHelperClosureAudit
  */
 final class ClosureAudit extends Model
 {

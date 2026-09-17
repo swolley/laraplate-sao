@@ -16,7 +16,6 @@ use Override;
  * label was attached (or last touched) is recorded and observable, rather than
  * living in an anonymous pivot row.
  *
- * @mixin IdeHelperTicketLabel
  */
 final class TicketLabel extends Pivot
 {

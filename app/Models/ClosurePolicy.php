@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IActivatableModel;
 use Modules\Core\Models\Concerns\HasActivation;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ClosurePolicyFactory;
@@ -19,9 +20,8 @@ use Override;
  * and built into predicates by `ClosureConditionRegistry`, so a policy is data,
  * not code.
  *
- * @mixin IdeHelperClosurePolicy
  */
-final class ClosurePolicy extends Model
+final class ClosurePolicy extends Model implements IActivatableModel
 {
     use HasActivation;
 

@@ -7,6 +7,7 @@ namespace Modules\SAO\Models;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Contracts\IActivatableModel;
 use Modules\Core\Models\Concerns\HasActivation;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ProjectFactory;
@@ -15,10 +16,7 @@ use Modules\SAO\Exceptions\ImmutableKeyPrefixException;
 use Modules\SAO\Models\Pivot\ProjectTicketType;
 use Override;
 
-/**
- * @mixin IdeHelperProject
- */
-final class Project extends Model
+final class Project extends Model implements IActivatableModel
 {
     use HasActivation {
         HasActivation::casts as private activationCasts;

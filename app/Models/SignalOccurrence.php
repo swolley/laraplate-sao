@@ -16,7 +16,6 @@ use Override;
  * from and optional payload context. Kept with configurable retention — needed
  * for "recurring for three days" and closure evidence, not forever.
  *
- * @mixin IdeHelperSignalOccurrence
  */
 final class SignalOccurrence extends Model
 {

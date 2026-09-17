@@ -18,7 +18,6 @@ use Override;
  * turn a commit or CODEOWNERS entry into a real user; an empty `provider` means
  * the mapping applies to any provider.
  *
- * @mixin IdeHelperContributorIdentity
  */
 final class ContributorIdentity extends Model
 {

@@ -15,7 +15,6 @@ use Override;
  * Types are global and enabled per project through a pivot, so that "bug" is
  * defined once rather than once per project.
  *
- * @mixin IdeHelperTicketType
  */
 final class TicketType extends Model
 {
