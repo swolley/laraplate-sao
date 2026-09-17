@@ -37,13 +37,13 @@ final class SaoDomainActionRegistrar
 {
     public function register(DomainActionRegistry $registry): void
     {
-        $registry->register(Ticket::class, 'transition', static fn (Model $record, array $payload, User $user): Ticket => resolve(WorkflowService::class)->transition(
+        $registry->register(Ticket::class, 'transition', static fn (Ticket $record, array $payload, User $user): Ticket => resolve(WorkflowService::class)->transition(
             $record,
             TicketStatus::findOrFail($payload['to_status_id']),
             ChangeContext::forUser($user),
         ));
 
-        $registry->register(Ticket::class, 'transitions', static function (Model $record, array $payload, User $user): array {
+        $registry->register(Ticket::class, 'transitions', static function (Ticket $record, array $payload, User $user): array {
             $transitions = resolve(WorkflowService::class)->availableTransitions($record);
             $labels = TicketStatus::query()
                 ->whereIn('id', $transitions->pluck('to_status_id')->all())
@@ -60,15 +60,15 @@ final class SaoDomainActionRegistrar
                 ->all();
         });
 
-        $registry->register(Ticket::class, 'close', static fn (Model $record, array $payload, User $user): ?ClosureAudit => resolve(ClosureApplicationService::class)->apply(
+        $registry->register(Ticket::class, 'close', static fn (Ticket $record, array $payload, User $user): ?ClosureAudit => resolve(ClosureApplicationService::class)->apply(
             $record,
-            ClosurePolicy::findOrFail($payload['policy_id']),
+            ClosurePolicy::query()->whereKey($payload['policy_id'])->firstOrFail(),
             isset($payload['reporting_environment']) ? (string) $payload['reporting_environment'] : null,
         ));
 
-        $registry->register(OwnershipSuggestion::class, 'accept', static fn (Model $record, array $payload, User $user): Ticket => resolve(OwnershipSuggestionApplier::class)->apply($record));
+        $registry->register(OwnershipSuggestion::class, 'accept', static fn (OwnershipSuggestion $record, array $payload, User $user): Ticket => resolve(OwnershipSuggestionApplier::class)->apply($record));
 
-        $registry->register(Connection::class, 'health', static function (Model $record, array $payload, User $user): array {
+        $registry->register(Connection::class, 'health', static function (Connection $record, array $payload, User $user): array {
             $result = resolve(ConnectionHealthService::class)->check($record);
 
             return [
@@ -79,10 +79,10 @@ final class SaoDomainActionRegistrar
             ];
         });
 
-        $registry->register(IngestEvent::class, 'replay', static function (Model $record, array $payload, User $user): array {
+        $registry->register(IngestEvent::class, 'replay', static function (IngestEvent $record, array $payload, User $user): array {
             $profile_id = $payload['profile_id'] ?? $record->source_profile_id;
 
-            return resolve(IngestReplayService::class)->dryRun($record, SourceProfile::findOrFail($profile_id));
+            return resolve(IngestReplayService::class)->dryRun($record, SourceProfile::query()->whereKey($profile_id)->firstOrFail());
         });
     }
 }

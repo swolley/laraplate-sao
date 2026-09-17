@@ -105,7 +105,9 @@ final readonly class DriverWebhookIngestService
 
                 $signal = $this->signalIngest->ingest($project, $event);
 
-                $this->record($connection, $eventDeliveryId, $event, $project->getKey(), $signal->getKey(), IngestStatus::Ingested, 'signal-recorded');
+                // getKey() is declared mixed on every Eloquent model; both of these
+                // are saved records with an auto-incrementing key.
+                $this->record($connection, $eventDeliveryId, $event, (int) $project->getKey(), (int) $signal->getKey(), IngestStatus::Ingested, 'signal-recorded');
 
                 $signalIds[] = $signal->getKey();
             }
