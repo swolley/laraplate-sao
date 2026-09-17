@@ -15,6 +15,8 @@ use Override;
  * The assignment of a label to a ticket. Modelled explicitly so the moment a
  * label was attached (or last touched) is recorded and observable, rather than
  * living in an anonymous pivot row.
+ *
+ * @mixin IdeHelperTicketLabel
  */
 final class TicketLabel extends Pivot
 {

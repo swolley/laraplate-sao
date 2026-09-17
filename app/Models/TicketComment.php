@@ -15,6 +15,9 @@ use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Exceptions\ImmutableSystemCommentException;
 use Override;
 
+/**
+ * @mixin IdeHelperTicketComment
+ */
 final class TicketComment extends Model
 {
     /**

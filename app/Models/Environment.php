@@ -15,6 +15,8 @@ use Override;
  * A deployment target of a project — production, staging, and so on. It records
  * the version last seen running and when, so the deploy census can answer "what
  * runs where" with an honest freshness rather than an assumed one.
+ *
+ * @mixin IdeHelperEnvironment
  */
 final class Environment extends Model
 {

@@ -17,6 +17,8 @@ use Override;
  * matched, the correlation rule that won, the resulting signal, and — always —
  * an explicit status and outcome. It is what makes silence auditable: every
  * discard says why, without reading application logs.
+ *
+ * @mixin IdeHelperIngestEvent
  */
 final class IngestEvent extends Model
 {

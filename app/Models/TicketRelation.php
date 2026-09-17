@@ -16,6 +16,8 @@ use Override;
 /**
  * A typed link from one ticket to another. Direction is carried by
  * source/target; the meaning of the direction comes from {@see TicketRelationType}.
+ *
+ * @mixin IdeHelperTicketRelation
  */
 final class TicketRelation extends Model
 {

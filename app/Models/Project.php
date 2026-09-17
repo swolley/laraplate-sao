@@ -15,6 +15,9 @@ use Modules\SAO\Exceptions\ImmutableKeyPrefixException;
 use Modules\SAO\Models\Pivot\ProjectTicketType;
 use Override;
 
+/**
+ * @mixin IdeHelperProject
+ */
 final class Project extends Model
 {
     use HasActivation {

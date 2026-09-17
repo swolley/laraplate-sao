@@ -31,6 +31,9 @@ use Override;
 use Overtrue\LaravelVersionable\VersionStrategy;
 use Spatie\MediaLibrary\HasMedia as MediaContract;
 
+/**
+ * @mixin IdeHelperTicket
+ */
 final class Ticket extends Model implements MediaContract
 {
     use HasMedia;

@@ -15,6 +15,8 @@ use Override;
 /**
  * A concrete VCS tag realizing a {@see Release}. A `stable` tag makes the
  * release shippable; a `candidate` keeps a testable reference for staging.
+ *
+ * @mixin IdeHelperReleaseTag
  */
 final class ReleaseTag extends Model
 {

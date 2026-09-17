@@ -16,6 +16,8 @@ use Override;
  * applies to, and the field bindings (canonical field => payload dot-path) that
  * turn a payload into canonical fields. Supporting a new source is adding a row,
  * not writing code.
+ *
+ * @mixin IdeHelperSourceProfile
  */
 final class SourceProfile extends Model
 {

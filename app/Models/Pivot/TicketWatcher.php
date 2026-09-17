@@ -14,6 +14,8 @@ use Override;
 /**
  * A user watching a ticket. Modelled explicitly so when a watch started (or
  * ended, on detach) is recorded and observable.
+ *
+ * @mixin IdeHelperTicketWatcher
  */
 final class TicketWatcher extends Pivot
 {

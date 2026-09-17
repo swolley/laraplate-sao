@@ -18,6 +18,8 @@ use Override;
  * across projects (the same bug in two projects yields two signals with the same
  * key, one per project — never auto-merged). `algo_version` records which
  * fingerprint algorithm produced the key, so the algorithm can evolve later.
+ *
+ * @mixin IdeHelperSignal
  */
 final class Signal extends Model
 {

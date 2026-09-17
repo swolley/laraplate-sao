@@ -20,6 +20,8 @@ use Override;
  * Binds a project to one capability of one connection, with the remote object
  * it targets and the binding-scoped configuration (sync direction, status and
  * priority maps). Multiple bindings of the same family are allowed.
+ *
+ * @mixin IdeHelperProjectBinding
  */
 final class ProjectBinding extends Model
 {

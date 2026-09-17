@@ -15,6 +15,8 @@ use Override;
 /**
  * One permitted move within a scheme. A null `from_status_id` is the creation
  * transition, which is how a scheme declares the status a new ticket starts in.
+ *
+ * @mixin IdeHelperWorkflowTransition
  */
 final class WorkflowTransition extends Model
 {
