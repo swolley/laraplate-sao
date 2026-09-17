@@ -11,7 +11,6 @@ use Override;
 /**
  * Which types a project offers, which of them is preselected, and — optionally —
  * a workflow scheme that replaces the type's own for this project alone.
- *
  */
 final class ProjectTicketType extends Pivot
 {

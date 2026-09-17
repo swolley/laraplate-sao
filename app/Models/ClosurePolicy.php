@@ -19,7 +19,6 @@ use Override;
  * when they all hold. The conditions are stored as plain `{key, config}` json
  * and built into predicates by `ClosureConditionRegistry`, so a policy is data,
  * not code.
- *
  */
 final class ClosurePolicy extends Model implements IActivatableModel
 {

@@ -15,7 +15,6 @@ use Override;
  * One individual occurrence of a {@see Signal}, carrying the environment it came
  * from and optional payload context. Kept with configurable retention — needed
  * for "recurring for three days" and closure evidence, not forever.
- *
  */
 final class SignalOccurrence extends Model
 {

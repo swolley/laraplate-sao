@@ -14,7 +14,6 @@ use Override;
 /**
  * Links a SAO ticket to its counterpart in an external tracker. A ticket with no
  * link is internal; SAO remains authoritative for internal tickets.
- *
  */
 final class TicketLink extends Model
 {

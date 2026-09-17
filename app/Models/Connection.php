@@ -25,7 +25,6 @@ use Override;
  * that overrides it. The raw secret is never rendered back to a UI. A
  * connection may expose only a subset of its driver's capabilities, enforced on
  * save.
- *
  */
 final class Connection extends Model
 {

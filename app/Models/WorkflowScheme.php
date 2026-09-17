@@ -15,7 +15,6 @@ use Override;
 /**
  * Shareable across ticket types and projects — the valve that stops every new
  * type from spawning a new scheme.
- *
  */
 final class WorkflowScheme extends Model
 {

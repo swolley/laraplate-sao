@@ -18,7 +18,6 @@ use Override;
  * is a suggestion and only that: SAO may propose ownership but never applies an
  * assignee automatically (D14). The evidence records the paths and rule-specific
  * data behind the choice so a human can judge it.
- *
  */
 final class OwnershipSuggestion extends Model
 {

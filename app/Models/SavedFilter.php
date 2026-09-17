@@ -18,7 +18,6 @@ use Override;
  * A user's stored ticket search. `criteria` holds the serialised
  * {@see TicketSearchCriteria}; a null `project_id` means the filter spans every
  * project the user can see.
- *
  */
 final class SavedFilter extends Model
 {

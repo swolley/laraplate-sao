@@ -17,7 +17,6 @@ use Override;
  * user, per provider. It is the directory that lets the ownership resolvers
  * turn a commit or CODEOWNERS entry into a real user; an empty `provider` means
  * the mapping applies to any provider.
- *
  */
 final class ContributorIdentity extends Model
 {

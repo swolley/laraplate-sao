@@ -20,7 +20,6 @@ use Override;
  * a crash, a redeploy or a requeue — resumes from the exact page it stopped on
  * instead of restarting. The run flips to {@see ImportRunStatus::Completed} only
  * when the page walk is exhausted.
- *
  */
 final class ImportRun extends Model
 {

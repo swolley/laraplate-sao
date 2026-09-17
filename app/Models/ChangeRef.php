@@ -19,7 +19,6 @@ use Override;
  * The link between a code artefact — a commit, pull request or tag — and a
  * ticket, recording the source that produced it. It is the raw material of
  * code-to-work correlation (commit → ticket) built in phase 6.
- *
  */
 final class ChangeRef extends Model
 {

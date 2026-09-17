@@ -17,7 +17,6 @@ use Override;
  * A product version of a project, named as its stable label. It gathers the
  * concrete VCS tags that realize it and the tickets attributed to it, so SAO
  * can answer "which release carries this fix" from data rather than guesses.
- *
  */
 final class Release extends Model
 {
