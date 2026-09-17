@@ -74,7 +74,7 @@ final class ViewTicket extends ViewRecord
                     try {
                         $workflow->transition(
                             $this->ticket(),
-                            TicketStatus::query()->findOrFail($transition->to_status_id),
+                            TicketStatus::findOrFail($transition->to_status_id),
                             ChangeContext::forUser($user),
                         );
                     } catch (TransitionNotAllowedException $exception) {

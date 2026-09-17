@@ -39,7 +39,7 @@ final class SaoDomainActionRegistrar
     {
         $registry->register(Ticket::class, 'transition', static fn (Model $record, array $payload, User $user): Ticket => resolve(WorkflowService::class)->transition(
             $record,
-            TicketStatus::query()->findOrFail($payload['to_status_id']),
+            TicketStatus::findOrFail($payload['to_status_id']),
             ChangeContext::forUser($user),
         ));
 
@@ -62,7 +62,7 @@ final class SaoDomainActionRegistrar
 
         $registry->register(Ticket::class, 'close', static fn (Model $record, array $payload, User $user): ?ClosureAudit => resolve(ClosureApplicationService::class)->apply(
             $record,
-            ClosurePolicy::query()->findOrFail($payload['policy_id']),
+            ClosurePolicy::findOrFail($payload['policy_id']),
             isset($payload['reporting_environment']) ? (string) $payload['reporting_environment'] : null,
         ));
 
@@ -82,7 +82,7 @@ final class SaoDomainActionRegistrar
         $registry->register(IngestEvent::class, 'replay', static function (Model $record, array $payload, User $user): array {
             $profile_id = $payload['profile_id'] ?? $record->source_profile_id;
 
-            return resolve(IngestReplayService::class)->dryRun($record, SourceProfile::query()->findOrFail($profile_id));
+            return resolve(IngestReplayService::class)->dryRun($record, SourceProfile::findOrFail($profile_id));
         });
     }
 }

@@ -34,8 +34,8 @@ final class CreateTicket extends CreateRecord
         $user = auth()->user();
 
         return app(TicketCreationService::class)->open(
-            Project::query()->findOrFail($data['project_id']),
-            TicketType::query()->findOrFail($data['ticket_type_id']),
+            Project::query()->whereKey($data['project_id'])->firstOrFail(),
+            TicketType::query()->whereKey($data['ticket_type_id'])->firstOrFail(),
             $data,
             $user === null
                 ? ChangeContext::forAutomation('filament')

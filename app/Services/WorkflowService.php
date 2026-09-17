@@ -52,7 +52,7 @@ final class WorkflowService
             );
         }
 
-        return TicketStatus::query()->findOrFail($initial->to_status_id);
+        return TicketStatus::findOrFail($initial->to_status_id);
     }
 
     /**
@@ -67,7 +67,7 @@ final class WorkflowService
         $override_id = $pivot?->workflow_scheme_id;
 
         if ($override_id !== null) {
-            return WorkflowScheme::query()->findOrFail($override_id);
+            return WorkflowScheme::findOrFail($override_id);
         }
 
         return $type->scheme()->firstOrFail();
