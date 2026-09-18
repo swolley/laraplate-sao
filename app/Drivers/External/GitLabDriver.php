@@ -17,6 +17,7 @@ use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\NormalizedIssue;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -31,6 +32,8 @@ use Throwable;
  */
 final readonly class GitLabDriver implements DriverInterface, IssuesCapability, ReleasesCapability, VcsCapability
 {
+    use ReadsExternalPayloads;
+
     private const int DEFAULT_PAGE_SIZE = 20;
 
     #[Override]
@@ -189,14 +192,14 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability, 
         $rows = $response->json() ?? [];
 
         $items = array_map(static fn (array $commit): array => [
-            'sha' => (string) ($commit['id'] ?? ''),
-            'message' => isset($commit['message']) ? (string) $commit['message'] : null,
-            'url' => isset($commit['web_url']) ? (string) $commit['web_url'] : null,
+            'sha' => self::stringOr($commit['id'] ?? ''),
+            'message' => self::stringOrNull($commit['message']),
+            'url' => self::stringOrNull($commit['web_url']),
             // GitLab's commits API exposes the git author name/email but not the
             // account username, so the handle stays null here.
             'author' => null,
-            'author_name' => isset($commit['author_name']) ? (string) $commit['author_name'] : null,
-            'author_email' => isset($commit['author_email']) ? (string) $commit['author_email'] : null,
+            'author_name' => self::stringOrNull($commit['author_name']),
+            'author_email' => self::stringOrNull($commit['author_email']),
         ], $rows);
 
         $nextPage = $response->header('X-Next-Page');
@@ -263,8 +266,8 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability, 
         $mr = $response->json() ?? [];
 
         return [
-            'remote_id' => isset($mr['iid']) ? (string) $mr['iid'] : null,
-            'url' => isset($mr['web_url']) ? (string) $mr['web_url'] : null,
+            'remote_id' => self::stringOrNull($mr['iid']),
+            'url' => self::stringOrNull($mr['web_url']),
             'raw' => $mr,
         ];
     }
@@ -283,8 +286,8 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability, 
         $rows = $response->json() ?? [];
 
         $items = array_map(static fn (array $tag): array => [
-            'tag' => (string) ($tag['name'] ?? ''),
-            'sha' => isset($tag['commit']['id']) ? (string) $tag['commit']['id'] : null,
+            'tag' => self::stringOr($tag['name'] ?? ''),
+            'sha' => self::stringOrNull($tag['commit']['id']),
         ], $rows);
 
         $nextPage = $response->header('X-Next-Page');
@@ -304,7 +307,7 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability, 
     public function firstTagContaining(BindingContext $context, string $commitSha): ?string
     {
         foreach ($this->tags($context)->items as $tag) {
-            $name = (string) ($tag['tag'] ?? '');
+            $name = self::stringOr($tag['tag'] ?? '');
 
             if ($name === '') {
                 continue;
@@ -351,20 +354,20 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability, 
      */
     private function normalize(BindingContext $context, array $issue): NormalizedIssue
     {
-        $iid = (string) ($issue['iid'] ?? '');
+        $iid = self::stringOr($issue['iid'] ?? '');
         $project = $context->remoteIdentifier;
 
         return new NormalizedIssue(
             remoteId: $iid,
-            title: (string) ($issue['title'] ?? ''),
+            title: self::stringOr($issue['title'] ?? ''),
             key: $project !== null && $iid !== '' ? "{$project}#{$iid}" : null,
-            body: isset($issue['description']) ? (string) $issue['description'] : null,
-            remoteStatus: isset($issue['state']) ? (string) $issue['state'] : null,
+            body: self::stringOrNull($issue['description']),
+            remoteStatus: self::stringOrNull($issue['state']),
             remotePriority: null,
             assignee: $this->assigneeUsername($issue),
-            url: isset($issue['web_url']) ? (string) $issue['web_url'] : null,
-            createdAt: isset($issue['created_at']) ? (string) $issue['created_at'] : null,
-            updatedAt: isset($issue['updated_at']) ? (string) $issue['updated_at'] : null,
+            url: self::stringOrNull($issue['web_url']),
+            createdAt: self::stringOrNull($issue['created_at']),
+            updatedAt: self::stringOrNull($issue['updated_at']),
         );
     }
 
@@ -375,7 +378,7 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability, 
     {
         $assignee = $issue['assignee'] ?? null;
 
-        return is_array($assignee) && isset($assignee['username']) ? (string) $assignee['username'] : null;
+        return is_array($assignee) ? self::stringOrNull($assignee['username'] ?? null) : null;
     }
 
     private function issuesPath(BindingContext $context): string
@@ -397,7 +400,7 @@ final readonly class GitLabDriver implements DriverInterface, IssuesCapability, 
 
     private function client(ConnectionContext $context): PendingRequest
     {
-        $token = (string) ($context->credentials['token'] ?? '');
+        $token = self::stringOr($context->credentials['token'] ?? '');
 
         return Http::baseUrl((string) $context->baseUrl)
             ->acceptJson()

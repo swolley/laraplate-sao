@@ -58,7 +58,7 @@ final readonly class BetterStackDriver implements DriverInterface, LogsCapabilit
         /** @var array<string, mixed> $attributes */
         $attributes = is_array($data['attributes'] ?? null) ? $data['attributes'] : [];
 
-        $message = $this->stringOrNull($attributes['name'] ?? $attributes['cause'] ?? null);
+        $message = self::stringOrNull($attributes['name'] ?? $attributes['cause'] ?? null);
 
         if ($message === null) {
             return new Page([]);
@@ -67,9 +67,9 @@ final readonly class BetterStackDriver implements DriverInterface, LogsCapabilit
         return new Page([[
             'source' => $this->key(),
             'message' => $message,
-            'environment' => $this->stringOrNull($attributes['environment'] ?? null),
-            'url' => $this->stringOrNull($attributes['url'] ?? null),
-            'occurred_at' => $this->stringOrNull($attributes['started_at'] ?? null),
+            'environment' => self::stringOrNull($attributes['environment'] ?? null),
+            'url' => self::stringOrNull($attributes['url'] ?? null),
+            'occurred_at' => self::stringOrNull($attributes['started_at'] ?? null),
             'raw' => $decoded,
         ]]);
     }

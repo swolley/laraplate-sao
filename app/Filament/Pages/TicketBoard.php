@@ -23,6 +23,7 @@ use Modules\SAO\Services\TicketQueryService;
 use Modules\SAO\Services\WorkflowService;
 use Override;
 use UnitEnum;
+use Modules\Core\Filament\Utils\HasPageForm;
 
 /**
  * The per-project board. Columns and cards are a read model over
@@ -35,6 +36,8 @@ use UnitEnum;
  */
 final class TicketBoard extends Page
 {
+    use HasPageForm;
+
     /**
      * @var array<string, mixed>
      */
@@ -67,7 +70,7 @@ final class TicketBoard extends Page
 
     public function mount(): void
     {
-        $this->form->fill();
+        $this->pageForm()->fill();
     }
 
     public function form(Schema $schema): Schema

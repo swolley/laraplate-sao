@@ -15,6 +15,7 @@ use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\NormalizedIssue;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -30,6 +31,8 @@ use Throwable;
  */
 final readonly class YouTrackDriver implements DriverInterface, IssuesCapability
 {
+    use ReadsExternalPayloads;
+
     private const int DEFAULT_PAGE_SIZE = 25;
 
     private const string FIELDS = 'idReadable,summary,description,created,updated,customFields(name,value(name,login,fullName))';
@@ -203,15 +206,15 @@ final readonly class YouTrackDriver implements DriverInterface, IssuesCapability
      */
     private function normalize(BindingContext $context, array $issue): NormalizedIssue
     {
-        $readable = (string) ($issue['idReadable'] ?? '');
+        $readable = self::stringOr($issue['idReadable'] ?? '');
         $base = $context->baseUrl();
         $fields = $this->customFields($issue);
 
         return new NormalizedIssue(
             remoteId: $readable,
-            title: (string) ($issue['summary'] ?? ''),
+            title: self::stringOr($issue['summary'] ?? ''),
             key: $readable !== '' ? $readable : null,
-            body: isset($issue['description']) ? (string) $issue['description'] : null,
+            body: self::stringOrNull($issue['description']),
             remoteStatus: $fields['State'] ?? null,
             remotePriority: $fields['Priority'] ?? null,
             assignee: $fields['Assignee'] ?? null,
@@ -245,7 +248,7 @@ final readonly class YouTrackDriver implements DriverInterface, IssuesCapability
                 : null;
 
             if (is_string($label) && $label !== '') {
-                $flattened[(string) $field['name']] = $label;
+                $flattened[self::stringOr($field['name'])] = $label;
             }
         }
 
@@ -271,7 +274,7 @@ final readonly class YouTrackDriver implements DriverInterface, IssuesCapability
 
     private function client(ConnectionContext $context): PendingRequest
     {
-        $token = (string) ($context->credentials['token'] ?? '');
+        $token = self::stringOr($context->credentials['token'] ?? '');
 
         return Http::baseUrl((string) $context->baseUrl)
             ->acceptJson()

@@ -21,6 +21,7 @@ use Override;
  */
 final readonly class BugsnagDriver implements DriverInterface, LogsCapability
 {
+
     use LogsDriverBoilerplate;
 
     #[Override]
@@ -54,7 +55,7 @@ final readonly class BugsnagDriver implements DriverInterface, LogsCapability
         /** @var array<string, mixed> $error */
         $error = is_array($decoded['error'] ?? null) ? $decoded['error'] : [];
 
-        $nativeKey = (string) ($error['errorId'] ?? '');
+        $nativeKey = self::stringOr($error['errorId'] ?? '');
 
         if ($nativeKey === '') {
             return new Page([]);
@@ -64,10 +65,10 @@ final readonly class BugsnagDriver implements DriverInterface, LogsCapability
             'native_key' => $nativeKey,
             'source' => $this->key(),
             'message' => (string) ($error['message'] ?? $error['exceptionClass'] ?? ''),
-            'class' => $this->stringOrNull($error['exceptionClass'] ?? null),
-            'level' => $this->stringOrNull($error['severity'] ?? null),
-            'environment' => $this->stringOrNull($error['releaseStage'] ?? null),
-            'url' => $this->stringOrNull($error['url'] ?? null),
+            'class' => self::stringOrNull($error['exceptionClass'] ?? null),
+            'level' => self::stringOrNull($error['severity'] ?? null),
+            'environment' => self::stringOrNull($error['releaseStage'] ?? null),
+            'url' => self::stringOrNull($error['url'] ?? null),
             'raw' => $decoded,
         ]]);
     }

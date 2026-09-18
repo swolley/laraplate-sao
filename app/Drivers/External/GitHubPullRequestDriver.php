@@ -13,6 +13,7 @@ use Modules\SAO\Drivers\Support\ConfigurationField;
 use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\ChangeRefType;
 use Modules\SAO\Enums\IngestMode;
@@ -28,6 +29,8 @@ use Override;
  */
 final readonly class GitHubPullRequestDriver implements CodeEventCapability, DriverInterface
 {
+    use ReadsExternalPayloads;
+
     private const string SIGNATURE_HEADER = 'x-hub-signature-256';
 
     #[Override]
@@ -65,7 +68,7 @@ final readonly class GitHubPullRequestDriver implements CodeEventCapability, Dri
     #[Override]
     public function healthCheck(ConnectionContext $context): HealthCheckResult
     {
-        $secret = (string) ($context->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->credentials['secret'] ?? '');
 
         return $secret === ''
             ? HealthCheckResult::unhealthy('No webhook secret configured for the GitHub pull-request connection.')
@@ -78,7 +81,7 @@ final readonly class GitHubPullRequestDriver implements CodeEventCapability, Dri
     #[Override]
     public function verifySignature(BindingContext $context, string $payload, array $headers): bool
     {
-        $secret = (string) ($context->connection->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->connection->credentials['secret'] ?? '');
 
         if ($secret === '') {
             return false;
@@ -106,20 +109,20 @@ final readonly class GitHubPullRequestDriver implements CodeEventCapability, Dri
         $pr = is_array($decoded['pull_request'] ?? null) ? $decoded['pull_request'] : [];
 
         $merged = ($pr['merged'] ?? false) === true;
-        $number = $this->stringOrNull($pr['number'] ?? null);
+        $number = self::stringOrNull($pr['number'] ?? null);
 
         if (! $merged || $number === null) {
             return [];
         }
 
-        $title = $this->stringOrNull($pr['title'] ?? null) ?? '';
-        $body = $this->stringOrNull($pr['body'] ?? null) ?? '';
+        $title = self::stringOrNull($pr['title'] ?? null) ?? '';
+        $body = self::stringOrNull($pr['body'] ?? null) ?? '';
 
         return [new CodeReference(
             type: ChangeRefType::PullRequest,
             identifier: $number,
             text: mb_trim($title . "\n" . $body),
-            url: $this->stringOrNull($pr['html_url'] ?? null),
+            url: self::stringOrNull($pr['html_url'] ?? null),
             source: $this->key(),
             mergedAt: $this->dateOrNull($pr['merged_at'] ?? null),
             baseRef: $this->ref($pr['base'] ?? null),
@@ -129,7 +132,7 @@ final readonly class GitHubPullRequestDriver implements CodeEventCapability, Dri
 
     private function ref(mixed $side): ?string
     {
-        return is_array($side) ? $this->stringOrNull($side['ref'] ?? null) : null;
+        return is_array($side) ? self::stringOrNull($side['ref'] ?? null) : null;
     }
 
     /**
@@ -151,12 +154,4 @@ final readonly class GitHubPullRequestDriver implements CodeEventCapability, Dri
         return is_string($value) && $value !== '' ? Carbon::parse($value) : null;
     }
 
-    private function stringOrNull(mixed $value): ?string
-    {
-        if (is_int($value) || is_float($value)) {
-            return (string) $value;
-        }
-
-        return is_string($value) && $value !== '' ? $value : null;
-    }
 }

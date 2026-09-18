@@ -21,6 +21,7 @@ use Override;
  */
 final readonly class HoneybadgerDriver implements DriverInterface, LogsCapability
 {
+
     use LogsDriverBoilerplate;
 
     #[Override]
@@ -54,7 +55,7 @@ final readonly class HoneybadgerDriver implements DriverInterface, LogsCapabilit
         /** @var array<string, mixed> $fault */
         $fault = is_array($decoded['fault'] ?? null) ? $decoded['fault'] : [];
 
-        $nativeKey = (string) ($fault['id'] ?? '');
+        $nativeKey = self::stringOr($fault['id'] ?? '');
 
         if ($nativeKey === '') {
             return new Page([]);
@@ -64,9 +65,9 @@ final readonly class HoneybadgerDriver implements DriverInterface, LogsCapabilit
             'native_key' => $nativeKey,
             'source' => $this->key(),
             'message' => (string) ($fault['message'] ?? $fault['klass'] ?? ''),
-            'class' => $this->stringOrNull($fault['klass'] ?? null),
-            'environment' => $this->stringOrNull($fault['environment'] ?? null),
-            'url' => $this->stringOrNull($fault['url'] ?? null),
+            'class' => self::stringOrNull($fault['klass'] ?? null),
+            'environment' => self::stringOrNull($fault['environment'] ?? null),
+            'url' => self::stringOrNull($fault['url'] ?? null),
             'raw' => $decoded,
         ]]);
     }

@@ -15,6 +15,7 @@ use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\NormalizedIssue;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -33,6 +34,8 @@ use Throwable;
  */
 final readonly class RedmineDriver implements DriverInterface, IssuesCapability
 {
+    use ReadsExternalPayloads;
+
     private const int DEFAULT_PAGE_SIZE = 25;
 
     #[Override]
@@ -223,19 +226,19 @@ final readonly class RedmineDriver implements DriverInterface, IssuesCapability
      */
     private function normalize(BindingContext $context, array $issue): NormalizedIssue
     {
-        $remoteId = (string) ($issue['id'] ?? '');
+        $remoteId = self::stringOr($issue['id'] ?? '');
         $base = $context->baseUrl();
 
         return new NormalizedIssue(
             remoteId: $remoteId,
-            title: (string) ($issue['subject'] ?? ''),
-            body: isset($issue['description']) ? (string) $issue['description'] : null,
+            title: self::stringOr($issue['subject'] ?? ''),
+            body: self::stringOrNull($issue['description']),
             remoteStatus: $this->nestedName($issue, 'status'),
             remotePriority: $this->nestedName($issue, 'priority'),
             assignee: $this->nestedName($issue, 'assigned_to'),
             url: $base !== null && $remoteId !== '' ? mb_rtrim($base, '/') . "/issues/{$remoteId}" : null,
-            createdAt: isset($issue['created_on']) ? (string) $issue['created_on'] : null,
-            updatedAt: isset($issue['updated_on']) ? (string) $issue['updated_on'] : null,
+            createdAt: self::stringOrNull($issue['created_on']),
+            updatedAt: self::stringOrNull($issue['updated_on']),
         );
     }
 
@@ -246,7 +249,7 @@ final readonly class RedmineDriver implements DriverInterface, IssuesCapability
     {
         $value = $issue[$key] ?? null;
 
-        return is_array($value) && isset($value['name']) ? (string) $value['name'] : null;
+        return is_array($value) ? self::stringOrNull($value['name'] ?? null) : null;
     }
 
     private function pageSize(BindingContext $context): int

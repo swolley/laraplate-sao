@@ -16,6 +16,8 @@ use Modules\SAO\Enums\IngestMode;
  */
 trait LogsDriverBoilerplate
 {
+    use ReadsExternalPayloads;
+
     /**
      * @return list<Capability>
      */
@@ -101,12 +103,4 @@ trait LogsDriverBoilerplate
         return is_array($decoded) ? $decoded : [];
     }
 
-    protected function stringOrNull(mixed $value): ?string
-    {
-        if (is_int($value) || is_float($value)) {
-            return (string) $value;
-        }
-
-        return is_string($value) && $value !== '' ? $value : null;
-    }
 }

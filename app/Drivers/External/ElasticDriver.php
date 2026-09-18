@@ -59,7 +59,7 @@ final readonly class ElasticDriver implements DriverInterface, LogsCapability
         $items = [];
 
         foreach ($rows as $row) {
-            $message = $this->stringOrNull($row['message'] ?? $row['reason'] ?? $row['rule_name'] ?? null);
+            $message = self::stringOrNull($row['message'] ?? $row['reason'] ?? $row['rule_name'] ?? null);
 
             if ($message === null) {
                 continue;
@@ -68,9 +68,9 @@ final readonly class ElasticDriver implements DriverInterface, LogsCapability
             $items[] = [
                 'source' => $this->key(),
                 'message' => $message,
-                'level' => $this->stringOrNull($row['level'] ?? $row['severity'] ?? null),
-                'environment' => $this->stringOrNull($row['environment'] ?? null),
-                'occurred_at' => $this->stringOrNull($row['timestamp'] ?? $row['@timestamp'] ?? null),
+                'level' => self::stringOrNull($row['level'] ?? $row['severity'] ?? null),
+                'environment' => self::stringOrNull($row['environment'] ?? null),
+                'occurred_at' => self::stringOrNull($row['timestamp'] ?? $row['@timestamp'] ?? null),
                 'raw' => $row,
             ];
         }

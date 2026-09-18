@@ -18,6 +18,7 @@ use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\NormalizedIssue;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -33,6 +34,8 @@ use Throwable;
  */
 final readonly class GitHubDriver implements BlameCapability, DriverInterface, IssuesCapability, ReleasesCapability, VcsCapability
 {
+    use ReadsExternalPayloads;
+
     private const int DEFAULT_PAGE_SIZE = 30;
 
     #[Override]
@@ -195,9 +198,9 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
         $rows = $response->json() ?? [];
 
         $items = array_map(fn (array $commit): array => [
-            'sha' => (string) ($commit['sha'] ?? ''),
+            'sha' => self::stringOr($commit['sha'] ?? ''),
             'message' => $this->commitMessage($commit),
-            'url' => isset($commit['html_url']) ? (string) $commit['html_url'] : null,
+            'url' => self::stringOrNull($commit['html_url']),
             'author' => $this->authorLogin($commit),
             'author_name' => $this->commitAuthorField($commit, 'name'),
             'author_email' => $this->commitAuthorField($commit, 'email'),
@@ -261,8 +264,8 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
         $pull = $response->json() ?? [];
 
         return [
-            'remote_id' => isset($pull['number']) ? (string) $pull['number'] : null,
-            'url' => isset($pull['html_url']) ? (string) $pull['html_url'] : null,
+            'remote_id' => self::stringOrNull($pull['number']),
+            'url' => self::stringOrNull($pull['html_url']),
             'raw' => $pull,
         ];
     }
@@ -300,8 +303,8 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
 
             $lines = max(0, (int) ($range['endingLine'] ?? 0) - (int) ($range['startingLine'] ?? 0) + 1);
             $author = is_array($range['commit']['author'] ?? null) ? $range['commit']['author'] : [];
-            $login = is_array($author['user'] ?? null) && isset($author['user']['login']) ? (string) $author['user']['login'] : null;
-            $email = isset($author['email']) ? (string) $author['email'] : null;
+            $login = is_array($author['user'] ?? null) ? self::stringOrNull($author['user']['login'] ?? null) : null;
+            $email = self::stringOrNull($author['email']);
             $key = $login ?? $email;
 
             if ($key === null || $key === '') {
@@ -332,7 +335,7 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
         $rows = $response->json() ?? [];
 
         $items = array_map(fn (array $tag): array => [
-            'tag' => (string) ($tag['name'] ?? ''),
+            'tag' => self::stringOr($tag['name'] ?? ''),
             'sha' => $this->tagSha($tag),
         ], $rows);
 
@@ -351,7 +354,7 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
     public function firstTagContaining(BindingContext $context, string $commitSha): ?string
     {
         foreach ($this->tags($context)->items as $tag) {
-            $name = (string) ($tag['tag'] ?? '');
+            $name = self::stringOr($tag['tag'] ?? '');
 
             if ($name === '') {
                 continue;
@@ -374,7 +377,7 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
     {
         $inner = $commit['commit'] ?? null;
 
-        return is_array($inner) && isset($inner['message']) ? (string) $inner['message'] : null;
+        return is_array($inner) ? self::stringOrNull($inner['message'] ?? null) : null;
     }
 
     /**
@@ -387,7 +390,7 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
     {
         $author = $commit['author'] ?? null;
 
-        return is_array($author) && isset($author['login']) ? (string) $author['login'] : null;
+        return is_array($author) ? self::stringOrNull($author['login'] ?? null) : null;
     }
 
     /**
@@ -411,7 +414,7 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
     {
         $commit = $tag['commit'] ?? null;
 
-        return is_array($commit) && isset($commit['sha']) ? (string) $commit['sha'] : null;
+        return is_array($commit) ? self::stringOrNull($commit['sha'] ?? null) : null;
     }
 
     /**
@@ -444,20 +447,20 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
      */
     private function normalize(BindingContext $context, array $issue): NormalizedIssue
     {
-        $number = (string) ($issue['number'] ?? '');
+        $number = self::stringOr($issue['number'] ?? '');
         $repo = $context->remoteIdentifier;
 
         return new NormalizedIssue(
             remoteId: $number,
-            title: (string) ($issue['title'] ?? ''),
+            title: self::stringOr($issue['title'] ?? ''),
             key: $repo !== null && $number !== '' ? "{$repo}#{$number}" : null,
-            body: isset($issue['body']) ? (string) $issue['body'] : null,
-            remoteStatus: isset($issue['state']) ? (string) $issue['state'] : null,
+            body: self::stringOrNull($issue['body']),
+            remoteStatus: self::stringOrNull($issue['state']),
             remotePriority: null,
             assignee: $this->assigneeLogin($issue),
-            url: isset($issue['html_url']) ? (string) $issue['html_url'] : null,
-            createdAt: isset($issue['created_at']) ? (string) $issue['created_at'] : null,
-            updatedAt: isset($issue['updated_at']) ? (string) $issue['updated_at'] : null,
+            url: self::stringOrNull($issue['html_url']),
+            createdAt: self::stringOrNull($issue['created_at']),
+            updatedAt: self::stringOrNull($issue['updated_at']),
         );
     }
 
@@ -468,7 +471,7 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
     {
         $assignee = $issue['assignee'] ?? null;
 
-        return is_array($assignee) && isset($assignee['login']) ? (string) $assignee['login'] : null;
+        return is_array($assignee) ? self::stringOrNull($assignee['login'] ?? null) : null;
     }
 
     private function nextPageFromLink(?string $link): ?string
@@ -524,7 +527,7 @@ final readonly class GitHubDriver implements BlameCapability, DriverInterface, I
 
     private function client(ConnectionContext $context): PendingRequest
     {
-        $token = (string) ($context->credentials['token'] ?? '');
+        $token = self::stringOr($context->credentials['token'] ?? '');
 
         return Http::baseUrl((string) $context->baseUrl)
             ->acceptJson()

@@ -15,6 +15,7 @@ use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\NormalizedIssue;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -31,6 +32,8 @@ use Throwable;
  */
 final readonly class AzureDevOpsDriver implements DriverInterface, IssuesCapability
 {
+    use ReadsExternalPayloads;
+
     private const int DEFAULT_PAGE_SIZE = 25;
 
     private const string API_VERSION = '7.0';
@@ -120,7 +123,7 @@ final readonly class AzureDevOpsDriver implements DriverInterface, IssuesCapabil
 
         /** @var list<array<string, mixed>> $workItems */
         $workItems = $wiql->json('workItems', []);
-        $ids = array_values(array_filter(array_map(static fn (array $row): ?int => isset($row['id']) ? (int) $row['id'] : null, $workItems)));
+        $ids = array_values(array_filter(array_map(static fn (array $row): ?int => self::intOrNull($row['id']), $workItems)));
 
         $slice = array_slice($ids, $offset, $limit);
 
@@ -246,7 +249,7 @@ final readonly class AzureDevOpsDriver implements DriverInterface, IssuesCapabil
      */
     private function normalize(BindingContext $context, array $item): NormalizedIssue
     {
-        $id = (string) ($item['id'] ?? '');
+        $id = self::stringOr($item['id'] ?? '');
 
         /** @var array<string, mixed> $fields */
         $fields = is_array($item['fields'] ?? null) ? $item['fields'] : [];
@@ -257,13 +260,13 @@ final readonly class AzureDevOpsDriver implements DriverInterface, IssuesCapabil
         return new NormalizedIssue(
             remoteId: $id,
             title: (string) ($fields['System.Title'] ?? ''),
-            body: isset($fields['System.Description']) ? (string) $fields['System.Description'] : null,
-            remoteStatus: isset($fields['System.State']) ? (string) $fields['System.State'] : null,
+            body: isset($fields['System.Description']) ? self::stringOr($fields['System.Description']) : null,
+            remoteStatus: isset($fields['System.State']) ? self::stringOr($fields['System.State']) : null,
             remotePriority: $priority !== null ? (string) $priority : null,
-            assignee: is_array($assignee) && isset($assignee['displayName']) ? (string) $assignee['displayName'] : null,
+            assignee: is_array($assignee) ? self::stringOrNull($assignee['displayName'] ?? null) : null,
             url: $this->htmlUrl($context, $item, $id),
-            createdAt: isset($fields['System.CreatedDate']) ? (string) $fields['System.CreatedDate'] : null,
-            updatedAt: isset($fields['System.ChangedDate']) ? (string) $fields['System.ChangedDate'] : null,
+            createdAt: isset($fields['System.CreatedDate']) ? self::stringOr($fields['System.CreatedDate']) : null,
+            updatedAt: isset($fields['System.ChangedDate']) ? self::stringOr($fields['System.ChangedDate']) : null,
         );
     }
 
@@ -275,7 +278,7 @@ final readonly class AzureDevOpsDriver implements DriverInterface, IssuesCapabil
         $links = $item['_links'] ?? null;
 
         if (is_array($links) && isset($links['html']['href'])) {
-            return (string) $links['html']['href'];
+            return self::stringOr($links['html']['href']);
         }
 
         $base = $context->baseUrl();
@@ -302,7 +305,7 @@ final readonly class AzureDevOpsDriver implements DriverInterface, IssuesCapabil
 
     private function client(ConnectionContext $context): PendingRequest
     {
-        $token = (string) ($context->credentials['token'] ?? '');
+        $token = self::stringOr($context->credentials['token'] ?? '');
 
         return Http::baseUrl((string) $context->baseUrl)
             ->acceptJson()

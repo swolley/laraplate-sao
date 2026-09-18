@@ -12,6 +12,7 @@ use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Drivers\Support\DeployEvent;
 use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\DeploymentStatus;
 use Modules\SAO\Enums\IngestMode;
@@ -26,6 +27,8 @@ use Override;
  */
 final readonly class GitHubDeploymentDriver implements DeployCapability, DriverInterface
 {
+    use ReadsExternalPayloads;
+
     private const string SIGNATURE_HEADER = 'x-hub-signature-256';
 
     #[Override]
@@ -63,7 +66,7 @@ final readonly class GitHubDeploymentDriver implements DeployCapability, DriverI
     #[Override]
     public function healthCheck(ConnectionContext $context): HealthCheckResult
     {
-        $secret = (string) ($context->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->credentials['secret'] ?? '');
 
         return $secret === ''
             ? HealthCheckResult::unhealthy('No webhook secret configured for the GitHub deployment connection.')
@@ -76,7 +79,7 @@ final readonly class GitHubDeploymentDriver implements DeployCapability, DriverI
     #[Override]
     public function verifySignature(BindingContext $context, string $payload, array $headers): bool
     {
-        $secret = (string) ($context->connection->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->connection->credentials['secret'] ?? '');
 
         if ($secret === '') {
             return false;
@@ -106,16 +109,16 @@ final readonly class GitHubDeploymentDriver implements DeployCapability, DriverI
         /** @var array<string, mixed> $deploymentStatus */
         $deploymentStatus = is_array($decoded['deployment_status'] ?? null) ? $decoded['deployment_status'] : [];
 
-        $version = $this->stringOrNull($deployment['ref'] ?? null)
-            ?? $this->stringOrNull($deployment['sha'] ?? null);
+        $version = self::stringOrNull($deployment['ref'] ?? null)
+            ?? self::stringOrNull($deployment['sha'] ?? null);
 
         if ($version === null) {
             return [];
         }
 
-        $status = $this->mapState($this->stringOrNull($deploymentStatus['state'] ?? null));
-        $environment = $this->stringOrNull($deploymentStatus['environment'] ?? $deployment['environment'] ?? null);
-        $externalId = $this->stringOrNull($deployment['id'] ?? null);
+        $status = $this->mapState(self::stringOrNull($deploymentStatus['state'] ?? null));
+        $environment = self::stringOrNull($deploymentStatus['environment'] ?? $deployment['environment'] ?? null);
+        $externalId = self::stringOrNull($deployment['id'] ?? null);
 
         return [new DeployEvent(
             version: $version,
@@ -125,9 +128,9 @@ final readonly class GitHubDeploymentDriver implements DeployCapability, DriverI
             startedAt: null,
             finishedAt: null,
             meta: array_filter([
-                'sha' => $this->stringOrNull($deployment['sha'] ?? null),
-                'ref' => $this->stringOrNull($deployment['ref'] ?? null),
-                'state' => $this->stringOrNull($deploymentStatus['state'] ?? null),
+                'sha' => self::stringOrNull($deployment['sha'] ?? null),
+                'ref' => self::stringOrNull($deployment['ref'] ?? null),
+                'state' => self::stringOrNull($deploymentStatus['state'] ?? null),
             ], static fn (?string $value): bool => $value !== null),
         )];
     }
@@ -154,14 +157,5 @@ final readonly class GitHubDeploymentDriver implements DeployCapability, DriverI
         }
 
         return null;
-    }
-
-    private function stringOrNull(mixed $value): ?string
-    {
-        if (is_int($value) || is_float($value)) {
-            return (string) $value;
-        }
-
-        return is_string($value) && $value !== '' ? $value : null;
     }
 }

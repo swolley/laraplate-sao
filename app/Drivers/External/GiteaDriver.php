@@ -15,6 +15,7 @@ use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\NormalizedIssue;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -30,6 +31,8 @@ use Throwable;
  */
 final readonly class GiteaDriver implements DriverInterface, IssuesCapability
 {
+    use ReadsExternalPayloads;
+
     private const int DEFAULT_PAGE_SIZE = 30;
 
     #[Override]
@@ -208,20 +211,20 @@ final readonly class GiteaDriver implements DriverInterface, IssuesCapability
      */
     private function normalize(BindingContext $context, array $issue): NormalizedIssue
     {
-        $number = (string) ($issue['number'] ?? '');
+        $number = self::stringOr($issue['number'] ?? '');
         $repo = $context->remoteIdentifier;
 
         return new NormalizedIssue(
             remoteId: $number,
-            title: (string) ($issue['title'] ?? ''),
+            title: self::stringOr($issue['title'] ?? ''),
             key: $repo !== null && $number !== '' ? "{$repo}#{$number}" : null,
-            body: isset($issue['body']) ? (string) $issue['body'] : null,
-            remoteStatus: isset($issue['state']) ? (string) $issue['state'] : null,
+            body: self::stringOrNull($issue['body']),
+            remoteStatus: self::stringOrNull($issue['state']),
             remotePriority: null,
             assignee: $this->assigneeLogin($issue),
-            url: isset($issue['html_url']) ? (string) $issue['html_url'] : null,
-            createdAt: isset($issue['created_at']) ? (string) $issue['created_at'] : null,
-            updatedAt: isset($issue['updated_at']) ? (string) $issue['updated_at'] : null,
+            url: self::stringOrNull($issue['html_url']),
+            createdAt: self::stringOrNull($issue['created_at']),
+            updatedAt: self::stringOrNull($issue['updated_at']),
         );
     }
 
@@ -232,7 +235,7 @@ final readonly class GiteaDriver implements DriverInterface, IssuesCapability
     {
         $assignee = $issue['assignee'] ?? null;
 
-        return is_array($assignee) && isset($assignee['login']) ? (string) $assignee['login'] : null;
+        return is_array($assignee) ? self::stringOrNull($assignee['login'] ?? null) : null;
     }
 
     private function nextPageFromLink(?string $link): ?string
@@ -267,7 +270,7 @@ final readonly class GiteaDriver implements DriverInterface, IssuesCapability
 
     private function client(ConnectionContext $context): PendingRequest
     {
-        $token = (string) ($context->credentials['token'] ?? '');
+        $token = self::stringOr($context->credentials['token'] ?? '');
 
         return Http::baseUrl((string) $context->baseUrl)
             ->acceptJson()

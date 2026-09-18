@@ -14,6 +14,7 @@ use Modules\SAO\Drivers\Support\ConfigurationField;
 use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\ChangeRefType;
 use Modules\SAO\Enums\IngestMode;
@@ -29,6 +30,8 @@ use Override;
  */
 final readonly class WebhookCodeDriver implements CodeEventCapability, DriverInterface
 {
+    use ReadsExternalPayloads;
+
     private const string TOKEN_HEADER = 'x-code-token';
 
     #[Override]
@@ -66,7 +69,7 @@ final readonly class WebhookCodeDriver implements CodeEventCapability, DriverInt
     #[Override]
     public function healthCheck(ConnectionContext $context): HealthCheckResult
     {
-        $secret = (string) ($context->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->credentials['secret'] ?? '');
 
         return $secret === ''
             ? HealthCheckResult::unhealthy('No shared token configured for the code webhook connection.')
@@ -79,7 +82,7 @@ final readonly class WebhookCodeDriver implements CodeEventCapability, DriverInt
     #[Override]
     public function verifySignature(BindingContext $context, string $payload, array $headers): bool
     {
-        $secret = (string) ($context->connection->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->connection->credentials['secret'] ?? '');
 
         if ($secret === '') {
             return false;
@@ -107,22 +110,22 @@ final readonly class WebhookCodeDriver implements CodeEventCapability, DriverInt
         $references = [];
 
         foreach ($rows as $row) {
-            $identifier = $this->stringOrNull($row['identifier'] ?? $row['number'] ?? $row['sha'] ?? null);
-            $text = $this->stringOrNull($row['text'] ?? null) ?? '';
+            $identifier = self::stringOrNull($row['identifier'] ?? $row['number'] ?? $row['sha'] ?? null);
+            $text = self::stringOrNull($row['text'] ?? null) ?? '';
 
             if ($identifier === null) {
                 continue;
             }
 
             $references[] = new CodeReference(
-                type: ChangeRefType::tryFrom((string) ($row['type'] ?? '')) ?? ChangeRefType::PullRequest,
+                type: ChangeRefType::tryFrom(self::stringOr($row['type'] ?? '')) ?? ChangeRefType::PullRequest,
                 identifier: $identifier,
                 text: $text,
-                url: $this->stringOrNull($row['url'] ?? null),
+                url: self::stringOrNull($row['url'] ?? null),
                 source: $this->key(),
                 mergedAt: $this->dateOrNull($row['merged_at'] ?? null),
-                baseRef: $this->stringOrNull($row['base_ref'] ?? null),
-                headRef: $this->stringOrNull($row['head_ref'] ?? null),
+                baseRef: self::stringOrNull($row['base_ref'] ?? null),
+                headRef: self::stringOrNull($row['head_ref'] ?? null),
             );
         }
 
@@ -148,12 +151,4 @@ final readonly class WebhookCodeDriver implements CodeEventCapability, DriverInt
         return is_string($value) && $value !== '' ? Carbon::parse($value) : null;
     }
 
-    private function stringOrNull(mixed $value): ?string
-    {
-        if (is_int($value) || is_float($value)) {
-            return (string) $value;
-        }
-
-        return is_string($value) && $value !== '' ? $value : null;
-    }
 }

@@ -12,6 +12,7 @@ use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Drivers\Support\DeployEvent;
 use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\DeploymentStatus;
 use Modules\SAO\Enums\IngestMode;
@@ -27,6 +28,8 @@ use Override;
  */
 final readonly class WebhookDeployDriver implements DeployCapability, DriverInterface
 {
+    use ReadsExternalPayloads;
+
     private const string TOKEN_HEADER = 'x-deploy-token';
 
     #[Override]
@@ -64,7 +67,7 @@ final readonly class WebhookDeployDriver implements DeployCapability, DriverInte
     #[Override]
     public function healthCheck(ConnectionContext $context): HealthCheckResult
     {
-        $secret = (string) ($context->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->credentials['secret'] ?? '');
 
         return $secret === ''
             ? HealthCheckResult::unhealthy('No shared token configured for the deploy webhook connection.')
@@ -77,7 +80,7 @@ final readonly class WebhookDeployDriver implements DeployCapability, DriverInte
     #[Override]
     public function verifySignature(BindingContext $context, string $payload, array $headers): bool
     {
-        $secret = (string) ($context->connection->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->connection->credentials['secret'] ?? '');
 
         if ($secret === '') {
             return false;
@@ -105,19 +108,19 @@ final readonly class WebhookDeployDriver implements DeployCapability, DriverInte
         $events = [];
 
         foreach ($rows as $row) {
-            $version = $this->stringOrNull($row['version'] ?? null);
+            $version = self::stringOrNull($row['version'] ?? null);
 
             if ($version === null) {
                 continue;
             }
 
-            $status = DeploymentStatus::tryFrom((string) ($row['status'] ?? '')) ?? DeploymentStatus::Succeeded;
+            $status = DeploymentStatus::tryFrom(self::stringOr($row['status'] ?? '')) ?? DeploymentStatus::Succeeded;
 
             $events[] = new DeployEvent(
                 version: $version,
                 status: $status,
-                environmentName: $this->stringOrNull($row['environment'] ?? null),
-                externalId: $this->stringOrNull($row['external_id'] ?? $row['id'] ?? null),
+                environmentName: self::stringOrNull($row['environment'] ?? null),
+                externalId: self::stringOrNull($row['external_id'] ?? $row['id'] ?? null),
                 startedAt: null,
                 finishedAt: null,
                 meta: is_array($row['meta'] ?? null) ? $row['meta'] : [],
@@ -141,12 +144,4 @@ final readonly class WebhookDeployDriver implements DeployCapability, DriverInte
         return null;
     }
 
-    private function stringOrNull(mixed $value): ?string
-    {
-        if (is_int($value) || is_float($value)) {
-            return (string) $value;
-        }
-
-        return is_string($value) && $value !== '' ? $value : null;
-    }
 }

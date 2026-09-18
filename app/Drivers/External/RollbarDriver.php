@@ -21,6 +21,7 @@ use Override;
  */
 final readonly class RollbarDriver implements DriverInterface, LogsCapability
 {
+
     use LogsDriverBoilerplate;
 
     #[Override]
@@ -68,10 +69,10 @@ final readonly class RollbarDriver implements DriverInterface, LogsCapability
         return new Page([[
             'native_key' => $nativeKey,
             'source' => $this->key(),
-            'message' => (string) ($item['title'] ?? ''),
-            'level' => $this->stringOrNull($item['level'] ?? null),
-            'environment' => $this->stringOrNull($item['environment'] ?? null),
-            'url' => $this->stringOrNull($item['url'] ?? null),
+            'message' => self::stringOr($item['title'] ?? ''),
+            'level' => self::stringOrNull($item['level'] ?? null),
+            'environment' => self::stringOrNull($item['environment'] ?? null),
+            'url' => self::stringOrNull($item['url'] ?? null),
             'raw' => $decoded,
         ]]);
     }

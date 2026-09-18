@@ -15,6 +15,7 @@ use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\NormalizedIssue;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -30,6 +31,8 @@ use Throwable;
  */
 final readonly class LinearDriver implements DriverInterface, IssuesCapability
 {
+    use ReadsExternalPayloads;
+
     private const int DEFAULT_PAGE_SIZE = 25;
 
     private const string ISSUE_FIELDS = 'id identifier title description url createdAt updatedAt state { name } priorityLabel assignee { name }';
@@ -213,21 +216,21 @@ final readonly class LinearDriver implements DriverInterface, IssuesCapability
      */
     private function normalize(BindingContext $context, array $issue): NormalizedIssue
     {
-        $identifier = isset($issue['identifier']) ? (string) $issue['identifier'] : null;
+        $identifier = self::stringOrNull($issue['identifier']);
         $state = $issue['state'] ?? null;
         $assignee = $issue['assignee'] ?? null;
 
         return new NormalizedIssue(
-            remoteId: (string) ($issue['id'] ?? ''),
-            title: (string) ($issue['title'] ?? ''),
+            remoteId: self::stringOr($issue['id'] ?? ''),
+            title: self::stringOr($issue['title'] ?? ''),
             key: $identifier,
-            body: isset($issue['description']) ? (string) $issue['description'] : null,
-            remoteStatus: is_array($state) && isset($state['name']) ? (string) $state['name'] : null,
-            remotePriority: isset($issue['priorityLabel']) ? (string) $issue['priorityLabel'] : null,
-            assignee: is_array($assignee) && isset($assignee['name']) ? (string) $assignee['name'] : null,
-            url: isset($issue['url']) ? (string) $issue['url'] : null,
-            createdAt: isset($issue['createdAt']) ? (string) $issue['createdAt'] : null,
-            updatedAt: isset($issue['updatedAt']) ? (string) $issue['updatedAt'] : null,
+            body: self::stringOrNull($issue['description']),
+            remoteStatus: is_array($state) ? self::stringOrNull($state['name'] ?? null) : null,
+            remotePriority: self::stringOrNull($issue['priorityLabel']),
+            assignee: is_array($assignee) ? self::stringOrNull($assignee['name'] ?? null) : null,
+            url: self::stringOrNull($issue['url']),
+            createdAt: self::stringOrNull($issue['createdAt']),
+            updatedAt: self::stringOrNull($issue['updatedAt']),
         );
     }
 
@@ -237,7 +240,7 @@ final readonly class LinearDriver implements DriverInterface, IssuesCapability
      */
     private function gql(array $credentials, string $baseUrl, string $query, array $variables): Response
     {
-        $token = (string) ($credentials['token'] ?? '');
+        $token = self::stringOr($credentials['token'] ?? '');
 
         return Http::baseUrl($baseUrl)
             ->acceptJson()

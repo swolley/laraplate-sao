@@ -52,7 +52,7 @@ final readonly class DatadogDriver implements DriverInterface, LogsCapability
     {
         $decoded = $this->decode($payload);
 
-        $message = $this->stringOrNull($decoded['title'] ?? $decoded['body'] ?? null);
+        $message = self::stringOrNull($decoded['title'] ?? $decoded['body'] ?? null);
 
         if ($message === null) {
             return new Page([]);
@@ -61,10 +61,10 @@ final readonly class DatadogDriver implements DriverInterface, LogsCapability
         return new Page([[
             'source' => $this->key(),
             'message' => $message,
-            'level' => $this->stringOrNull($decoded['alert_type'] ?? $decoded['priority'] ?? null),
-            'environment' => $this->stringOrNull($decoded['env'] ?? null),
-            'url' => $this->stringOrNull($decoded['link'] ?? $decoded['url'] ?? null),
-            'occurred_at' => $this->stringOrNull($decoded['date'] ?? null),
+            'level' => self::stringOrNull($decoded['alert_type'] ?? $decoded['priority'] ?? null),
+            'environment' => self::stringOrNull($decoded['env'] ?? null),
+            'url' => self::stringOrNull($decoded['link'] ?? $decoded['url'] ?? null),
+            'occurred_at' => self::stringOrNull($decoded['date'] ?? null),
             'raw' => $decoded,
         ]]);
     }

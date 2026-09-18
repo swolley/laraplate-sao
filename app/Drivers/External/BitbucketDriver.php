@@ -17,6 +17,7 @@ use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\NormalizedIssue;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -31,6 +32,8 @@ use Throwable;
  */
 final readonly class BitbucketDriver implements DriverInterface, IssuesCapability, ReleasesCapability, VcsCapability
 {
+    use ReadsExternalPayloads;
+
     private const int DEFAULT_PAGE_SIZE = 20;
 
     #[Override]
@@ -191,9 +194,9 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         $values = $response->json('values', []);
 
         $items = array_map(fn (array $commit): array => [
-            'sha' => (string) ($commit['hash'] ?? ''),
-            'message' => isset($commit['message']) ? (string) $commit['message'] : null,
-            'url' => isset($commit['links']['html']['href']) ? (string) $commit['links']['html']['href'] : null,
+            'sha' => self::stringOr($commit['hash'] ?? ''),
+            'message' => self::stringOrNull($commit['message']),
+            'url' => self::stringOrNull($commit['links']['html']['href']),
             'author' => $this->authorNickname($commit),
             'author_name' => $this->authorName($commit),
             'author_email' => $this->authorEmail($commit),
@@ -247,8 +250,8 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         $pr = $response->json() ?? [];
 
         return [
-            'remote_id' => isset($pr['id']) ? (string) $pr['id'] : null,
-            'url' => isset($pr['links']['html']['href']) ? (string) $pr['links']['html']['href'] : null,
+            'remote_id' => self::stringOrNull($pr['id']),
+            'url' => self::stringOrNull($pr['links']['html']['href']),
             'raw' => $pr,
         ];
     }
@@ -267,8 +270,8 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         $values = $response->json('values', []);
 
         $items = array_map(static fn (array $tag): array => [
-            'tag' => (string) ($tag['name'] ?? ''),
-            'sha' => isset($tag['target']['hash']) ? (string) $tag['target']['hash'] : null,
+            'tag' => self::stringOr($tag['name'] ?? ''),
+            'sha' => self::stringOrNull($tag['target']['hash']),
         ], $values);
 
         $hasNext = $response->json('next') !== null;
@@ -288,7 +291,7 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
     public function firstTagContaining(BindingContext $context, string $commitSha): ?string
     {
         foreach ($this->tags($context)->items as $tag) {
-            $name = (string) ($tag['tag'] ?? '');
+            $name = self::stringOr($tag['tag'] ?? '');
 
             if ($name === '') {
                 continue;
@@ -330,20 +333,20 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
      */
     private function normalize(BindingContext $context, array $issue): NormalizedIssue
     {
-        $id = (string) ($issue['id'] ?? '');
+        $id = self::stringOr($issue['id'] ?? '');
         $repo = $context->remoteIdentifier;
 
         return new NormalizedIssue(
             remoteId: $id,
-            title: (string) ($issue['title'] ?? ''),
+            title: self::stringOr($issue['title'] ?? ''),
             key: $repo !== null && $id !== '' ? "{$repo}#{$id}" : null,
             body: $this->contentRaw($issue),
-            remoteStatus: isset($issue['state']) ? (string) $issue['state'] : null,
-            remotePriority: isset($issue['priority']) ? (string) $issue['priority'] : null,
+            remoteStatus: self::stringOrNull($issue['state']),
+            remotePriority: self::stringOrNull($issue['priority']),
             assignee: $this->assigneeName($issue),
             url: $this->htmlLink($issue),
-            createdAt: isset($issue['created_on']) ? (string) $issue['created_on'] : null,
-            updatedAt: isset($issue['updated_on']) ? (string) $issue['updated_on'] : null,
+            createdAt: self::stringOrNull($issue['created_on']),
+            updatedAt: self::stringOrNull($issue['updated_on']),
         );
     }
 
@@ -354,7 +357,7 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
     {
         $content = $issue['content'] ?? null;
 
-        return is_array($content) && isset($content['raw']) ? (string) $content['raw'] : null;
+        return is_array($content) ? self::stringOrNull($content['raw'] ?? null) : null;
     }
 
     /**
@@ -369,8 +372,8 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         }
 
         return isset($assignee['display_name'])
-            ? (string) $assignee['display_name']
-            : (isset($assignee['nickname']) ? (string) $assignee['nickname'] : null);
+            ? self::stringOr($assignee['display_name'])
+            : (self::stringOrNull($assignee['nickname']));
     }
 
     /**
@@ -384,7 +387,7 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
             return null;
         }
 
-        return isset($links['html']['href']) ? (string) $links['html']['href'] : null;
+        return self::stringOrNull($links['html']['href']);
     }
 
     /**
@@ -397,7 +400,7 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
     {
         $user = $commit['author']['user'] ?? null;
 
-        return is_array($user) && isset($user['nickname']) ? (string) $user['nickname'] : null;
+        return is_array($user) ? self::stringOrNull($user['nickname'] ?? null) : null;
     }
 
     /**
@@ -411,10 +414,10 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
         $user = $commit['author']['user'] ?? null;
 
         if (is_array($user) && isset($user['display_name'])) {
-            return (string) $user['display_name'];
+            return self::stringOr($user['display_name']);
         }
 
-        $raw = isset($commit['author']['raw']) ? (string) $commit['author']['raw'] : '';
+        $raw = self::stringOr($commit['author']['raw'] ?? '');
         $name = mb_trim((string) preg_replace('/<[^>]*>/', '', $raw));
 
         return $name === '' ? null : $name;
@@ -427,7 +430,7 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
      */
     private function authorEmail(array $commit): ?string
     {
-        $raw = isset($commit['author']['raw']) ? (string) $commit['author']['raw'] : '';
+        $raw = self::stringOr($commit['author']['raw'] ?? '');
 
         return preg_match('/<([^>]+)>/', $raw, $matches) === 1 ? $matches[1] : null;
     }
@@ -456,8 +459,8 @@ final readonly class BitbucketDriver implements DriverInterface, IssuesCapabilit
 
     private function client(ConnectionContext $context): PendingRequest
     {
-        $username = (string) ($context->credentials['username'] ?? '');
-        $token = (string) ($context->credentials['token'] ?? '');
+        $username = self::stringOr($context->credentials['username'] ?? '');
+        $token = self::stringOr($context->credentials['token'] ?? '');
 
         return Http::baseUrl((string) $context->baseUrl)
             ->acceptJson()

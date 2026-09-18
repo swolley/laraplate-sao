@@ -15,6 +15,7 @@ use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\NormalizedIssue;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -29,6 +30,8 @@ use Throwable;
  */
 final readonly class JiraDriver implements DriverInterface, IssuesCapability
 {
+    use ReadsExternalPayloads;
+
     private const int DEFAULT_PAGE_SIZE = 50;
 
     #[Override]
@@ -219,20 +222,20 @@ final readonly class JiraDriver implements DriverInterface, IssuesCapability
     {
         /** @var array<string, mixed> $fields */
         $fields = $issue['fields'] ?? [];
-        $key = isset($issue['key']) ? (string) $issue['key'] : null;
+        $key = self::stringOrNull($issue['key']);
         $base = $context->baseUrl();
 
         return new NormalizedIssue(
-            remoteId: (string) ($issue['id'] ?? ''),
-            title: (string) ($fields['summary'] ?? ''),
+            remoteId: self::stringOr($issue['id'] ?? ''),
+            title: self::stringOr($fields['summary'] ?? ''),
             key: $key,
             body: isset($fields['description']) && is_string($fields['description']) ? $fields['description'] : null,
             remoteStatus: $this->nestedName($fields, 'status'),
             remotePriority: $this->nestedName($fields, 'priority'),
             assignee: $this->assigneeName($fields),
             url: $base !== null && $key !== null ? mb_rtrim($base, '/') . "/browse/{$key}" : null,
-            createdAt: isset($fields['created']) ? (string) $fields['created'] : null,
-            updatedAt: isset($fields['updated']) ? (string) $fields['updated'] : null,
+            createdAt: self::stringOrNull($fields['created']),
+            updatedAt: self::stringOrNull($fields['updated']),
         );
     }
 
@@ -243,7 +246,7 @@ final readonly class JiraDriver implements DriverInterface, IssuesCapability
     {
         $value = $fields[$key] ?? null;
 
-        return is_array($value) && isset($value['name']) ? (string) $value['name'] : null;
+        return is_array($value) ? self::stringOrNull($value['name'] ?? null) : null;
     }
 
     /**
@@ -253,7 +256,7 @@ final readonly class JiraDriver implements DriverInterface, IssuesCapability
     {
         $assignee = $fields['assignee'] ?? null;
 
-        return is_array($assignee) && isset($assignee['displayName']) ? (string) $assignee['displayName'] : null;
+        return is_array($assignee) ? self::stringOrNull($assignee['displayName'] ?? null) : null;
     }
 
     private function pageSize(BindingContext $context): int
@@ -270,8 +273,8 @@ final readonly class JiraDriver implements DriverInterface, IssuesCapability
 
     private function client(ConnectionContext $context): PendingRequest
     {
-        $email = (string) ($context->credentials['email'] ?? '');
-        $token = (string) ($context->credentials['token'] ?? '');
+        $email = self::stringOr($context->credentials['email'] ?? '');
+        $token = self::stringOr($context->credentials['token'] ?? '');
 
         return Http::baseUrl((string) $context->baseUrl)
             ->acceptJson()

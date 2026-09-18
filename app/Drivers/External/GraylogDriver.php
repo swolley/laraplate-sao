@@ -12,6 +12,7 @@ use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -26,6 +27,8 @@ use Override;
  */
 final readonly class GraylogDriver implements DriverInterface, LogsCapability
 {
+    use ReadsExternalPayloads;
+
     private const string TOKEN_HEADER = 'x-graylog-token';
 
     #[Override]
@@ -63,7 +66,7 @@ final readonly class GraylogDriver implements DriverInterface, LogsCapability
     #[Override]
     public function healthCheck(ConnectionContext $context): HealthCheckResult
     {
-        $secret = (string) ($context->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->credentials['secret'] ?? '');
 
         return $secret === ''
             ? HealthCheckResult::unhealthy('No shared token configured for the Graylog connection.')
@@ -76,7 +79,7 @@ final readonly class GraylogDriver implements DriverInterface, LogsCapability
     #[Override]
     public function verifySignature(BindingContext $context, string $payload, array $headers): bool
     {
-        $secret = (string) ($context->connection->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->connection->credentials['secret'] ?? '');
 
         if ($secret === '') {
             return false;
@@ -93,7 +96,7 @@ final readonly class GraylogDriver implements DriverInterface, LogsCapability
         /** @var array<string, mixed> $decoded */
         $decoded = json_decode($payload, true) ?? [];
 
-        $title = $this->stringOrNull($decoded['event_definition_title'] ?? null);
+        $title = self::stringOrNull($decoded['event_definition_title'] ?? null);
 
         /** @var array<string, mixed> $event */
         $event = is_array($decoded['event'] ?? null) ? $decoded['event'] : [];
@@ -108,7 +111,7 @@ final readonly class GraylogDriver implements DriverInterface, LogsCapability
         $items = [];
 
         foreach ($rows as $row) {
-            $message = $this->stringOrNull($row['message'] ?? null) ?? $title;
+            $message = self::stringOrNull($row['message'] ?? null) ?? $title;
 
             if ($message === null || $message === '') {
                 continue;
@@ -117,9 +120,9 @@ final readonly class GraylogDriver implements DriverInterface, LogsCapability
             $items[] = [
                 'source' => $this->key(),
                 'message' => $message,
-                'level' => $this->stringOrNull($row['level'] ?? $event['priority'] ?? null),
-                'environment' => $this->stringOrNull($row['source'] ?? $event['source'] ?? null),
-                'occurred_at' => $this->stringOrNull($row['timestamp'] ?? $event['timestamp'] ?? null),
+                'level' => self::stringOrNull($row['level'] ?? $event['priority'] ?? null),
+                'environment' => self::stringOrNull($row['source'] ?? $event['source'] ?? null),
+                'occurred_at' => self::stringOrNull($row['timestamp'] ?? $event['timestamp'] ?? null),
                 'raw' => $row,
             ];
         }
@@ -147,12 +150,4 @@ final readonly class GraylogDriver implements DriverInterface, LogsCapability
         return null;
     }
 
-    private function stringOrNull(mixed $value): ?string
-    {
-        if (is_int($value) || is_float($value)) {
-            return (string) $value;
-        }
-
-        return is_string($value) && $value !== '' ? $value : null;
-    }
 }

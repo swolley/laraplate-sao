@@ -22,6 +22,7 @@ use Override;
  */
 final readonly class GlitchTipDriver implements DriverInterface, LogsCapability
 {
+
     use LogsDriverBoilerplate;
 
     #[Override]
@@ -61,7 +62,7 @@ final readonly class GlitchTipDriver implements DriverInterface, LogsCapability
         /** @var array<string, mixed> $event */
         $event = is_array($data['event'] ?? null) ? $data['event'] : [];
 
-        $nativeKey = (string) ($issue['id'] ?? '');
+        $nativeKey = self::stringOr($issue['id'] ?? '');
 
         if ($nativeKey === '') {
             return new Page([]);
@@ -71,11 +72,11 @@ final readonly class GlitchTipDriver implements DriverInterface, LogsCapability
             'native_key' => $nativeKey,
             'source' => $this->key(),
             'message' => (string) ($issue['title'] ?? $event['title'] ?? ''),
-            'level' => $this->stringOrNull($issue['level'] ?? $event['level'] ?? null),
-            'environment' => $this->stringOrNull($event['environment'] ?? null),
-            'culprit' => $this->stringOrNull($issue['culprit'] ?? null),
-            'url' => $this->stringOrNull($issue['web_url'] ?? $issue['url'] ?? null),
-            'occurred_at' => $this->stringOrNull($event['datetime'] ?? $issue['lastSeen'] ?? null),
+            'level' => self::stringOrNull($issue['level'] ?? $event['level'] ?? null),
+            'environment' => self::stringOrNull($event['environment'] ?? null),
+            'culprit' => self::stringOrNull($issue['culprit'] ?? null),
+            'url' => self::stringOrNull($issue['web_url'] ?? $issue['url'] ?? null),
+            'occurred_at' => self::stringOrNull($event['datetime'] ?? $issue['lastSeen'] ?? null),
             'raw' => $decoded,
         ]]);
     }

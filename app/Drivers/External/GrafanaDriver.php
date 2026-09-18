@@ -64,7 +64,7 @@ final readonly class GrafanaDriver implements DriverInterface, LogsCapability
             /** @var array<string, mixed> $annotations */
             $annotations = is_array($alert['annotations'] ?? null) ? $alert['annotations'] : [];
 
-            $message = $this->stringOrNull($annotations['summary'] ?? $annotations['description'] ?? $labels['alertname'] ?? null);
+            $message = self::stringOrNull($annotations['summary'] ?? $annotations['description'] ?? $labels['alertname'] ?? null);
 
             if ($message === null) {
                 continue;
@@ -73,9 +73,9 @@ final readonly class GrafanaDriver implements DriverInterface, LogsCapability
             $items[] = [
                 'source' => $this->key(),
                 'message' => $message,
-                'level' => $this->stringOrNull($labels['severity'] ?? null),
-                'environment' => $this->stringOrNull($labels['env'] ?? $labels['environment'] ?? null),
-                'url' => $this->stringOrNull($alert['generatorURL'] ?? null),
+                'level' => self::stringOrNull($labels['severity'] ?? null),
+                'environment' => self::stringOrNull($labels['env'] ?? $labels['environment'] ?? null),
+                'url' => self::stringOrNull($alert['generatorURL'] ?? null),
                 'raw' => $alert,
             ];
         }

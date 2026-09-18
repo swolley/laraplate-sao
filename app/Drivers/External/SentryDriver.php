@@ -12,6 +12,7 @@ use Modules\SAO\Drivers\Support\ConnectionContext;
 use Modules\SAO\Drivers\Support\DriverConfigurationSchema;
 use Modules\SAO\Drivers\Support\HealthCheckResult;
 use Modules\SAO\Drivers\Support\Page;
+use Modules\SAO\Drivers\Support\ReadsExternalPayloads;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestMode;
 use Override;
@@ -26,6 +27,8 @@ use Override;
  */
 final readonly class SentryDriver implements DriverInterface, LogsCapability
 {
+    use ReadsExternalPayloads;
+
     #[Override]
     public function key(): string
     {
@@ -61,7 +64,7 @@ final readonly class SentryDriver implements DriverInterface, LogsCapability
     #[Override]
     public function healthCheck(ConnectionContext $context): HealthCheckResult
     {
-        $secret = (string) ($context->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->credentials['secret'] ?? '');
 
         return $secret === ''
             ? HealthCheckResult::unhealthy('No signing secret configured for the Sentry connection.')
@@ -74,7 +77,7 @@ final readonly class SentryDriver implements DriverInterface, LogsCapability
     #[Override]
     public function verifySignature(BindingContext $context, string $payload, array $headers): bool
     {
-        $secret = (string) ($context->connection->credentials['secret'] ?? '');
+        $secret = self::stringOr($context->connection->credentials['secret'] ?? '');
 
         if ($secret === '') {
             return false;
@@ -114,11 +117,11 @@ final readonly class SentryDriver implements DriverInterface, LogsCapability
             'native_key' => $nativeKey,
             'source' => $this->key(),
             'message' => $this->message($issue, $event),
-            'level' => $this->stringOrNull($issue['level'] ?? $event['level'] ?? null),
-            'environment' => $this->stringOrNull($event['environment'] ?? null),
-            'culprit' => $this->stringOrNull($issue['culprit'] ?? $event['culprit'] ?? null),
-            'url' => $this->stringOrNull($issue['web_url'] ?? $issue['url'] ?? null),
-            'occurred_at' => $this->stringOrNull($event['datetime'] ?? $issue['lastSeen'] ?? null),
+            'level' => self::stringOrNull($issue['level'] ?? $event['level'] ?? null),
+            'environment' => self::stringOrNull($event['environment'] ?? null),
+            'culprit' => self::stringOrNull($issue['culprit'] ?? $event['culprit'] ?? null),
+            'url' => self::stringOrNull($issue['web_url'] ?? $issue['url'] ?? null),
+            'occurred_at' => self::stringOrNull($event['datetime'] ?? $issue['lastSeen'] ?? null),
             'raw' => $decoded,
         ]]);
     }
@@ -152,7 +155,12 @@ final readonly class SentryDriver implements DriverInterface, LogsCapability
         return null;
     }
 
-    private function stringOrNull(mixed $value): ?string
+    /**
+     * Deliberately stricter than ReadsExternalPayloads::stringOrNull(): Sentry sends
+     * numeric ids for other fields, and accepting them here would turn an issue number
+     * into a title. Static to match the trait it overrides, since callers use self::.
+     */
+    private static function stringOrNull(mixed $value): ?string
     {
         return is_string($value) && $value !== '' ? $value : null;
     }
