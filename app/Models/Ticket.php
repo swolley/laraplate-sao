@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Core\Contracts\IOptimisticLockableModel;
 use Modules\Core\Contracts\ISearchableModel;
 use Modules\Core\Helpers\HasMedia;
 use Modules\Core\Locking\Traits\HasOptimisticLocking;
@@ -32,7 +33,7 @@ use Override;
 use Overtrue\LaravelVersionable\VersionStrategy;
 use Spatie\MediaLibrary\HasMedia as MediaContract;
 
-final class Ticket extends Model implements ISearchableModel, MediaContract
+final class Ticket extends Model implements IOptimisticLockableModel, ISearchableModel, MediaContract
 {
     use HasMedia;
     use HasOptimisticLocking;
