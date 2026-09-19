@@ -38,4 +38,20 @@ final class ReleaseTagFactory extends Factory
             'kind' => ReleaseTagKind::Candidate,
         ]);
     }
+
+    public function alpha(): self
+    {
+        return $this->state(fn (): array => [
+            'tag' => 'v' . $this->faker->unique()->numerify('#.#.#') . '-alpha.1',
+            'kind' => ReleaseTagKind::Alpha,
+        ]);
+    }
+
+    public function beta(): self
+    {
+        return $this->state(fn (): array => [
+            'tag' => 'v' . $this->faker->unique()->numerify('#.#.#') . '-beta.1',
+            'kind' => ReleaseTagKind::Beta,
+        ]);
+    }
 }

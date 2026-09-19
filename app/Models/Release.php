@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ReleaseFactory;
 use Modules\SAO\Enums\ReleaseStatus;
+use Modules\SAO\Enums\ReleaseTagKind;
 use Modules\SAO\Enums\SAOTables;
 use Override;
 
@@ -67,6 +70,32 @@ final class Release extends Model
     public function ticketReleases(): HasMany
     {
         return $this->hasMany(TicketRelease::class);
+    }
+
+    /**
+     * The highest maturity among the release's tags, or `null` when it carries
+     * no tag. A tagless release (typically an `observed` one) has unknown
+     * maturity and can never be a resolution target.
+     */
+    public function effectiveMaturity(): ?ReleaseTagKind
+    {
+        return $this->tags
+            ->sortByDesc(static fn (ReleaseTag $tag): int => $tag->kind->precedence())
+            ->first()?->kind;
+    }
+
+    /**
+     * Curated releases only — those a maintainer has adopted. Excludes the
+     * `observed` versions auto-recorded from logs or entered by a reporter,
+     * which are hidden from version lists by default.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function curated(Builder $query): Builder
+    {
+        return $query->where('status', '!=', ReleaseStatus::Observed->value);
     }
 
     /**

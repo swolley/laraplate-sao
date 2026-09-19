@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Modules\SAO\Enums\CommentOrigin;
+use Modules\SAO\Enums\ReleaseStatus;
+use Modules\SAO\Enums\ReleaseTagKind;
 use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Enums\StatusCategory;
 use Modules\SAO\Enums\TicketPriority;
@@ -77,6 +79,26 @@ test('priorities are fixed and ordered from low to urgent', function (): void {
 
 test('comment origins distinguish humans from automation', function (): void {
     expect(CommentOrigin::values())->toBe(['human', 'system']);
+});
+
+test('release tag kinds are ordered by maturity precedence', function (): void {
+    expect(ReleaseTagKind::values())->toBe(['alpha', 'beta', 'candidate', 'stable']);
+
+    $sorted = collect(ReleaseTagKind::cases())
+        ->sortBy(fn (ReleaseTagKind $kind): int => $kind->precedence())
+        ->values()
+        ->all();
+
+    expect($sorted)->toBe([
+        ReleaseTagKind::Alpha,
+        ReleaseTagKind::Beta,
+        ReleaseTagKind::Candidate,
+        ReleaseTagKind::Stable,
+    ]);
+});
+
+test('release status carries the observed lifecycle stage', function (): void {
+    expect(ReleaseStatus::values())->toBe(['observed', 'announced', 'shipped']);
 });
 
 test('every enum exposes an in: validation rule', function (string $rule): void {

@@ -39,4 +39,12 @@ final class ReleaseFactory extends Factory
             'released_at' => now(),
         ]);
     }
+
+    public function observed(): self
+    {
+        return $this->state(fn (): array => [
+            'status' => ReleaseStatus::Observed,
+            'released_at' => null,
+        ]);
+    }
 }
