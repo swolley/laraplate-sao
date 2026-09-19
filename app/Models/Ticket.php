@@ -27,6 +27,7 @@ use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Enums\StatusCategory;
 use Modules\SAO\Enums\TicketPriority;
 use Modules\SAO\Enums\TicketRelationType;
+use Modules\SAO\Enums\TicketReleaseState;
 use Modules\SAO\Models\Pivot\TicketLabel;
 use Modules\SAO\Models\Pivot\TicketWatcher;
 use Override;
@@ -192,6 +193,18 @@ final class Ticket extends Model implements IOptimisticLockableModel, ISearchabl
         return $this->belongsToMany(Release::class, SAOTables::TicketReleases->value)
             ->withPivot('state')
             ->withTimestamps();
+    }
+
+    /**
+     * The release where the ticket's problem was detected, if attributed. Any
+     * maturity, including an uncurated `observed` version. Distinct from the
+     * releases the fix is promised or shipped to.
+     */
+    public function affectedRelease(): ?Release
+    {
+        return $this->releases()
+            ->wherePivot('state', TicketReleaseState::Affected->value)
+            ->first();
     }
 
     /**

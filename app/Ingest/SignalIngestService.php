@@ -8,6 +8,7 @@ use Modules\SAO\Enums\SignalState;
 use Modules\SAO\Models\Project;
 use Modules\SAO\Models\Signal;
 use Modules\SAO\Models\SignalOccurrence;
+use Modules\SAO\Services\VersionCensusService;
 
 /**
  * Turns a received error into a signal: it resolves the group key, opens the
@@ -17,7 +18,10 @@ use Modules\SAO\Models\SignalOccurrence;
  */
 final readonly class SignalIngestService
 {
-    public function __construct(private GroupKeyResolver $groupKeyResolver) {}
+    public function __construct(
+        private GroupKeyResolver $groupKeyResolver,
+        private VersionCensusService $versionCensus,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $payload
@@ -58,10 +62,17 @@ final readonly class SignalIngestService
         $signal->last_seen_at = now();
         $signal->save();
 
+        $census = $this->versionCensus->record(
+            $project->getKey(),
+            is_string($payload['version'] ?? null) ? $payload['version'] : null,
+        );
+
         SignalOccurrence::query()->create([
             'signal_id' => $signal->getKey(),
             'environment' => is_string($payload['environment'] ?? null) ? $payload['environment'] : null,
             'context' => is_array($payload['context'] ?? null) ? $payload['context'] : null,
+            'affected_version' => $census->affectedVersion,
+            'affected_release_id' => $census->release?->getKey(),
             'occurred_at' => now(),
         ]);
 

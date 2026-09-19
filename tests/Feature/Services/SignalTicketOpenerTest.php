@@ -6,8 +6,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\SAO\Enums\SignalOpenOutcome;
 use Modules\SAO\Enums\SignalState;
 use Modules\SAO\Enums\StatusCategory;
+use Modules\SAO\Enums\TicketReleaseState;
 use Modules\SAO\Models\Project;
+use Modules\SAO\Models\Release;
 use Modules\SAO\Models\Signal;
+use Modules\SAO\Models\SignalOccurrence;
 use Modules\SAO\Models\Ticket;
 use Modules\SAO\Models\TicketStatus;
 use Modules\SAO\Models\TicketType;
@@ -86,6 +89,39 @@ test('it does not open for an inactive project', function (): void {
 
     expect($result['outcome'])->toBe(SignalOpenOutcome::ProjectUnavailable)
         ->and(Ticket::query()->count())->toBe(0);
+});
+
+test('it attributes the ticket to the affected release detected on the signal', function (): void {
+    $project = signalOpenerProject();
+    $signal = Signal::factory()->create(['project_id' => $project->id, 'group_key' => 'db:timeout', 'occurrence_count' => 2]);
+    $release = Release::factory()->observed()->create(['project_id' => $project->id, 'version' => '1.4.0']);
+    SignalOccurrence::factory()->create([
+        'signal_id' => $signal->id,
+        'affected_version' => '1.4.0',
+        'affected_release_id' => $release->id,
+        'occurred_at' => now(),
+    ]);
+
+    $ticket = app(SignalTicketOpener::class)->open($signal)['ticket'];
+
+    expect($ticket->affectedRelease()?->getKey())->toBe($release->getKey())
+        ->and($ticket->releases()->wherePivot('state', TicketReleaseState::Affected->value)->count())->toBe(1);
+});
+
+test('it opens without an affected attribution when no occurrence was censused', function (): void {
+    $project = signalOpenerProject();
+    $signal = Signal::factory()->create(['project_id' => $project->id, 'group_key' => 'no:version', 'occurrence_count' => 1]);
+    SignalOccurrence::factory()->create([
+        'signal_id' => $signal->id,
+        'affected_version' => 'nightly',
+        'affected_release_id' => null,
+        'occurred_at' => now(),
+    ]);
+
+    $ticket = app(SignalTicketOpener::class)->open($signal)['ticket'];
+
+    expect($ticket->affectedRelease())->toBeNull()
+        ->and($ticket->releases()->count())->toBe(0);
 });
 
 test('the command opens eligible signals above the threshold and skips the rest', function (): void {

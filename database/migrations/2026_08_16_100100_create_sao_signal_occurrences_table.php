@@ -21,6 +21,11 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->string('environment')->nullable()->comment('The deployed environment the occurrence came from');
             $table->json('context')->nullable()->comment('Optional tenant/user/request context from the payload');
+            $table->string('affected_version')->nullable()->comment('The reporting software version detected in the payload, normalized; kept even when not censused');
+            $table->foreignId('affected_release_id')
+                ->nullable()
+                ->constrained(SAOTables::Releases->value, 'id', "{$table_name}_release_FK")
+                ->nullOnDelete();
             $table->timestamp('occurred_at')->nullable();
 
             MigrateUtils::timestamps($table, hasCreateUpdate: true, hasSoftDelete: true);

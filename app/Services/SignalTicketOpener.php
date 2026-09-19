@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\SAO\Services;
 
+use Modules\SAO\Attribution\TicketReleaseAttributor;
 use Modules\SAO\Data\ChangeContext;
 use Modules\SAO\Enums\SignalOpenOutcome;
+use Modules\SAO\Enums\TicketReleaseState;
 use Modules\SAO\Models\Project;
+use Modules\SAO\Models\Release;
 use Modules\SAO\Models\Signal;
 use Modules\SAO\Models\Ticket;
 use Modules\SAO\Models\TicketType;
@@ -27,7 +30,10 @@ final readonly class SignalTicketOpener
 {
     private const string SOURCE_KEY = 'signal';
 
-    public function __construct(private TicketCreationService $creation) {}
+    public function __construct(
+        private TicketCreationService $creation,
+        private TicketReleaseAttributor $attributor,
+    ) {}
 
     /**
      * @return array{outcome: SignalOpenOutcome, ticket: ?Ticket}
@@ -57,7 +63,26 @@ final readonly class SignalTicketOpener
 
         $signal->update(['ticket_id' => $ticket->getKey()]);
 
+        $this->attributeAffectedRelease($signal, $ticket);
+
         return $this->result(SignalOpenOutcome::Opened, $ticket);
+    }
+
+    /**
+     * Attributes the ticket to the release its problem was detected on, taken
+     * from the most recent censused occurrence at open time. Occurrences whose
+     * reported version was unnormalizable carry no release and are skipped.
+     */
+    private function attributeAffectedRelease(Signal $signal, Ticket $ticket): void
+    {
+        $release = $signal->occurrences()
+            ->whereNotNull('affected_release_id')
+            ->latest('occurred_at')
+            ->first()?->affectedRelease;
+
+        if ($release instanceof Release) {
+            $this->attributor->attach($ticket, $release, TicketReleaseState::Affected);
+        }
     }
 
     /**

@@ -8,6 +8,7 @@ use Modules\SAO\Enums\ReleaseTagKind;
 use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Enums\StatusCategory;
 use Modules\SAO\Enums\TicketPriority;
+use Modules\SAO\Enums\TicketReleaseState;
 
 test('every SAO table name is prefixed with sao_', function (): void {
     foreach (SAOTables::cases() as $case) {
@@ -99,6 +100,10 @@ test('release tag kinds are ordered by maturity precedence', function (): void {
 
 test('release status carries the observed lifecycle stage', function (): void {
     expect(ReleaseStatus::values())->toBe(['observed', 'announced', 'shipped']);
+});
+
+test('ticket release state carries the affected attribution', function (): void {
+    expect(TicketReleaseState::values())->toBe(['affected', 'promised', 'shipped']);
 });
 
 test('every enum exposes an in: validation rule', function (string $rule): void {

@@ -26,6 +26,8 @@ final class SignalOccurrence extends Model
         'signal_id',
         'environment',
         'context',
+        'affected_version',
+        'affected_release_id',
         'occurred_at',
     ];
 
@@ -41,6 +43,18 @@ final class SignalOccurrence extends Model
     public function signal(): BelongsTo
     {
         return $this->belongsTo(Signal::class);
+    }
+
+    /**
+     * The censused release for the detected version, when the version was
+     * normalizable and promoted to the census. Null keeps the raw string on
+     * {@see self::$affected_version} as an audit-only record.
+     *
+     * @return BelongsTo<Release, $this>
+     */
+    public function affectedRelease(): BelongsTo
+    {
+        return $this->belongsTo(Release::class, 'affected_release_id');
     }
 
     /**
@@ -60,6 +74,7 @@ final class SignalOccurrence extends Model
         return [
             'signal_id' => 'integer',
             'context' => 'array',
+            'affected_release_id' => 'integer',
             'occurred_at' => 'datetime',
         ];
     }
