@@ -16,7 +16,7 @@ uses(RefreshDatabase::class);
 
 /**
  * Builds a NeuronAI Document carrying the given embedding vector, the shape
- * IEmbeddingService::embedDocument() returns. Mirrors the helper in AI's
+ * IEmbeddingService::embedDocumentsBatch() returns per input text. Mirrors the helper in AI's
  * GenerateEmbeddingsPerLocaleTest.
  *
  * @param  list<float>  $vector
@@ -40,10 +40,10 @@ it('generates exactly one locale-null embedding row stamped with the active mode
     ]);
 
     $embedding_service = Mockery::mock(IEmbeddingService::class);
-    $embedding_service->shouldReceive('embedDocument')
+    $embedding_service->shouldReceive('embedDocumentsBatch')
         ->once()
-        ->with('Deploy failed on staging The pipeline went red after the last release.')
-        ->andReturn([ticketEmbeddingDocument([0.1, 0.2, 0.3])]);
+        ->with(['Deploy failed on staging The pipeline went red after the last release.'])
+        ->andReturn([[ticketEmbeddingDocument([0.1, 0.2, 0.3])]]);
 
     $job = new GenerateEmbeddingsJob($ticket);
     $job->handle($embedding_service);
