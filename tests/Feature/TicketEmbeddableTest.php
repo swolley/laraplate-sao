@@ -81,7 +81,7 @@ it('emits a single agnostic embeddings entry in the search document', function (
     // toSearchableArray() would never reach the embeddings branch. Register a fake engine
     // under a throwaway driver name instead, mirroring
     // SaoApplicationContentRetrievalProviderTest's `sao-application-content-test` pattern.
-    Config::set('search.vector_search.enabled', true);
+    Config::set('core.search.vector.enabled', true);
     $engine = Mockery::mock(ISearchEngine::class);
     $engine->shouldReceive('supportsVectorSearch')->andReturnTrue();
     app(EngineManager::class)->extend('ticket-embeddable-test', static fn () => $engine);
@@ -106,6 +106,6 @@ it('declares embeddings as a nested vector field in the search mapping, uncondit
 
     expect($properties['embeddings']['type'])->toBe('nested')
         ->and($properties['embeddings']['properties']['vector']['type'])->toBe('dense_vector')
-        ->and($properties['embeddings']['properties']['vector']['dims'])->toBe((int) config('search.vector.dimensions', 384))
+        ->and($properties['embeddings']['properties']['vector']['dims'])->toBe((int) config('core.search.vector.dimensions', 384))
         ->and($properties['title']['type'])->toBe('text');
 });

@@ -429,7 +429,7 @@ final class Ticket extends Model implements IOptimisticLockableModel, ISearchabl
         }
 
         $schema->addField(new FieldDefinition('embeddings', FieldType::Array, [IndexType::Searchable, IndexType::Vector], [
-            'vector' => ['dimensions' => (int) config('search.vector.dimensions', 384), 'similarity' => config('search.vector.similarity', 'cosine')],
+            'vector' => ['dimensions' => (int) config('core.search.vector.dimensions', 384), 'similarity' => config('core.search.vector.similarity', 'cosine')],
         ]));
 
         return $this->getSearchMappingTrait($schema);
