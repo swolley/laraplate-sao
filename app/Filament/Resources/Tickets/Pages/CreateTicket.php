@@ -6,6 +6,7 @@ namespace Modules\SAO\Filament\Resources\Tickets\Pages;
 
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Core\Filament\Utils\HasCloseOrCancelFormAction;
 use Modules\SAO\Data\ChangeContext;
 use Modules\SAO\Filament\Resources\Tickets\TicketResource;
 use Modules\SAO\Models\Project;
@@ -15,6 +16,8 @@ use Override;
 
 final class CreateTicket extends CreateRecord
 {
+    use HasCloseOrCancelFormAction;
+
     #[Override]
     protected static string $resource = TicketResource::class;
 
