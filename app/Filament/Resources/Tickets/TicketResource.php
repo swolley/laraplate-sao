@@ -12,6 +12,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Modules\Core\Filament\RelationManagers\MediaRelationManager;
 use Modules\SAO\Filament\Resources\Tickets\Pages\CreateTicket;
 use Modules\SAO\Filament\Resources\Tickets\Pages\EditTicket;
 use Modules\SAO\Filament\Resources\Tickets\Pages\ListTickets;
@@ -76,6 +77,7 @@ final class TicketResource extends Resource
     {
         return [
             RelationsRelationManager::class,
+            MediaRelationManager::class,
         ];
     }
 

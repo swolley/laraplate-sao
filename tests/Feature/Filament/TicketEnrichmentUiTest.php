@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Filament\RelationManagers\MediaRelationManager;
 use Modules\SAO\Filament\Resources\Tickets\RelationManagers\RelationsRelationManager;
 use Modules\SAO\Filament\Resources\Tickets\TicketResource;
 
@@ -28,6 +29,10 @@ test('the ticket table shows due date and labels with filters', function (): voi
     expect($table)->toContain("TextColumn::make('due_at')")
         ->and($table)->toContain("TextColumn::make('labels.name')")
         ->and($table)->toContain('overdue');
+});
+
+test('the resource registers the media curation relation manager', function (): void {
+    expect(TicketResource::getRelations())->toContain(MediaRelationManager::class);
 });
 
 test('the resource registers the relations manager', function (): void {
