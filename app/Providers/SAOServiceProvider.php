@@ -12,6 +12,7 @@ use Modules\Core\Import\Support\EntityImporterRegistry;
 use Modules\Core\Logging\Fingerprint\Fingerprinter;
 use Modules\Core\Logging\Fingerprint\FingerprintNormalizer;
 use Modules\Core\Overrides\ModuleServiceProvider;
+use Modules\Core\Search\OwnerAuthorizerRegistry;
 use Modules\Core\Services\Crud\DomainActionRegistry;
 use Modules\SAO\ApplicationContent\SaoApplicationContentRetrievalProvider;
 use Modules\SAO\Contracts\SuggestionPhraser;
@@ -27,6 +28,7 @@ use Modules\SAO\Policies\SaoModelPolicy;
 use Modules\SAO\Services\AiSuggestionPhraser;
 use Modules\SAO\Services\DomainActions\SaoDomainActionRegistrar;
 use Modules\SAO\Services\EventTextGenerator;
+use Modules\SAO\Services\TicketOwnerAuthorizer;
 use Nwidart\Modules\Facades\Module;
 use Override;
 
@@ -94,6 +96,10 @@ final class SAOServiceProvider extends ModuleServiceProvider
         $this->app
             ->make(ApplicationContentRetrievalProviderRegistryInterface::class)
             ->register($this->app->make(SaoApplicationContentRetrievalProvider::class));
+
+        $this->app
+            ->make(OwnerAuthorizerRegistry::class)
+            ->register($this->app->make(TicketOwnerAuthorizer::class));
 
         foreach ($this->policyModels() as $model) {
             Gate::policy($model, SaoModelPolicy::class);
