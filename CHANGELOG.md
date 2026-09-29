@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-09-29
+
+### 🚀 Features
+
+- *(filament)* Attach media curation relation manager to Ticket (media analysis Task 13b, M22)
+
 ## [1.3.0] - 2026-09-29
 
 ### 🚀 Features
