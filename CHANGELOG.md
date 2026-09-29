@@ -2,6 +2,51 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-09-29
+
+### 🚀 Features
+
+- *(sao)* Version maturity census — tag kinds and observed status
+- *(sao)* Affected version — provenance, occurrence record and stable-only resolution
+- *(sao)* Create and edit pages say Close until something is unsaved
+- *(search)* Media attached to a ticket follow the ticket's visibility (M16)
+
+### 🐛 Bug Fixes
+
+- *(sao)* Mock embedDocumentsBatch in TicketEmbeddableTest
+- *(sao)* Releases are created before the signal occurrences that reference them
+- *(readme)* Update logo size and add PHP version badge
+
+### 🚜 Refactor
+
+- *(migrations)* Fold column/index/enum alters into their create migrations
+- *(models)* Drop the IdeHelper mixins, declare the activation contract
+- *(models)* Declare the search contract on Ticket
+- Narrow findOrFail to a single record with whereKey()->firstOrFail()
+- Give the domain action handlers and Filament pages their real types
+- *(sao)* Read external driver payloads through one typed helper
+- *(sao)* Read vector settings from core.search.vector.*
+
+### 📚 Documentation
+
+- *(rag)* Describe how the module is released from the application
+- *(sao)* Affected version & version-maturity census
+
+### ⚡ Performance
+
+- *(migrations)* Index all foreign-key and row-scoping columns
+
+### 🧪 Testing
+
+- *(migrations)* Assert the permission vocabulary, not the patch that fixed it
+
+### ⚙️ Miscellaneous Tasks
+
+- Rimuove docblock ide-helper generati dai model
+- Add @mixin annotations for IDE helper in model classes
+- Drop the import left unused by the handler retyping
+- *(sao)* Ticket declares IOptimisticLockableModel
+
 ## [1.2.0] - 2026-09-15
 
 ### 🚀 Features
