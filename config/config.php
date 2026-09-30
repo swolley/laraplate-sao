@@ -9,7 +9,7 @@ return [
     // code, a connection is a configured instance of it. Register a driver by
     // listing its class here, or from any service provider's boot() via
     // app(DriverRegistry::class)->register(...) — adding a provider never
-    // requires editing SAO. No concrete external driver ships yet.
+    // requires editing SAO. The drivers bundled with SAO are listed in `registered` below.
     //
     // Secrets live on the connection (encrypted, write-only) or an env
     // credential_ref; product-behaviour configuration (thresholds, policy

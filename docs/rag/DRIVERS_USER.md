@@ -9,14 +9,14 @@ SAO is a complete standalone tracker on its own. Connecting it to external syste
 
 ## What exists today
 
-The connection framework exists, but **no external connector is available yet** — the first one arrives in a later release. Right now SAO works as a self-contained ticketing system with no connection configured, exactly as before.
+The connection framework and a set of bundled connectors are available. SAO ships drivers for issue trackers (Redmine, Jira, YouTrack, Linear, Azure DevOps, Gitea), code hosts that also serve issues and releases (GitHub, GitLab, Bitbucket), log and error sources (Sentry, Graylog, GlitchTip, Rollbar, Bugsnag, Honeybadger, Grafana, Datadog, Elastic, Better Stack), and deployment and code-event sources (webhook and GitHub drivers). None of them is required: with no connection configured SAO works as a self-contained ticketing system, exactly as before.
 
-## How connections will work
+## How connections work
 
-When connectors arrive, a superadmin will add a connection from the panel: pick the driver, fill in the form the driver describes (endpoints and any credentials), and use a **test** button to check reachability. A few things are true by design:
+A superadmin adds a connection from the panel: pick the driver, fill in the form the driver describes (endpoints and any credentials), and use a **test** button to check reachability. A few things are true by design:
 
 - **Your secrets stay secret.** A connection's credential is stored encrypted and is **write-only** — once saved it is never shown back on screen; you replace it rather than read it. Alternatively an administrator can point a connection at a credential kept in the server environment, so it can be rotated without touching the panel at all.
 - **One connection, many capabilities.** A single connection can offer several capabilities at once (for instance a code host that also serves issues and releases). You only enable the capabilities you actually want that connection to expose.
 - **Status names are yours to map.** Because every installation names its statuses differently, SAO maps an external status onto its own canonical meaning through a small, editable table with sensible defaults — never a fixed guess.
 
-You do not need to configure anything to use SAO today; these options simply appear as the driver waves ship.
+You do not need to configure anything to use SAO; connections are optional.
