@@ -11,7 +11,7 @@
         "observability",
         "laraplate"
     ],
-    "priority": 99,
+    "priority": 10,
     "providers": [
         "Modules\\SAO\\Providers\\SAOServiceProvider"
     ],
