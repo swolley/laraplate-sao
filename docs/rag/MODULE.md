@@ -27,7 +27,7 @@ It ingests already-selected events from third-party systems, correlates them to 
 
 With no connection configured, SAO is a complete standalone ticketing system. Version control systems, log sources and external issue trackers are optional, independently switchable integrations provided by drivers.
 
-The roadmap is delivered in slices; the internal ticketing core is complete and the integration layer is not yet started.
+The roadmap is delivered in slices: the ticketing core, the driver framework with its bundled connectors, ingest and the later slices marked done in the Roadmap are in place.
 
 ## Installation
 
@@ -68,9 +68,9 @@ Configuration file: `Modules/SAO/config/config.php`.
 
 ## Current Status
 
-Slice 1a — the internal ticketing core — is implemented. SAO is usable as a
-standalone tracker with **no connection to any external system**, because none
-exists yet.
+Slice 1a — the internal ticketing core — is implemented, and so are the later slices
+marked done in the Roadmap. SAO is usable as a standalone tracker with **no connection
+to any external system**: connections are optional and provided by drivers.
 
 -   Projects with an immutable key prefix and per-project ticket keys (`SAO-123`),
     allocated under a row lock
@@ -100,8 +100,7 @@ exists yet.
     occurrences relation manager
 
 Not yet present: HTML5 drag-and-drop on the board (needs an approved kanban
-package; moves are action-based today), and every form of external integration
-beyond the phase 3a/3b foundation.
+package; moves are action-based today).
 
 ## How it works (developer)
 

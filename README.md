@@ -35,7 +35,7 @@ It ingests already-selected events from third-party systems, correlates them to 
 
 With no connection configured, SAO is a complete standalone ticketing system. Version control systems, log sources and external issue trackers are optional, independently switchable integrations provided by drivers.
 
-The roadmap is delivered in slices; the internal ticketing core is complete and the integration layer is not yet started.
+The roadmap is delivered in slices: the ticketing core, the driver framework with its bundled connectors, ingest and the later slices marked done in the Roadmap are in place.
 
 ## Installation
 
@@ -162,9 +162,9 @@ php artisan sao:tracker:import "Acme Jira" --project="Web" --scope=open --cutove
 
 ## Current Status
 
-Slice 1a — the internal ticketing core — is implemented. SAO is usable as a
-standalone tracker with **no connection to any external system**, because none
-exists yet.
+Slice 1a — the internal ticketing core — is implemented, and so are the later slices
+marked done in the Roadmap. SAO is usable as a standalone tracker with **no connection
+to any external system**: connections are optional and provided by drivers.
 
 -   Projects with an immutable key prefix and per-project ticket keys (`SAO-123`),
     allocated under a row lock
@@ -177,14 +177,24 @@ exists yet.
     for one project alone
 -   Tickets with optimistic locking, comments distinguishing people from
     automation, and a timeline merging comments with Core's version history
+-   Ticket enrichment (1b): due dates (with `overdue`/`dueWithin` scopes),
+    project-scoped labels, watchers (record-only), attachments on the Core-owned
+    media library, typed ticket-to-ticket relations (blocks/duplicates/relates),
+    and advanced search with saved filters
 -   Authorization entirely Laraplate's: permissions through `PermissionName`, and
     row-level visibility through Core's ACL filters — an ACL restricting the view
     permission to one project hides the others, with no mechanism of SAO's own
--   Filament surfaces for projects, statuses, types, workflow schemes and tickets,
-    exposed in the admin panel through `Modules\SAO\Filament\SAOPlugin`
+-   A per-project board (1c): tickets in status-ordered columns, moved through
+    the workflow-allowed transitions — a read model over `visible()`, no new table
+-   Filament surfaces for projects, statuses, types, workflow schemes, tickets
+    (with the 1b enrichment: due date, labels, watchers, attachments, relations
+    manager, table filters), the board page, a Connection resource (write-only
+    credential), a project Integrations relation manager for bindings, and a
+    Signal resource (state-editable, machine fields read-only) with a read-only
+    occurrences relation manager
 
-Not yet present: labels, watchers, attachments, due dates, ticket relations and
-the board (slices 1b and 1c), and every form of external integration.
+Not yet present: HTML5 drag-and-drop on the board (needs an approved kanban
+package; moves are action-based today).
 
 ## Roadmap
 
