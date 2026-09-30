@@ -97,7 +97,13 @@ to any external system**: connections are optional and provided by drivers.
     manager, table filters), the board page, a Connection resource (write-only
     credential), a project Integrations relation manager for bindings, and a
     Signal resource (state-editable, machine fields read-only) with a read-only
-    occurrences relation manager
+    occurrences relation manager. Filament is the configuration, monitoring and
+    maintenance backoffice, not where tickets are worked: the ticket view page shows
+    type and status by name, the timeline read-only, and the workflow-allowed
+    transitions for fixing a stuck ticket; the list filters by status category,
+    priority, label and overdue. Commenting and picking a saved filter are features
+    of the SAO application in `laraplate-ui`, built on `TicketComment::postFor()` and
+    `SavedFilter`
 
 Not yet present: HTML5 drag-and-drop on the board (needs an approved kanban
 package; moves are action-based today).

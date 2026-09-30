@@ -8,16 +8,12 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
-use Illuminate\Support\Collection;
 use Modules\SAO\Data\ChangeContext;
-use Modules\SAO\Data\TimelineEntry;
 use Modules\SAO\Exceptions\TransitionNotAllowedException;
 use Modules\SAO\Filament\Resources\Tickets\TicketResource;
 use Modules\SAO\Models\Ticket;
-use Modules\SAO\Models\TicketComment;
 use Modules\SAO\Models\TicketStatus;
 use Modules\SAO\Models\WorkflowTransition;
-use Modules\SAO\Services\TicketTimelineService;
 use Modules\SAO\Services\WorkflowService;
 use Override;
 use RuntimeException;
@@ -26,27 +22,6 @@ final class ViewTicket extends ViewRecord
 {
     #[Override]
     protected static string $resource = TicketResource::class;
-
-    public function postComment(string $body): void
-    {
-        $user = auth()->user();
-
-        if ($user === null) {
-            return;
-        }
-
-        TicketComment::postFor($this->ticket(), $body, ChangeContext::forUser($user));
-    }
-
-    /**
-     * The merged history of the ticket, for the page to render.
-     *
-     * @return Collection<int, TimelineEntry>
-     */
-    public function timeline(): Collection
-    {
-        return app(TicketTimelineService::class)->for($this->ticket());
-    }
 
     /**
      * The page asks which moves are legal; it never works them out itself. The

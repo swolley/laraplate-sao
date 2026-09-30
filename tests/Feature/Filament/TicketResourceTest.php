@@ -2,10 +2,19 @@
 
 declare(strict_types=1);
 
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Modules\Core\Models\Role;
+use Modules\Core\Models\User;
+use Modules\SAO\Data\ChangeContext;
+use Modules\SAO\Enums\StatusCategory;
+use Modules\SAO\Filament\Resources\Tickets\Pages\ListTickets;
 use Modules\SAO\Filament\Resources\Tickets\Pages\ViewTicket;
 use Modules\SAO\Filament\Resources\Tickets\TicketResource;
 use Modules\SAO\Models\Ticket;
+use Modules\SAO\Models\TicketComment;
+use Modules\SAO\Models\TicketStatus;
 
 uses(RefreshDatabase::class);
 
@@ -47,4 +56,51 @@ test('the view page asks the workflow service which transitions to offer', funct
     expect($source)->toContain('WorkflowService');
     expect($source)->toContain('availableTransitions');
     expect(class_exists(ViewTicket::class))->toBeTrue();
+});
+
+/**
+ * The backoffice shows a ticket for support and maintenance: its type and status by name and its
+ * history read-only. Working the ticket, commenting included, belongs to the SAO application.
+ */
+function ticketPanelSuperadmin(): User
+{
+    if (! class_exists(App\Models\User::class)) {
+        class_alias(User::class, App\Models\User::class);
+    }
+
+    $superadmin = App\Models\User::query()->create(User::factory()->raw());
+    $superadmin->assignRole(Role::findOrCreate(config('permission.roles.superadmin'), 'web'));
+
+    return $superadmin;
+}
+
+test('the ticket list filters by status category', function (): void {
+    $open = Ticket::factory()->create(['ticket_status_id' => TicketStatus::factory()->category(StatusCategory::Open)]);
+    $closed = Ticket::factory()->create(['ticket_status_id' => TicketStatus::factory()->category(StatusCategory::Closed)]);
+    $this->actingAs(ticketPanelSuperadmin());
+    Filament::setCurrentPanel('admin');
+
+    Livewire::test(ListTickets::class)
+        ->loadTable()
+        ->assertCanSeeTableRecords([$open, $closed])
+        ->filterTable('status_category', StatusCategory::Closed->value)
+        ->assertCanSeeTableRecords([$closed])
+        ->assertCanNotSeeTableRecords([$open]);
+});
+
+test('the view page shows the ticket by name and its timeline read-only', function (): void {
+    $superadmin = ticketPanelSuperadmin();
+    $ticket = Ticket::factory()->create();
+    TicketComment::postFor($ticket, 'Looking into it.', ChangeContext::forUser($superadmin));
+
+    $this->actingAs($superadmin);
+    Filament::setCurrentPanel('admin');
+
+    Livewire::test(ViewTicket::class, ['record' => $ticket->getKey()])
+        ->assertSee($ticket->type->name)
+        ->assertSee($ticket->status->name)
+        ->assertSee('Looking into it.')
+        ->assertDontSee('postComment');
+
+    expect(method_exists(ViewTicket::class, 'postComment'))->toBeFalse();
 });

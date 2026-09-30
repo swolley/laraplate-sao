@@ -11,6 +11,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Modules\Core\Filament\Utils\HasTable;
+use Modules\SAO\Enums\StatusCategory;
 use Modules\SAO\Enums\TicketPriority;
 
 final class TicketsTable
@@ -61,6 +62,14 @@ final class TicketsTable
             },
             filters: static function (Collection $default_filters): void {
                 $default_filters->push(
+                    // By category rather than by status name, so the filter means the same thing
+                    // across projects that name their statuses differently.
+                    SelectFilter::make('status_category')
+                        ->label('Status category')
+                        ->options(StatusCategory::class)
+                        ->query(static fn (Builder $query, array $data): Builder => blank($data['value'] ?? null)
+                            ? $query
+                            : $query->whereHas('status', static fn (Builder $status): Builder => $status->where('category', $data['value']))),
                     SelectFilter::make('priority')
                         ->options(TicketPriority::class),
                     SelectFilter::make('labels')
