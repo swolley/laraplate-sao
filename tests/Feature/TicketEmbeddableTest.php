@@ -5,56 +5,13 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Laravel\Scout\EngineManager;
-use Modules\AI\Ai\Embeddings\EmbeddingModelRegistry;
-use Modules\AI\Contracts\IEmbeddingService;
-use Modules\AI\Jobs\GenerateEmbeddingsJob;
 use Modules\Core\Search\Contracts\ISearchEngine;
 use Modules\SAO\Models\Ticket;
-use NeuronAI\RAG\Document;
 
 uses(RefreshDatabase::class);
 
-/**
- * Builds a NeuronAI Document carrying the given embedding vector, the shape
- * IEmbeddingService::embedDocumentsBatch() returns per input text. Mirrors the helper in AI's
- * GenerateEmbeddingsPerLocaleTest.
- *
- * @param  list<float>  $vector
- */
-function ticketEmbeddingDocument(array $vector): Document
-{
-    $document = new Document('');
-    $document->embedding = $vector;
-
-    return $document;
-}
-
 it('declares title and description as the embeddable fields', function (): void {
     expect((new Ticket())->getEmbedFields())->toBe(['title', 'description']);
-});
-
-it('generates exactly one locale-null embedding row stamped with the active model key', function (): void {
-    $ticket = Ticket::factory()->create([
-        'title' => 'Deploy failed on staging',
-        'description' => 'The pipeline went red after the last release.',
-    ]);
-
-    $embedding_service = Mockery::mock(IEmbeddingService::class);
-    $embedding_service->shouldReceive('embedDocumentsBatch')
-        ->once()
-        ->with(['Deploy failed on staging The pipeline went red after the last release.'])
-        ->andReturn([[ticketEmbeddingDocument([0.1, 0.2, 0.3])]]);
-
-    $job = new GenerateEmbeddingsJob($ticket);
-    $job->handle($embedding_service);
-
-    $rows = $ticket->embeddings()->get();
-    $expected_key = app(EmbeddingModelRegistry::class)->active()->key;
-
-    expect($rows)->toHaveCount(1)
-        ->and($rows->first()->locale)->toBeNull()
-        ->and($rows->first()->model_key)->toBe($expected_key)
-        ->and($rows->first()->embedding)->toBe([0.1, 0.2, 0.3]);
 });
 
 it('emits a single agnostic embeddings entry in the search document', function (): void {
@@ -66,15 +23,14 @@ it('emits a single agnostic embeddings entry in the search document', function (
         'description' => 'The pipeline went red after the last release.',
     ]);
 
-    // Ticket is now embeddable, so saving it for real already ran the app's default
-    // (local, non-HTTP) embedding pipeline synchronously (QUEUE_CONNECTION=sync in
-    // phpunit.xml). Replace whatever it produced with one deterministic row so this
-    // test asserts the document shape, not that pipeline's own output.
+    // Saving an embeddable ticket may have run whatever embedding pipeline the application
+    // has installed (SAO does not depend on one). Replace anything it produced with one
+    // deterministic row so this test asserts the document shape, not that pipeline's output.
     $ticket->embeddings()->delete();
     $ticket->embeddings()->create([
         'embedding' => [0.1, 0.2, 0.3],
         'locale' => null,
-        'model_key' => app(EmbeddingModelRegistry::class)->active()->key,
+        'model_key' => 'test-embedding-model',
     ]);
 
     // The suite's default 'collection' Scout driver does not implement ISearchEngine, so
