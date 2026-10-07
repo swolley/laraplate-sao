@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-10-07
+
+### 🚀 Features
+
+- *(sao)* The ticket backoffice page reads the ticket, working it stays in the app
+- *(sao)* Domain interface labels in lang/{locale}/sao.php
+
+### 📚 Documentation
+
+- *(sao)* Describe the bundled external drivers as available
+- *(sao)* Status statements match what is delivered
+
+### 🧪 Testing
+
+- *(sao)* End-to-end redmine issue sync in a configurable direction
+- *(sao)* Tuning profile regression gate on the application content baseline
+- *(sao)* Keep the ticket embedding test free of the AI module
+- *(sao)* Test the ticket provider over its dataset without the AI module
+
+### ⚙️ Miscellaneous Tasks
+
+- *(sao)* Module priority 10, first tier after Core
+
 ## [1.4.0] - 2026-09-29
 
 ### 🚀 Features
