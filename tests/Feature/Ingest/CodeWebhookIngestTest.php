@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Support\CrudApiExposure;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\ChangeRefRelation;
 use Modules\SAO\Models\ChangeRef;
@@ -13,6 +14,10 @@ use Modules\SAO\Models\ProjectBinding;
 use Modules\SAO\Models\Ticket;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    CrudApiExposure::enable();
+});
 
 function sao_code_connection(string $secret = 'shared'): Connection
 {

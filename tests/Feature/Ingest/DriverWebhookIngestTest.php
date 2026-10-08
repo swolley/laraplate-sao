@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Core\Support\CrudApiExposure;
 use Modules\SAO\Enums\Capability;
 use Modules\SAO\Enums\IngestStatus;
 use Modules\SAO\Models\Connection;
@@ -13,6 +14,10 @@ use Modules\SAO\Models\Signal;
 use Modules\SAO\Models\SignalOccurrence;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    CrudApiExposure::enable();
+});
 
 /**
  * @param  list<Capability>  $capabilities
