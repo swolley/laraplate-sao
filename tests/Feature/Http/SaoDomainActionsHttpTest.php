@@ -256,7 +256,7 @@ test('a user without the permission is refused', function (): void {
             'id' => $ticket->id,
             'to_status_id' => $doing->id,
         ])
-        ->assertUnauthorized();
+        ->assertForbidden();
 
     expect($ticket->fresh()->ticket_status_id)->toBe($ticket->ticket_status_id);
 });
