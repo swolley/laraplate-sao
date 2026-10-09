@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\SignalOccurrenceFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -16,7 +17,7 @@ use Override;
  * from and optional payload context. Kept with configurable retention — needed
  * for "recurring for three days" and closure evidence, not forever.
  */
-final class SignalOccurrence extends Model
+final class SignalOccurrence extends Model implements IsPartOfParent
 {
     /**
      * @var list<string>
@@ -36,6 +37,15 @@ final class SignalOccurrence extends Model
      */
     #[Override]
     protected $table = SAOTables::SignalOccurrences->value;
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'signal';
+    }
 
     /**
      * @return BelongsTo<Signal, $this>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Enums\SyncOutcome;
@@ -15,7 +16,7 @@ use Override;
  * retry with the same binding, ticket and content is recognised and skipped
  * rather than producing a second remote write.
  */
-final class SyncOperation extends Model
+final class SyncOperation extends Model implements IsPartOfParent
 {
     /**
      * @var list<string>
@@ -32,6 +33,15 @@ final class SyncOperation extends Model
      */
     #[Override]
     protected $table = SAOTables::SyncOperations->value;
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'binding';
+    }
 
     /**
      * @return BelongsTo<ProjectBinding, $this>

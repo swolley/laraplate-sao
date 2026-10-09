@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\TicketLinkFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -15,7 +16,7 @@ use Override;
  * Links a SAO ticket to its counterpart in an external tracker. A ticket with no
  * link is internal; SAO remains authoritative for internal tickets.
  */
-final class TicketLink extends Model
+final class TicketLink extends Model implements IsPartOfParent
 {
     /**
      * @var list<string>
@@ -35,6 +36,15 @@ final class TicketLink extends Model
      */
     #[Override]
     protected $table = SAOTables::TicketLinks->value;
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'ticket';
+    }
 
     /**
      * @return BelongsTo<Ticket, $this>

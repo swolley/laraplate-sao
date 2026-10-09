@@ -7,6 +7,7 @@ namespace Modules\SAO\Models;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\LabelFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -17,7 +18,7 @@ use Override;
  * A label is project-scoped: the same name may exist in different projects but
  * is unique within one.
  */
-final class Label extends Model
+final class Label extends Model implements IsPartOfParent
 {
     /**
      * @var array<string, mixed>
@@ -63,6 +64,15 @@ final class Label extends Model
         ]);
 
         return $rules;
+    }
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'project';
     }
 
     /**

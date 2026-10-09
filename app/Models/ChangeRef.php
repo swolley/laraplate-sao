@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ChangeRefFactory;
 use Modules\SAO\Enums\ChangeRefRelation;
@@ -20,7 +21,7 @@ use Override;
  * ticket, recording the source that produced it. It is the raw material of
  * code-to-work correlation (commit → ticket) built in phase 6.
  */
-final class ChangeRef extends Model
+final class ChangeRef extends Model implements IsPartOfParent
 {
     /**
      * @var list<string>
@@ -43,6 +44,15 @@ final class ChangeRef extends Model
      */
     #[Override]
     protected $table = SAOTables::ChangeRefs->value;
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'ticket';
+    }
 
     /**
      * @return BelongsTo<Ticket, $this>

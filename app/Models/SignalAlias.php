@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\SignalAliasFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -16,7 +17,7 @@ use Override;
  * lets the fingerprint algorithm evolve without splitting history: when a key
  * format changes, the old key is aliased to the signal it used to open.
  */
-final class SignalAlias extends Model
+final class SignalAlias extends Model implements IsPartOfParent
 {
     /**
      * @var array<string, mixed>
@@ -41,6 +42,15 @@ final class SignalAlias extends Model
      */
     #[Override]
     protected $table = SAOTables::SignalAliases->value;
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'signal';
+    }
 
     /**
      * @return BelongsTo<Signal, $this>

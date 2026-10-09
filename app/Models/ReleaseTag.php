@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ReleaseTagFactory;
 use Modules\SAO\Enums\ReleaseTagKind;
@@ -16,7 +17,7 @@ use Override;
  * A concrete VCS tag realizing a {@see Release}. A `stable` tag makes the
  * release shippable; a `candidate` keeps a testable reference for staging.
  */
-final class ReleaseTag extends Model
+final class ReleaseTag extends Model implements IsPartOfParent
 {
     /**
      * @var list<string>
@@ -33,6 +34,15 @@ final class ReleaseTag extends Model
      */
     #[Override]
     protected $table = SAOTables::ReleaseTags->value;
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'release';
+    }
 
     /**
      * @return BelongsTo<Release, $this>

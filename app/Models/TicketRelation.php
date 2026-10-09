@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\TicketRelationFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -17,7 +18,7 @@ use Override;
  * A typed link from one ticket to another. Direction is carried by
  * source/target; the meaning of the direction comes from {@see TicketRelationType}.
  */
-final class TicketRelation extends Model
+final class TicketRelation extends Model implements IsPartOfParent
 {
     /**
      * @var list<string>
@@ -52,6 +53,15 @@ final class TicketRelation extends Model
         ]);
 
         return $rules;
+    }
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'source';
     }
 
     /**

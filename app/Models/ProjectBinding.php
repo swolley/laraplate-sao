@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ProjectBindingFactory;
 use Modules\SAO\Drivers\Support\BindingContext;
@@ -21,7 +22,7 @@ use Override;
  * it targets and the binding-scoped configuration (sync direction, status and
  * priority maps). Multiple bindings of the same family are allowed.
  */
-final class ProjectBinding extends Model
+final class ProjectBinding extends Model implements IsPartOfParent
 {
     /**
      * @var list<string>
@@ -43,6 +44,15 @@ final class ProjectBinding extends Model
      */
     #[Override]
     protected $table = SAOTables::ProjectBindings->value;
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'project';
+    }
 
     /**
      * @return BelongsTo<Project, $this>

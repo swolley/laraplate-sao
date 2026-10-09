@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\TicketReleaseFactory;
 use Modules\SAO\Enums\SAOTables;
@@ -18,7 +19,7 @@ use Override;
  * ticket's own workflow status: a fix can be shipped in a release while its
  * ticket is still open, and vice versa.
  */
-final class TicketRelease extends Model
+final class TicketRelease extends Model implements IsPartOfParent
 {
     /**
      * @var list<string>
@@ -42,6 +43,15 @@ final class TicketRelease extends Model
     public function release(): BelongsTo
     {
         return $this->belongsTo(Release::class);
+    }
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'ticket';
     }
 
     /**

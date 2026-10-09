@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Enums\CoreTables;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\WorkflowTransitionFactory;
@@ -16,7 +17,7 @@ use Override;
  * One permitted move within a scheme. A null `from_status_id` is the creation
  * transition, which is how a scheme declares the status a new ticket starts in.
  */
-final class WorkflowTransition extends Model
+final class WorkflowTransition extends Model implements IsPartOfParent
 {
     /**
      * @var list<string>
@@ -72,6 +73,15 @@ final class WorkflowTransition extends Model
     public function isInitial(): bool
     {
         return $this->from_status_id === null;
+    }
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'scheme';
     }
 
     /**

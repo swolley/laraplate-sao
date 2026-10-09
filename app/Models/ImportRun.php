@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Database\Factories\ImportRunFactory;
 use Modules\SAO\Enums\ImportRunStatus;
@@ -21,7 +22,7 @@ use Override;
  * instead of restarting. The run flips to {@see ImportRunStatus::Completed} only
  * when the page walk is exhausted.
  */
-final class ImportRun extends Model
+final class ImportRun extends Model implements IsPartOfParent
 {
     /**
      * @var array<string, mixed>
@@ -63,6 +64,15 @@ final class ImportRun extends Model
      */
     #[Override]
     protected $table = SAOTables::ImportRuns->value;
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'binding';
+    }
 
     /**
      * @return BelongsTo<ProjectBinding, $this>

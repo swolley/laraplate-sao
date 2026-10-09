@@ -6,6 +6,7 @@ namespace Modules\SAO\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Modules\SAO\Data\ChangeContext;
@@ -15,7 +16,7 @@ use Modules\SAO\Enums\SAOTables;
 use Modules\SAO\Exceptions\ImmutableSystemCommentException;
 use Override;
 
-final class TicketComment extends Model
+final class TicketComment extends Model implements IsPartOfParent
 {
     /**
      * Mirrors the migration default so a new instance reports what it will hold
@@ -93,6 +94,15 @@ final class TicketComment extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'ticket';
     }
 
     /**
