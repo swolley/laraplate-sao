@@ -29,6 +29,7 @@ use Modules\Core\Services\AclResolverService;
 use Modules\Core\Services\Authorization\AuthorizationService;
 use Modules\Core\Services\Crud\QueryBuilder;
 use Modules\Core\Support\PermissionName;
+use Modules\Core\Tests\Stubs\Search\FixedSearchStrategyResolver;
 use Modules\SAO\ApplicationContent\SaoApplicationContentRetrievalProvider;
 use Modules\SAO\ApplicationContent\SaoTicketEvidenceProjector;
 use Modules\SAO\Database\Seeders\SAOPermissionSeeder;
@@ -110,8 +111,7 @@ function sao_retrieval_provider_with_hits(array $hits, array $meta = []): SaoApp
     ));
 
     $search = new AdvancedSearchService(
-        new SimpleQueryIntentParser,
-        new FallbackSearchPlanner,
+        new FixedSearchStrategyResolver(planner: new FallbackSearchPlanner, intent_parser: new SimpleQueryIntentParser),
         $ensemble,
         app(),
     );
