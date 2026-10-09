@@ -7,7 +7,7 @@ use Modules\SAO\Models\OwnershipSuggestion;
 
 test('the ownership suggestion resource is bound to its model under the SAO group', function (): void {
     expect(OwnershipSuggestionResource::getModel())->toBe(OwnershipSuggestion::class)
-        ->and(OwnershipSuggestionResource::getNavigationGroup())->toBe('SAO')
+        ->and(OwnershipSuggestionResource::getNavigationGroup())->toBe('SAO - Governance')
         ->and(OwnershipSuggestionResource::getSlug())->toStartWith('sao/');
 });
 

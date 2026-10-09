@@ -24,9 +24,9 @@ test('the ticket resource is bound to the ticket and titled by its key', functio
 });
 
 test('the ticket resource sits in the SAO group above the configuration entities', function (): void {
-    expect(TicketResource::getNavigationGroup())->toBe('SAO');
+    expect(TicketResource::getNavigationGroup())->toBe('SAO - Ticketing');
     expect(TicketResource::getSlug())->toBe('sao/tickets');
-    expect(TicketResource::getNavigationSort())->toBe(5);
+    expect(TicketResource::getNavigationSort())->toBe(20);
 });
 
 /**

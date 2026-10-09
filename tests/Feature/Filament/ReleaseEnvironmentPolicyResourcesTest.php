@@ -18,7 +18,7 @@ test('each phase 5b/6 resource is bound to its model', function (string $resourc
 ]);
 
 test('each phase 5b/6 resource is grouped under SAO with a sao-prefixed slug', function (string $resource): void {
-    expect($resource::getNavigationGroup())->toBe('SAO')
+    expect($resource::getNavigationGroup())->toStartWith('SAO - ')
         ->and($resource::getSlug())->toStartWith('sao/');
 })->with([
     ReleaseResource::class,

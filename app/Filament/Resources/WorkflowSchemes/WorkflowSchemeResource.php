@@ -27,10 +27,10 @@ final class WorkflowSchemeResource extends Resource
     protected static ?string $model = WorkflowScheme::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Ticketing';
 
     #[Override]
-    protected static ?int $navigationSort = 40;
+    protected static ?int $navigationSort = 50;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

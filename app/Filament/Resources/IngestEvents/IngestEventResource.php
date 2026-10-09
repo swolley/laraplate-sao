@@ -31,10 +31,10 @@ final class IngestEventResource extends Resource
     protected static ?string $model = IngestEvent::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Signals';
 
     #[Override]
-    protected static ?int $navigationSort = 65;
+    protected static ?int $navigationSort = 30;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInboxArrowDown;
 

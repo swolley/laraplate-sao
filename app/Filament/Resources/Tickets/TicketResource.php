@@ -31,10 +31,10 @@ final class TicketResource extends Resource
     protected static ?string $model = Ticket::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Ticketing';
 
     #[Override]
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 20;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

@@ -11,6 +11,7 @@ use Filament\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
+use Modules\Core\Filament\Utils\HasPageForm;
 use Modules\Core\Support\PermissionName;
 use Modules\SAO\Data\BoardColumn;
 use Modules\SAO\Data\ChangeContext;
@@ -23,7 +24,6 @@ use Modules\SAO\Services\TicketQueryService;
 use Modules\SAO\Services\WorkflowService;
 use Override;
 use UnitEnum;
-use Modules\Core\Filament\Utils\HasPageForm;
 
 /**
  * The per-project board. Columns and cards are a read model over
@@ -49,10 +49,10 @@ final class TicketBoard extends Page
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedViewColumns;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Ticketing';
 
     #[Override]
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 10;
 
     #[Override]
     protected static ?string $navigationLabel = 'Board';

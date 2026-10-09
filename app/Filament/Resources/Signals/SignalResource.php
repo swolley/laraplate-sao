@@ -26,10 +26,10 @@ final class SignalResource extends Resource
     protected static ?string $model = Signal::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Signals';
 
     #[Override]
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 10;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBellAlert;
 

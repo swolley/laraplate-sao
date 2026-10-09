@@ -27,10 +27,10 @@ final class ReleaseResource extends Resource
     protected static ?string $model = Release::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Delivery';
 
     #[Override]
-    protected static ?int $navigationSort = 60;
+    protected static ?int $navigationSort = 40;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 

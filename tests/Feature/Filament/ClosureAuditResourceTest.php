@@ -7,7 +7,7 @@ use Modules\SAO\Models\ClosureAudit;
 
 test('the closure audit resource is bound to its model under the SAO group', function (): void {
     expect(ClosureAuditResource::getModel())->toBe(ClosureAudit::class)
-        ->and(ClosureAuditResource::getNavigationGroup())->toBe('SAO')
+        ->and(ClosureAuditResource::getNavigationGroup())->toBe('SAO - Governance')
         ->and(ClosureAuditResource::getSlug())->toStartWith('sao/');
 });
 

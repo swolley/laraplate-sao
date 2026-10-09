@@ -26,10 +26,10 @@ final class EnvironmentResource extends Resource
     protected static ?string $model = Environment::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Delivery';
 
     #[Override]
-    protected static ?int $navigationSort = 61;
+    protected static ?int $navigationSort = 20;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedServerStack;
 

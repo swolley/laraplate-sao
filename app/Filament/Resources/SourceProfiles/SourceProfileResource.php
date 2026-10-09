@@ -33,10 +33,10 @@ final class SourceProfileResource extends Resource
     protected static ?string $model = SourceProfile::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Signals';
 
     #[Override]
-    protected static ?int $navigationSort = 66;
+    protected static ?int $navigationSort = 40;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFunnel;
 

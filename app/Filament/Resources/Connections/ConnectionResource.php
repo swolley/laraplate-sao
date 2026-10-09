@@ -26,7 +26,7 @@ final class ConnectionResource extends Resource
     protected static ?string $model = Connection::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Signals';
 
     #[Override]
     protected static ?int $navigationSort = 20;

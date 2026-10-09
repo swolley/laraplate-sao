@@ -16,7 +16,7 @@ function sao_signal_source(string $relativePath): string
 
 test('the signal resource is bound to the signal in the SAO group', function (): void {
     expect(SignalResource::getModel())->toBe(Signal::class)
-        ->and(SignalResource::getNavigationGroup())->toBe('SAO')
+        ->and(SignalResource::getNavigationGroup())->toBe('SAO - Signals')
         ->and(SignalResource::getSlug())->toBe('sao/signals')
         ->and(SignalResource::getRecordTitleAttribute())->toBe('group_key');
 });

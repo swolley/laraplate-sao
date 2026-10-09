@@ -31,10 +31,10 @@ final class OwnershipSuggestionResource extends Resource
     protected static ?string $model = OwnershipSuggestion::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Governance';
 
     #[Override]
-    protected static ?int $navigationSort = 64;
+    protected static ?int $navigationSort = 30;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserCircle;
 

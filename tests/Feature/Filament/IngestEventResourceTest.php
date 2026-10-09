@@ -12,7 +12,7 @@ function sao_ingest_event_source(string $relativePath): string
 
 test('the ingest event resource is bound to its model under the SAO group', function (): void {
     expect(IngestEventResource::getModel())->toBe(IngestEvent::class)
-        ->and(IngestEventResource::getNavigationGroup())->toBe('SAO')
+        ->and(IngestEventResource::getNavigationGroup())->toBe('SAO - Signals')
         ->and(IngestEventResource::getSlug())->toStartWith('sao/');
 });
 

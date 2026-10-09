@@ -21,7 +21,7 @@ test('each configuration resource is bound to its model', function (string $reso
 ]);
 
 test('every SAO resource is grouped under SAO in the navigation', function (string $resource): void {
-    expect($resource::getNavigationGroup())->toBe('SAO');
+    expect($resource::getNavigationGroup())->toStartWith('SAO - ');
 })->with([
     ProjectResource::class,
     TicketStatusResource::class,

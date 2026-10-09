@@ -30,10 +30,10 @@ final class ClosureAuditResource extends Resource
     protected static ?string $model = ClosureAudit::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Governance';
 
     #[Override]
-    protected static ?int $navigationSort = 63;
+    protected static ?int $navigationSort = 10;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 

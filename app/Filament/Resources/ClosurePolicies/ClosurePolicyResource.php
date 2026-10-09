@@ -26,10 +26,10 @@ final class ClosurePolicyResource extends Resource
     protected static ?string $model = ClosurePolicy::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Governance';
 
     #[Override]
-    protected static ?int $navigationSort = 62;
+    protected static ?int $navigationSort = 20;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 

@@ -12,7 +12,7 @@ function sao_source_profile_source(string $relativePath): string
 
 test('the source profile resource is bound to its model under the SAO group', function (): void {
     expect(SourceProfileResource::getModel())->toBe(SourceProfile::class)
-        ->and(SourceProfileResource::getNavigationGroup())->toBe('SAO')
+        ->and(SourceProfileResource::getNavigationGroup())->toBe('SAO - Signals')
         ->and(SourceProfileResource::getSlug())->toStartWith('sao/');
 });
 

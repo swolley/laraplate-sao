@@ -15,7 +15,7 @@ function sao_connection_source(string $relativePath): string
 
 test('the connection resource is bound to the connection in the SAO group', function (): void {
     expect(ConnectionResource::getModel())->toBe(Connection::class)
-        ->and(ConnectionResource::getNavigationGroup())->toBe('SAO')
+        ->and(ConnectionResource::getNavigationGroup())->toBe('SAO - Signals')
         ->and(ConnectionResource::getSlug())->toBe('sao/connections')
         ->and(ConnectionResource::getRecordTitleAttribute())->toBe('name');
 });

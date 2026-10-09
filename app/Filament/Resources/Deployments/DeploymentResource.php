@@ -32,10 +32,10 @@ final class DeploymentResource extends Resource
     protected static ?string $model = Deployment::class;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'SAO';
+    protected static string|UnitEnum|null $navigationGroup = 'SAO - Delivery';
 
     #[Override]
-    protected static ?int $navigationSort = 66;
+    protected static ?int $navigationSort = 10;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRocketLaunch;
 
